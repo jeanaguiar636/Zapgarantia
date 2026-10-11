@@ -233,13 +233,23 @@
             // Armazena no LocalStorage do navegador
             localStorage.setItem(contractId, JSON.stringify(contractData));
 
-            // Link com hash
+            // Gera o link limpo
             const baseUrl = window.location.origin + window.location.pathname;
             const fullLink = `${baseUrl}#c=${contractId}`;
 
             document.getElementById('shareLinkOutput').value = fullLink;
-            const msg = `Olá ${clientName}, segue o Termo de Garantia e Recibo do serviço realizado. Por favor, acesse o link para conferir e assinar: ${fullLink}`;
-            document.getElementById('whatsappShareBtn').href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+
+            // Texto formatado para o WhatsApp
+            const textoWhatsApp = `Olá ${clientName}! Segue o seu Termo de Garantia e Recibo do serviço realizado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
+
+            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoWhatsApp)}`;
+            
+            const btnWa = document.getElementById('whatsappShareBtn');
+            btnWa.href = whatsappUrl;
+            btnWa.onclick = function() {
+                window.open(whatsappUrl, '_blank');
+                return false;
+            };
 
             document.getElementById('shareModal').classList.remove('hidden');
         });
