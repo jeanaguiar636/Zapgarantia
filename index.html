@@ -6,7 +6,7 @@
     <title>ZapGarantia - Contratos e Conclusão de Serviços</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
+    <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -164,10 +164,11 @@
                         <div id="completionPhotoPreview" class="flex gap-2 mt-3 overflow-x-auto pb-1"></div>
                     </div>
 
-                    <!-- Link do Vídeo de Teste/Entrega (R2) -->
+                    <!-- Vídeo no R2 -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Link do Vídeo do Serviço Concluído (Cloudflare R2)</label>
-                        <input type="url" id="completionVideoLink" placeholder="https://seu-bucket-r2.cloudflarestorage.com/video-entrega.mp4" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Vídeo do Serviço Concluído (Upload direto para o R2)</label>
+                        <input type="file" id="completionVideoFile" accept="video/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                        <span class="text-[10px] text-slate-400 mt-1 block">Selecione o vídeo do teste final para salvar no Cloudflare R2.</span>
                     </div>
 
                     <button type="submit" id="btnSubmitComplete" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition shadow-md shadow-emerald-600/20 text-sm flex items-center justify-center space-x-2">
@@ -322,16 +323,30 @@
         ZapGarantia &bull; Supabase + Cloudflare R2
     </footer>
 
-    <!-- LÓGICA DO SUPABASE -->
+    <!-- LÓGICA DO SUPABASE + CLOUDFLARE R2 -->
     <script>
         const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
+        const WORKER_R2_URL = "https://zapgarantia.bmlimp8.workers.dev";
 
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let selectedPhotos = [];
-        let selectedCompletionPhotos = [];
+        let selectedPhotosFiles = [];
+        let selectedCompletionPhotosFiles = [];
+
+        // Função utilitária para enviar arquivo ao Cloudflare R2 via Worker
+        async function uploadToR2(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            const response = await fetch(`${WORKER_R2_URL}/upload`, {
+                method: "POST",
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Erro no upload para R2");
+            return data.url;
+        }
 
         function goHome() {
             window.location.hash = '';
@@ -346,23 +361,20 @@
 
         async function checkLimitAndOpenCreator() {
             const isPro = localStorage.getItem('zg_pro_active') === 'true';
-            
             if (!isPro) {
                 const { count, error } = await _supabase
                     .from('contracts')
                     .select('*', { count: 'exact', head: true });
-
                 if (!error && count >= 2) {
                     showUpgradeModal();
                     return;
                 }
             }
-
             showCreator();
         }
 
         function showCreator() {
-            selectedPhotos = [];
+            selectedPhotosFiles = [];
             document.getElementById('photoPreviewContainer').innerHTML = '';
             document.getElementById('contractForm').reset();
             document.getElementById('view-dashboard').classList.add('hidden');
@@ -461,7 +473,7 @@
 
         function openCompleteForm(id) {
             document.getElementById('completeContractId').value = id;
-            selectedCompletionPhotos = [];
+            selectedCompletionPhotosFiles = [];
             document.getElementById('completionPhotoPreview').innerHTML = '';
             document.getElementById('completeForm').reset();
             document.getElementById('view-dashboard').classList.add('hidden');
@@ -475,14 +487,14 @@
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
         }
 
-        // Fotos Iniciais
+        // Seleção de Fotos Iniciais
         document.getElementById('servicePhotos').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
             const previewContainer = document.getElementById('photoPreviewContainer');
             files.forEach(file => {
+                selectedPhotosFiles.push(file);
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    selectedPhotos.push(event.target.result);
                     const div = document.createElement('div');
                     div.className = "relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 shrink-0";
                     div.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover">`;
@@ -492,14 +504,14 @@
             });
         });
 
-        // Fotos do Depois
+        // Seleção de Fotos do Depois
         document.getElementById('completionPhotos').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
             const previewContainer = document.getElementById('completionPhotoPreview');
             files.forEach(file => {
+                selectedCompletionPhotosFiles.push(file);
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    selectedCompletionPhotos.push(event.target.result);
                     const div = document.createElement('div');
                     div.className = "relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 shrink-0";
                     div.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover">`;
@@ -509,89 +521,115 @@
             });
         });
 
-        // Criar Serviço
+        // Criar Serviço com Upload no R2
         document.getElementById('contractForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const submitBtn = document.getElementById('btnSubmitForm');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> A guardar na nuvem...';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando mídias para Cloudflare R2...';
 
-            const clientName = document.getElementById('clientName').value;
-            const serviceValue = document.getElementById('serviceValue').value;
-            const warrantyPeriod = document.getElementById('warrantyPeriod').value;
-            const serviceDesc = document.getElementById('serviceDesc').value;
-            const contractId = 'zg-' + Math.random().toString(36).substring(2, 8);
+            try {
+                // Upload das fotos no R2
+                const uploadedPhotoUrls = [];
+                for (const file of selectedPhotosFiles) {
+                    const url = await uploadToR2(file);
+                    uploadedPhotoUrls.push(url);
+                }
 
-            const payload = {
-                id: contractId,
-                client_name: clientName,
-                service_value: serviceValue,
-                warranty_period: warrantyPeriod,
-                service_desc: serviceDesc,
-                photos: selectedPhotos,
-                status: 'Pendente',
-                completion_status: 'Em Andamento'
-            };
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Salvando no Supabase...';
 
-            const { error } = await _supabase.from('contracts').insert([payload]);
+                const clientName = document.getElementById('clientName').value;
+                const serviceValue = document.getElementById('serviceValue').value;
+                const warrantyPeriod = document.getElementById('warrantyPeriod').value;
+                const serviceDesc = document.getElementById('serviceDesc').value;
+                const contractId = 'zg-' + Math.random().toString(36).substring(2, 8);
 
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-brands fa-whatsapp text-lg mr-2"></i> Gerar Termo e Enviar no WhatsApp';
+                const payload = {
+                    id: contractId,
+                    client_name: clientName,
+                    service_value: serviceValue,
+                    warranty_period: warrantyPeriod,
+                    service_desc: serviceDesc,
+                    photos: uploadedPhotoUrls,
+                    status: 'Pendente',
+                    completion_status: 'Em Andamento'
+                };
 
-            if (error) {
-                alert('Erro ao guardar na nuvem: ' + error.message);
-                return;
+                const { error } = await _supabase.from('contracts').insert([payload]);
+
+                if (error) throw new Error(error.message);
+
+                const baseUrl = window.location.origin + window.location.pathname.replace('#','');
+                const fullLink = `${baseUrl}#c=${contractId}`;
+
+                document.getElementById('shareLinkOutput').value = fullLink;
+
+                const textoWhatsApp = `Olá ${clientName}! Segue o seu Termo de Garantia e Recibo do serviço executado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoWhatsApp)}`;
+                
+                const btnWa = document.getElementById('whatsappShareBtn');
+                btnWa.href = whatsappUrl;
+                btnWa.onclick = function() {
+                    window.open(whatsappUrl, '_blank');
+                    return false;
+                };
+
+                document.getElementById('shareModal').classList.remove('hidden');
+            } catch (err) {
+                alert('Erro ao salvar serviço: ' + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-brands fa-whatsapp text-lg mr-2"></i> Gerar Termo e Enviar no WhatsApp';
             }
-
-            const baseUrl = window.location.origin + window.location.pathname.replace('#','');
-            const fullLink = `${baseUrl}#c=${contractId}`;
-
-            document.getElementById('shareLinkOutput').value = fullLink;
-
-            const textoWhatsApp = `Olá ${clientName}! Segue o seu Termo de Garantia e Recibo do serviço executado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
-            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoWhatsApp)}`;
-            
-            const btnWa = document.getElementById('whatsappShareBtn');
-            btnWa.href = whatsappUrl;
-            btnWa.onclick = function() {
-                window.open(whatsappUrl, '_blank');
-                return false;
-            };
-
-            document.getElementById('shareModal').classList.remove('hidden');
         });
 
-        // Enviar Finalização de Serviço
+        // Enviar Finalização de Serviço com Upload de Mídias para R2
         document.getElementById('completeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const btn = document.getElementById('btnSubmitComplete');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> A atualizar conclusão...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando entrega para o R2...';
 
-            const contractId = document.getElementById('completeContractId').value;
-            const videoLink = document.getElementById('completionVideoLink').value;
+            try {
+                const contractId = document.getElementById('completeContractId').value;
+                
+                // Upload Fotos da Conclusão
+                const uploadedCompletionPhotoUrls = [];
+                for (const file of selectedCompletionPhotosFiles) {
+                    const url = await uploadToR2(file);
+                    uploadedCompletionPhotoUrls.push(url);
+                }
 
-            const { error } = await _supabase
-                .from('contracts')
-                .update({
-                    completion_status: 'Concluído',
-                    completion_photos: selectedCompletionPhotos,
-                    completion_video_link: videoLink || null
-                })
-                .eq('id', contractId);
+                // Upload Vídeo se selecionado
+                let videoUrl = null;
+                const videoFileInput = document.getElementById('completionVideoFile');
+                if (videoFileInput.files.length > 0) {
+                    videoUrl = await uploadToR2(videoFileInput.files[0]);
+                }
 
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-flag-checkered text-lg mr-2"></i> Marcar Como Finalizado e Atualizar Link';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Atualizando no Supabase...';
 
-            if (error) {
-                alert('Erro ao atualizar: ' + error.message);
-                return;
+                const { error } = await _supabase
+                    .from('contracts')
+                    .update({
+                        completion_status: 'Concluído',
+                        completion_photos: uploadedCompletionPhotoUrls,
+                        completion_video_link: videoUrl
+                    })
+                    .eq('id', contractId);
+
+                if (error) throw new Error(error.message);
+
+                alert('Serviço finalizado com sucesso! As mídias da entrega estão salvas no R2 e disponíveis para o cliente.');
+                goHome();
+            } catch (err) {
+                alert('Erro ao finalizar serviço: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-flag-checkered text-lg mr-2"></i> Marcar Como Finalizado e Atualizar Link';
             }
-
-            alert('Serviço finalizado com sucesso! O mesmo link enviado ao cliente agora exibirá as fotos de entrega e o vídeo.');
-            goHome();
         });
 
         document.getElementById('btnCopyLink').addEventListener('click', function() {
@@ -639,9 +677,9 @@
                     document.getElementById('clientPhotosWrapper').classList.remove('hidden');
                     const photosContainer = document.getElementById('displayPhotos');
                     photosContainer.innerHTML = '';
-                    data.photos.forEach(imgBase64 => {
+                    data.photos.forEach(imgUrl => {
                         const img = document.createElement('img');
-                        img.src = imgBase64;
+                        img.src = imgUrl;
                         img.className = "w-full h-20 object-cover rounded-lg border border-slate-200 shadow-xs";
                         photosContainer.appendChild(img);
                     });
@@ -657,9 +695,9 @@
                         document.getElementById('completionPhotosWrapper').classList.remove('hidden');
                         const container = document.getElementById('displayCompletionPhotos');
                         container.innerHTML = '';
-                        data.completion_photos.forEach(imgBase64 => {
+                        data.completion_photos.forEach(imgUrl => {
                             const img = document.createElement('img');
-                            img.src = imgBase64;
+                            img.src = imgUrl;
                             img.className = "w-full h-20 object-cover rounded-lg border border-emerald-200 shadow-xs";
                             container.appendChild(img);
                         });
