@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZapGarantia - Contratos e Conclusão de Serviços</title>
+    <title>ZapGarantia - Contratos, Mídias e Conclusão de Serviços</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf.js para exportar o PDF perfeitamente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         @media print {
@@ -45,7 +47,7 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <h1 class="text-lg font-bold text-slate-900">Meus Atendimentos</h1>
-                        <p class="text-xs text-slate-500 mt-0.5">Histórico seguro na nuvem.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Histórico seguro na nuvem & Mídias no R2.</p>
                     </div>
                     <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md shadow-blue-500/20 flex items-center space-x-1.5">
                         <i class="fa-solid fa-plus text-sm"></i>
@@ -57,7 +59,7 @@
                 <div id="planBanner" class="bg-blue-50 border border-blue-100 p-3.5 rounded-xl flex items-center justify-between">
                     <div>
                         <p class="text-xs font-bold text-blue-900" id="planTitle">Plano Gratuito: 2 documentos disponíveis</p>
-                        <p class="text-[11px] text-blue-700 mt-0.5">Faça upgrade para documentos ilimitados.</p>
+                        <p class="text-[11px] text-blue-700 mt-0.5">Faça upgrade para emissões ilimitadas.</p>
                     </div>
                     <button onclick="showUpgradeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow-xs shrink-0">
                         Assinar R$ 12/mês
@@ -79,7 +81,7 @@
                 <div class="flex justify-between items-center mb-5">
                     <div>
                         <h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1>
-                        <p class="text-xs text-slate-500 mt-1">Preencha os dados e anexe as mídias do início do serviço.</p>
+                        <p class="text-xs text-slate-500 mt-1">Preencha os dados, anexe fotos e grave áudio de explicação.</p>
                     </div>
                     <button onclick="goHome()" class="text-xs text-slate-400 hover:text-slate-600 font-medium">
                         <i class="fa-solid fa-arrow-left mr-1"></i> Voltar
@@ -114,14 +116,27 @@
                         <textarea id="serviceDesc" rows="3" required placeholder="Ex: Instalação de disjuntores e fiação do ar-condicionado." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"></textarea>
                     </div>
 
+                    <!-- Gravação de Áudio Opcional -->
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Áudio Explicativo do Serviço (Opcional)</label>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" id="btnRecordAudio" onclick="toggleAudioRecording()" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-microphone"></i>
+                                <span id="recordAudioText">Gravar Áudio</span>
+                            </button>
+                            <span id="audioStatus" class="text-xs text-slate-500">Nenhum áudio gravado</span>
+                        </div>
+                        <audio id="audioPlayback" controls class="w-full hidden mt-2 h-9"></audio>
+                    </div>
+
                     <!-- Fotos do Início (Antes) -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Fotos do Início / Local (Câmara / Galeria)</label>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Fotos do Início / Local</label>
                         <label class="border-2 border-dashed border-blue-200 bg-blue-50/40 hover:bg-blue-50 rounded-xl p-4 text-center cursor-pointer block transition">
                             <input type="file" id="servicePhotos" accept="image/*" capture="environment" multiple class="hidden">
                             <div class="flex flex-col items-center pointer-events-none">
                                 <i class="fa-solid fa-camera text-blue-600 text-xl mb-1"></i>
-                                <span class="text-xs font-bold text-blue-900">Fotos do "Antes"</span>
+                                <span class="text-xs font-bold text-blue-900">Tirar Fotos do "Antes"</span>
                             </div>
                         </label>
                         <div id="photoPreviewContainer" class="flex gap-2 mt-3 overflow-x-auto pb-1"></div>
@@ -141,7 +156,7 @@
                 <div class="flex justify-between items-center mb-5">
                     <div>
                         <h1 class="text-xl font-bold text-slate-900">Finalizar Serviço / Entregar Obra</h1>
-                        <p class="text-xs text-slate-500 mt-1">Anexe as fotos da obra pronta e o vídeo de teste no R2.</p>
+                        <p class="text-xs text-slate-500 mt-1">Anexe as fotos finais e o vídeo demonstrativo para o R2.</p>
                     </div>
                     <button onclick="goHome()" class="text-xs text-slate-400 hover:text-slate-600 font-medium">
                         <i class="fa-solid fa-arrow-left mr-1"></i> Voltar
@@ -176,16 +191,16 @@
             </div>
         </div>
 
-        <!-- ================= TELA 2: VISUALIZAÇÃO E ACEITE DO CLIENTE ================= -->
+        <!-- ================= TELA 2: VISUALIZAÇÃO E ACEITE DO CLIENTE (ÁREA DE IMPRESSÃO / PDF) ================= -->
         <div id="view-client" class="hidden space-y-5">
-            <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
+            <div id="pdfPrintableArea" class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
                 <div class="text-center pb-4 border-b border-slate-100">
                     <span id="badgeStatus" class="bg-blue-100 text-blue-800 text-[11px] font-bold px-3 py-1 rounded-full inline-block mb-2">Aguardando Validação</span>
                     <h2 class="text-lg font-bold text-slate-900" id="displayClientTitle">Termo de Garantia de Serviço</h2>
                     <p class="text-[11px] text-slate-400 mt-1">Cód. Validação: <span id="displayContractId" class="font-mono font-semibold text-slate-600">---</span></p>
                 </div>
 
-                <div class="space-y-4 text-sm mt-4">
+                <div class="space-y-4 text-sm">
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                         <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Serviço Combinado</span>
                         <p id="displayDesc" class="text-slate-700 font-medium mt-0.5 leading-relaxed">---</p>
@@ -202,11 +217,19 @@
                         </div>
                     </div>
 
+                    <!-- SECÇÃO DE ÁUDIO DO PROFISSIONAL -->
+                    <div id="audioClientSection" class="hidden bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">
+                        <span class="text-[10px] font-bold text-blue-900 block uppercase tracking-wider mb-2"><i class="fa-solid fa-volume-high mr-1"></i> Áudio Explicativo do Profissional</span>
+                        <audio id="displayAudioPlayer" controls class="w-full h-8"></audio>
+                    </div>
+
+                    <!-- FOTOS DO INÍCIO (EMBUTIDAS NO PDF) -->
                     <div id="clientPhotosWrapper" class="hidden pt-1">
                         <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-2">Registo Fotográfico Inicial (Antes)</span>
                         <div id="displayPhotos" class="grid grid-cols-3 gap-2"></div>
                     </div>
 
+                    <!-- SECÇÃO DE CONCLUSÃO (FOTOS DEPOIS + VÍDEO R2) -->
                     <div id="completionClientSection" class="hidden border-t border-emerald-100 pt-4 mt-4 space-y-3">
                         <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl">
                             <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider block">Serviço Finalizado pelo Profissional!</span>
@@ -250,15 +273,19 @@
                     </div>
                     <h3 class="font-bold text-emerald-900 text-base">Garantia & Recebimento Ativos!</h3>
                     <p class="text-xs text-emerald-700 leading-relaxed" id="signedDetails">Assinado digitalmente.</p>
-                    <button onclick="window.print()" class="mt-3 text-xs bg-white text-emerald-800 border border-emerald-300 px-4 py-2 rounded-lg font-semibold hover:bg-emerald-100 transition shadow-xs inline-flex items-center space-x-1.5 no-print">
-                        <i class="fa-solid fa-print"></i>
-                        <span>Baixar Laudo / Recibo de Entrega (PDF)</span>
-                    </button>
                 </div>
+            </div>
+
+            <!-- Botão de Download PDF (Fora da área de impressão para não sair no PDF o botão) -->
+            <div class="no-print">
+                <button onclick="downloadPDF()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition shadow-sm text-sm flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-file-pdf text-red-400"></i>
+                    <span>Baixar Laudo / Termo em PDF (com Fotos e Links)</span>
+                </button>
             </div>
         </div>
 
-        <!-- MODAL DE UPGRADE -->
+        <!-- MODAL DE UPGRADE (MERCADO PAGO) -->
         <div id="upgradeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center">
                 <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
@@ -270,11 +297,12 @@
                 </div>
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <span class="text-2xl font-black text-slate-900">R$ 12,00</span>
-                    <span class="text-xs text-slate-500 block">por mês</span>
+                    <span class="text-xs text-slate-500 block">por mês (Pix ou Cartão)</span>
                 </div>
-                <button onclick="simulateUpgrade()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md text-sm">
-                    Fazer Assinatura via Pix
-                </button>
+                <!-- Link do Mercado Pago (Substitua a URL abaixo pelo seu link de Preferência/Assinatura do Mercado Pago) -->
+                <a href="https://www.mercadopago.com.br" target="_blank" onclick="simulateUpgrade()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md text-sm block">
+                    Pagar com Mercado Pago (Pix/Cartão)
+                </a>
                 <button onclick="closeUpgradeModal()" class="w-full text-xs text-slate-400 hover:text-slate-600 font-medium py-1">
                     Agora não
                 </button>
@@ -289,7 +317,7 @@
                         <i class="fa-solid fa-link"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-900">Salvo na Nuvem!</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Envie o link para o cliente assinar no WhatsApp.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Envie o link para o cliente conferir o áudio, fotos e assinar.</p>
                 </div>
 
                 <div class="flex items-center space-x-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
@@ -314,7 +342,7 @@
         ZapGarantia &bull; Supabase + Cloudflare R2
     </footer>
 
-    <!-- LÓGICA DO SUPABASE + CLOUDFLARE R2 -->
+    <!-- LÓGICA DO SUPABASE + R2 + GRAVAÇÃO DE ÁUDIO + PDF -->
     <script>
         const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
@@ -325,6 +353,10 @@
 
         let selectedPhotosFiles = [];
         let selectedCompletionPhotosFiles = [];
+        let recordedAudioBlob = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
 
         async function uploadToR2(file) {
             const formData = new FormData();
@@ -365,7 +397,10 @@
 
         function showCreator() {
             selectedPhotosFiles = [];
+            recordedAudioBlob = null;
             document.getElementById('photoPreviewContainer').innerHTML = '';
+            document.getElementById('audioPlayback').classList.add('hidden');
+            document.getElementById('audioStatus').textContent = 'Nenhum áudio gravado';
             document.getElementById('contractForm').reset();
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-creator').classList.remove('hidden');
@@ -376,9 +411,46 @@
 
         function simulateUpgrade() {
             localStorage.setItem('zg_pro_active', 'true');
-            alert('Parabéns! Assinatura PRO ativada com sucesso!');
-            closeUpgradeModal();
-            goHome();
+        }
+
+        // GRAVAÇÃO DE ÁUDIO
+        async function toggleAudioRecording() {
+            const btn = document.getElementById('btnRecordAudio');
+            const status = document.getElementById('audioStatus');
+            const player = document.getElementById('audioPlayback');
+
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                        player.src = audioUrl;
+                        player.classList.remove('hidden');
+                        status.textContent = 'Áudio gravado com sucesso!';
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.innerHTML = '<i class="fa-solid fa-stop"></i> <span>Parar Gravação</span>';
+                    btn.className = 'bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5';
+                    status.textContent = 'A gravar áudio... Fale agora.';
+                } catch (err) {
+                    alert('Permissão de microfone negada ou indisponível.');
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                btn.innerHTML = '<i class="fa-solid fa-microphone"></i> <span>Gravar Áudio</span>';
+                btn.className = 'bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5';
+            }
         }
 
         async function loadDashboard() {
@@ -472,7 +544,7 @@
         function shareWhatsApp(id, clientName) {
             const baseUrl = window.location.origin + window.location.pathname.replace('#','');
             const fullLink = `${baseUrl}#c=${id}`;
-            const texto = `Olá ${clientName}! Segue o link do seu Termo/Recibo de Garantia do serviço realizado:\n\n${fullLink}\n\nPor favor, acesse para conferir os detalhes e assinar.`;
+            const texto = `Olá ${clientName}! Segue o link do seu Termo/Recibo de Garantia e mídias do serviço realizado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
         }
 
@@ -508,6 +580,7 @@
             });
         });
 
+        // SUBMIT DO NOVO CONTRATO
         document.getElementById('contractForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -516,6 +589,12 @@
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando mídias para Cloudflare R2...';
 
             try {
+                let audioUrl = null;
+                if (recordedAudioBlob) {
+                    const audioFile = new File([recordedAudioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+                    audioUrl = await uploadToR2(audioFile);
+                }
+
                 const uploadedPhotoUrls = [];
                 for (const file of selectedPhotosFiles) {
                     const url = await uploadToR2(file);
@@ -537,12 +616,12 @@
                     warranty_period: warrantyPeriod,
                     service_desc: serviceDesc,
                     photos: uploadedPhotoUrls,
+                    audio_link: audioUrl,
                     status: 'Pendente',
                     completion_status: 'Em Andamento'
                 };
 
                 const { error } = await _supabase.from('contracts').insert([payload]);
-
                 if (error) throw new Error(error.message);
 
                 const baseUrl = window.location.origin + window.location.pathname.replace('#','');
@@ -550,7 +629,7 @@
 
                 document.getElementById('shareLinkOutput').value = fullLink;
 
-                const textoWhatsApp = `Olá ${clientName}! Segue o seu Termo de Garantia e Recibo do serviço executado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
+                const textoWhatsApp = `Olá ${clientName}! Segue o seu Termo de Garantia e Recibo com áudio e fotos do serviço executado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
                 const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoWhatsApp)}`;
                 
                 const btnWa = document.getElementById('whatsappShareBtn');
@@ -569,6 +648,7 @@
             }
         });
 
+        // SUBMIT DA FINALIZAÇÃO
         document.getElementById('completeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -622,6 +702,19 @@
             setTimeout(() => this.textContent = 'Copiar', 2000);
         });
 
+        // GERAR PDF COM html2pdf
+        function downloadPDF() {
+            const element = document.getElementById('pdfPrintableArea');
+            const opt = {
+                margin:       10,
+                filename:     'Termo-Garantia-ZapGarantia.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
+        }
+
         window.addEventListener('DOMContentLoaded', checkHash);
         window.addEventListener('hashchange', checkHash);
 
@@ -653,6 +746,15 @@
                 document.getElementById('displayValue').textContent = `R$ ${data.service_value}`;
                 document.getElementById('displayWarranty').textContent = data.warranty_period;
 
+                // Áudio
+                if (data.audio_link && data.audio_link.trim() !== '') {
+                    document.getElementById('audioClientSection').classList.remove('hidden');
+                    document.getElementById('displayAudioPlayer').src = data.audio_link;
+                } else {
+                    document.getElementById('audioClientSection').classList.add('hidden');
+                }
+
+                // Fotos Iniciais
                 if (data.photos && data.photos.length > 0) {
                     document.getElementById('clientPhotosWrapper').classList.remove('hidden');
                     const photosContainer = document.getElementById('displayPhotos');
@@ -667,6 +769,7 @@
                     document.getElementById('clientPhotosWrapper').classList.add('hidden');
                 }
 
+                // Conclusão (Fotos + Vídeo R2)
                 if (data.completion_status === 'Concluído') {
                     document.getElementById('completionClientSection').classList.remove('hidden');
 
