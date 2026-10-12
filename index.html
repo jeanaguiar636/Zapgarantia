@@ -325,9 +325,9 @@
 
     <!-- LÓGICA DO SUPABASE -->
     <script>
-        // CONFIGURAÇÃO REAL DO SUPABASE
+        // CONFIGURAÇÃO COM A CHAVE TRADICIONAL (JWT)
         const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
-        const SUPABASE_ANON_KEY = "Sb_publishable_haJ8eg8OciGN6cK8GGg3ig_bGOKUAud";
+        const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
 
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
