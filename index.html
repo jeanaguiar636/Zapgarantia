@@ -23,7 +23,7 @@
             </div>
             <div id="headerUserArea" class="flex items-center space-x-2 hidden">
                 <span id="headerPlanBadge" class="text-[10px] bg-blue-700 px-2.5 py-1 rounded-full font-medium">Plano Gratuito</span>
-                <button onclick="logout()" class="text-xs bg-red-600 px-3 py-1.5 rounded-full font-medium hover:bg-red-700 transition">
+                <button onclick="logout()" class="text-xs bg-red-600 px-3 py-1.5 rounded-full font-medium hover:bg-red-700 transition cursor-pointer">
                     <i class="fa-solid fa-right-from-bracket"></i> Sair
                 </button>
             </div>
@@ -40,8 +40,8 @@
                 </div>
 
                 <div class="flex border-b border-slate-200">
-                    <button onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600">Entrar</button>
-                    <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400">Criar Conta</button>
+                    <button onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer">Entrar</button>
+                    <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer">Criar Conta</button>
                 </div>
 
                 <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
@@ -53,7 +53,7 @@
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
                         <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition">Entrar na Conta</button>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
                 </form>
 
                 <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
@@ -73,7 +73,7 @@
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
                         <input type="password" id="regPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition">Criar Conta Gratuita</button>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Criar Conta Gratuita</button>
                 </form>
             </div>
         </div>
@@ -85,7 +85,7 @@
                         <h1 class="text-lg font-bold text-slate-900" id="welcomeUser">Olá, Profissional</h1>
                         <p class="text-xs text-slate-500">Painel de Atendimentos e Garantias.</p>
                     </div>
-                    <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5">
+                    <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5 cursor-pointer">
                         <i class="fa-solid fa-plus"></i>
                         <span>Novo Serviço</span>
                     </button>
@@ -95,14 +95,14 @@
                     <div>
                         <p class="text-xs font-bold text-blue-900">Plano Gratuito: 2 documentos disponíveis</p>
                     </div>
-                    <button onclick="showUpgradeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shrink-0">
+                    <button onclick="showUpgradeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shrink-0 cursor-pointer">
                         Assinar Pix R$ 12
                     </button>
                 </div>
             </div>
 
             <div id="adminButtonWrapper" class="hidden">
-                <button onclick="openMasterAdmin()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+                <button onclick="openMasterAdmin()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-crown text-amber-300"></i>
                     <span>Abrir Painel Master (Admin)</span>
                 </button>
@@ -121,7 +121,7 @@
                         <h1 class="text-lg font-bold text-purple-900"><i class="fa-solid fa-shield-halved mr-1"></i> Painel Administrativo Master</h1>
                         <p class="text-xs text-slate-500">Gestão global de profissionais e assinaturas.</p>
                     </div>
-                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-600">Voltar</button>
+                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-600 cursor-pointer">Voltar</button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -146,7 +146,7 @@
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
                     <h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1>
-                    <button onclick="goHome()" class="text-xs text-slate-400 font-medium">Voltar</button>
+                    <button onclick="goHome()" class="text-xs text-slate-400 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
                     <div>
@@ -171,7 +171,7 @@
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição do Serviço</label>
                         <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition">Gerar Termo</button>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar Termo</button>
                 </form>
             </div>
         </div>
@@ -185,26 +185,24 @@
                 <h3 class="text-lg font-bold text-slate-900">Ativação Instantânea via Pix</h3>
                 <p class="text-xs text-slate-500">Escaneie o QR Code abaixo ou copie o código Pix para liberar o Plano PRO (R$ 12,00).</p>
                 
-                <!-- Área dinamica do Pix -->
                 <div id="pixLoading" class="py-6 text-xs text-slate-400">Gerando QR Code Pix seguro...</div>
                 <div id="pixContent" class="hidden space-y-3">
                     <div id="pixQrContainer" class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-center">
-                        <!-- Imagem do QR Code gerada pelo Mercado Pago -->
                         <img id="pixQrImg" src="" alt="QR Code Pix" class="w-40 h-40 object-contain mx-auto">
                     </div>
                     <div>
                         <textarea id="pixCopyPaste" readonly class="w-full h-16 text-[10px] p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 select-all"></textarea>
                     </div>
-                    <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition">
+                    <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
                         <i class="fa-solid fa-copy"></i> Copiar Código Pix
                     </button>
                 </div>
 
                 <div class="pt-2 border-t border-slate-100 flex space-x-2">
-                    <button onclick="simulatePixPaymentApproval()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+                    <button onclick="simulatePixPaymentApproval()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
                         Já Paguei / Liberar Conta
                     </button>
-                    <button onclick="closeUpgradeModal()" class="px-4 text-xs text-slate-400 py-1">Fechar</button>
+                    <button onclick="closeUpgradeModal()" class="px-4 text-xs text-slate-400 py-1 cursor-pointer">Fechar</button>
                 </div>
             </div>
         </div>
@@ -219,7 +217,7 @@
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
-        const ADMIN_EMAIL = "seu-email-aqui@gmail.com"; 
+        const ADMIN_EMAIL = "seu-email-aqui@gmail.com"; // Lembre-se de colocar seu e-mail aqui
 
         async function initApp() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -238,13 +236,13 @@
             if (tab === 'login') {
                 document.getElementById('loginForm').classList.remove('hidden');
                 document.getElementById('registerForm').classList.add('hidden');
-                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600";
-                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400";
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
             } else {
                 document.getElementById('loginForm').classList.add('hidden');
                 document.getElementById('registerForm').classList.remove('hidden');
-                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600";
-                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400";
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
             }
         }
 
@@ -283,7 +281,7 @@
         async function loadDashboard() {
             document.getElementById('view-dashboard').classList.remove('hidden');
             
-            if (currentUser.email === ADMIN_EMAIL) {
+            if (currentUser && currentUser.email === ADMIN_EMAIL) {
                 document.getElementById('adminButtonWrapper').classList.remove('hidden');
             }
 
@@ -318,14 +316,34 @@
         }
 
         async function checkLimitAndOpenCreator() {
-            const { data: profile } = await _supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
-            if (profile.plan !== 'pro') {
-                const { count } = await _supabase.from('contracts').select('*', { count: 'exact', head: true }).eq('professional_id', currentUser.id);
-                if (count >= 2) {
-                    showUpgradeModal();
+            try {
+                if (!currentUser) {
+                    alert('Sessão expirada. Faça login novamente.');
+                    goHome();
                     return;
                 }
+
+                const { data: profile, error: profileError } = await _supabase
+                    .from('profiles')
+                    .select('plan')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profileError && profile && profile.plan !== 'pro') {
+                    const { count, error: countError } = await _supabase
+                        .from('contracts')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('professional_id', currentUser.id);
+
+                    if (!countError && count >= 2) {
+                        showUpgradeModal();
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Aviso ao checar plano/limite, permitindo abertura:', err);
             }
+
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-creator').classList.remove('hidden');
         }
@@ -351,29 +369,31 @@
             document.getElementById('view-admin').classList.remove('hidden');
 
             const { data: users } = await _supabase.from('profiles').select('*');
-            document.getElementById('adminTotalUsers').textContent = users.length;
-            const proUsers = users.filter(u => u.plan === 'pro');
+            document.getElementById('adminTotalUsers').textContent = users ? users.length : 0;
+            const proUsers = users ? users.filter(u => u.plan === 'pro') : [];
             document.getElementById('adminTotalPro').textContent = proUsers.length;
 
             const listContainer = document.getElementById('adminUsersList');
             listContainer.innerHTML = '';
 
-            users.forEach(u => {
-                const isPro = u.plan === 'pro';
-                listContainer.innerHTML += `
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
-                        <div>
-                            <span class="font-bold text-slate-900 block">${u.full_name}</span>
-                            <span class="text-slate-500">${u.email} &bull; WhatsApp: <a href="https://wa.me/55${u.whatsapp}" target="_blank" class="text-emerald-600 font-semibold underline">${u.whatsapp}</a></span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="px-2 py-1 rounded font-bold ${isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${isPro ? 'PRO' : 'Gratuito'}</span>
-                            <a href="https://wa.me/55${u.whatsapp}?text=Olá%20${encodeURIComponent(u.full_name)},%20falamos%20do%20ZapGarantia!" target="_blank" class="bg-emerald-600 text-white p-2 rounded-lg" title="Conversar no WhatsApp">
-                                <i class="fa-brands fa-whatsapp text-sm"></i>
-                            </a>
-                        </div>
-                    </div>`;
-            });
+            if (users) {
+                users.forEach(u => {
+                    const isPro = u.plan === 'pro';
+                    listContainer.innerHTML += `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-bold text-slate-900 block">${u.full_name}</span>
+                                <span class="text-slate-500">${u.email} &bull; WhatsApp: <a href="https://wa.me/55${u.whatsapp}" target="_blank" class="text-emerald-600 font-semibold underline">${u.whatsapp}</a></span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 rounded font-bold ${isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${isPro ? 'PRO' : 'Gratuito'}</span>
+                                <a href="https://wa.me/55${u.whatsapp}?text=Olá%20${encodeURIComponent(u.full_name)},%20falamos%20do%20ZapGarantia!" target="_blank" class="bg-emerald-600 text-white p-2 rounded-lg cursor-pointer" title="Conversar no WhatsApp">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i>
+                                </a>
+                            </div>
+                        </div>`;
+                });
+            }
         }
 
         function goHome() {
@@ -385,12 +405,10 @@
         function showUpgradeModal() { 
             document.getElementById('upgradeModal').classList.remove('hidden');
             
-            // Gerar dados mockados/reais do Pix
             setTimeout(() => {
                 document.getElementById('pixLoading').classList.add('hidden');
                 document.getElementById('pixContent').classList.remove('hidden');
                 
-                // Exemplo de QR Code gerador público de teste / ou imagem estática de Pix gerada via API
                 document.getElementById('pixQrImg').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266141740005204000053039865802BR5925ZAPGARANTIA SISTEMA LTDA6009SAO PAULO62070503***63041D3D";
                 document.getElementById('pixCopyPaste').value = "00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266141740005204000053039865802BR5925ZAPGARANTIA SISTEMA LTDA6009SAO PAULO62070503***63041D3D";
             }, 1000);
@@ -409,7 +427,6 @@
             alert('Código Pix Copia e Cola copiado com sucesso!');
         }
 
-        // Função chamada após o pagamento ser efetuado para atualizar a conta no Supabase
         async function simulatePixPaymentApproval() {
             if (!currentUser) return;
             const { error } = await _supabase.from('profiles').update({ plan: 'pro' }).eq('id', currentUser.id);
