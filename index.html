@@ -3,846 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZapGarantia - Contratos, Mídias e Conclusão de Serviços</title>
-    <!-- Tailwind CSS CDN -->
+    <title>ZapGarantia - Sistema Completo com Painel Admin e Assinaturas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2pdf.js para exportar o PDF perfeitamente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        @media print {
-            body { background: white !important; }
-            .no-print { display: none !important; }
-        }
+        @media print { body { background: white !important; } .no-print { display: none !important; } }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- Cabeçalho -->
     <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40 no-print">
         <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" onclick="goHome()">
                 <i class="fa-solid fa-file-shield text-2xl text-blue-200"></i>
                 <span class="text-lg font-bold tracking-tight">ZapGarantia</span>
             </div>
-            <div class="flex items-center space-x-2">
-                <span id="planBadge" class="text-[10px] bg-blue-700 border border-blue-400/30 px-2.5 py-1 rounded-full font-medium">Plano Gratuito (2/2)</span>
-                <button onclick="goHome()" class="text-xs bg-blue-700/80 px-3 py-1.5 rounded-full font-medium hover:bg-blue-700 transition">
-                    <i class="fa-solid fa-house mr-1"></i> Painel
+            <div id="headerUserArea" class="flex items-center space-x-2 hidden">
+                <span id="headerPlanBadge" class="text-[10px] bg-blue-700 px-2.5 py-1 rounded-full font-medium">Plano Gratuito</span>
+                <button onclick="logout()" class="text-xs bg-red-600 px-3 py-1.5 rounded-full font-medium hover:bg-red-700 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Conteúdo Central -->
     <main class="max-w-xl mx-auto px-4 py-6 w-full flex-grow">
 
-        <!-- ================= TELA 0: PAINEL DO PROFISSIONAL ================= -->
-        <div id="view-dashboard" class="space-y-5">
+        <div id="view-auth" class="space-y-5">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="text-center space-y-1">
+                    <h1 class="text-xl font-bold text-slate-900">Portal do Profissional</h1>
+                    <p class="text-xs text-slate-500">Faça login ou crie sua conta para emitir termos de garantia.</p>
+                </div>
+
+                <div class="flex border-b border-slate-200">
+                    <button onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600">Entrar</button>
+                    <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400">Criar Conta</button>
+                </div>
+
+                <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="loginEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
+                        <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition">Entrar na Conta</button>
+                </form>
+
+                <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Completo</label>
+                        <input type="text" id="regName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="regEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp (com DDD)</label>
+                        <input type="text" id="regWhatsapp" required placeholder="11999999999" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
+                        <input type="password" id="regPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition">Criar Conta Gratuita</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-dashboard" class="hidden space-y-5">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h1 class="text-lg font-bold text-slate-900">Meus Atendimentos</h1>
-                        <p class="text-xs text-slate-500 mt-0.5">Histórico seguro na nuvem & Mídias no R2.</p>
+                        <h1 class="text-lg font-bold text-slate-900" id="welcomeUser">Olá, Profissional</h1>
+                        <p class="text-xs text-slate-500">Painel de Atendimentos e Garantias.</p>
                     </div>
-                    <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md shadow-blue-500/20 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-plus text-sm"></i>
+                    <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5">
+                        <i class="fa-solid fa-plus"></i>
                         <span>Novo Serviço</span>
                     </button>
                 </div>
                 
-                <!-- Status do Plano -->
                 <div id="planBanner" class="bg-blue-50 border border-blue-100 p-3.5 rounded-xl flex items-center justify-between">
                     <div>
                         <p class="text-xs font-bold text-blue-900" id="planTitle">Plano Gratuito: 2 documentos disponíveis</p>
-                        <p class="text-[11px] text-blue-700 mt-0.5">Faça upgrade para emissões ilimitadas.</p>
                     </div>
-                    <button onclick="showUpgradeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow-xs shrink-0">
+                    <button onclick="showUpgradeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shrink-0">
                         Assinar R$ 12/mês
                     </button>
                 </div>
             </div>
 
-            <!-- Lista de Contratos -->
+            <div id="adminButtonWrapper" class="hidden">
+                <button onclick="openMasterAdmin()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-crown text-amber-300"></i>
+                    <span>Abrir Painel Master (Admin)</span>
+                </button>
+            </div>
+
             <div class="space-y-3">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Histórico de Atendimentos</h2>
-                <div id="loadingIndicator" class="text-center py-6 text-xs text-slate-400">A carregar dados...</div>
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Meus Registos</h2>
                 <div id="contractsListContainer" class="space-y-2.5"></div>
             </div>
         </div>
 
-        <!-- ================= TELA 1: CRIAR CONTRATO ================= -->
+        <div id="view-admin" class="hidden space-y-5">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <div>
+                        <h1 class="text-lg font-bold text-purple-900"><i class="fa-solid fa-shield-halved mr-1"></i> Painel Administrativo Master</h1>
+                        <p class="text-xs text-slate-500">Gestão global de profissionais e assinaturas.</p>
+                    </div>
+                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-600">Voltar</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-purple-50 p-3 rounded-xl border border-purple-100 text-center">
+                        <span class="text-xs font-bold text-purple-700 block uppercase">Total Profissionais</span>
+                        <span id="adminTotalUsers" class="text-xl font-black text-purple-900">0</span>
+                    </div>
+                    <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-center">
+                        <span class="text-xs font-bold text-emerald-700 block uppercase">Assinantes PRO</span>
+                        <span id="adminTotalPro" class="text-xl font-black text-emerald-900">0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lista de Profissionais Cadastrados</h2>
+                    <div id="adminUsersList" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div>
-                        <h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1>
-                        <p class="text-xs text-slate-500 mt-1">Preencha os dados, anexe fotos e grave áudio de explicação.</p>
-                    </div>
-                    <button onclick="goHome()" class="text-xs text-slate-400 hover:text-slate-600 font-medium">
-                        <i class="fa-solid fa-arrow-left mr-1"></i> Voltar
-                    </button>
+                    <h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1>
+                    <button onclick="goHome()" class="text-xs text-slate-400 font-medium">Voltar</button>
                 </div>
-                
-                <form id="contractForm" class="space-y-4">
+                <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nome do Cliente</label>
-                        <input type="text" id="clientName" required placeholder="Ex: Maria Oliveira" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome do Cliente</label>
+                        <input type="text" id="clientName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                     </div>
-
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Valor Total (R$)</label>
-                            <input type="text" id="serviceValue" required placeholder="Ex: 350,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Valor Total (R$)</label>
+                            <input type="text" id="serviceValue" required placeholder="350,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Garantia</label>
-                            <select id="warrantyPeriod" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Garantia</label>
+                            <select id="warrantyPeriod" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                                 <option value="30 dias">30 Dias</option>
-                                <option value="90 dias" selected>90 Dias (Padrão)</option>
-                                <option value="6 meses">6 Meses</option>
+                                <option value="90 dias" selected>90 Dias</option>
                                 <option value="1 ano">1 Ano</option>
-                                <option value="Sem garantia">Sem Garantia</option>
                             </select>
                         </div>
                     </div>
-
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Descrição do Serviço</label>
-                        <textarea id="serviceDesc" rows="3" required placeholder="Ex: Instalação de disjuntores e fiação do ar-condicionado." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"></textarea>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição</label>
+                        <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
                     </div>
-
-                    <!-- Gravação de Áudio Opcional -->
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
-                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Áudio Explicativo do Serviço (Opcional)</label>
-                        <div class="flex items-center space-x-2">
-                            <button type="button" id="btnRecordAudio" onclick="toggleAudioRecording()" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-microphone"></i>
-                                <span id="recordAudioText">Gravar Áudio</span>
-                            </button>
-                            <span id="audioStatus" class="text-xs text-slate-500">Nenhum áudio gravado</span>
-                        </div>
-                        <audio id="audioPlayback" controls class="w-full hidden mt-2 h-9"></audio>
-                    </div>
-
-                    <!-- Fotos do Início (Antes) -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Fotos do Início / Local</label>
-                        <label class="border-2 border-dashed border-blue-200 bg-blue-50/40 hover:bg-blue-50 rounded-xl p-4 text-center cursor-pointer block transition">
-                            <input type="file" id="servicePhotos" accept="image/*" capture="environment" multiple class="hidden">
-                            <div class="flex flex-col items-center pointer-events-none">
-                                <i class="fa-solid fa-camera text-blue-600 text-xl mb-1"></i>
-                                <span class="text-xs font-bold text-blue-900">Tirar Fotos do "Antes"</span>
-                            </div>
-                        </label>
-                        <div id="photoPreviewContainer" class="flex gap-2 mt-3 overflow-x-auto pb-1"></div>
-                    </div>
-
-                    <button type="submit" id="btnSubmitForm" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 rounded-xl transition shadow-md shadow-blue-500/20 text-sm flex items-center justify-center space-x-2">
-                        <i class="fa-brands fa-whatsapp text-lg"></i>
-                        <span>Gerar Termo e Enviar no WhatsApp</span>
-                    </button>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition">Gerar Termo</button>
                 </form>
             </div>
         </div>
 
-        <!-- ================= TELA DE FINALIZAÇÃO DA OBRA ================= -->
-        <div id="view-complete-form" class="hidden space-y-5">
-            <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
-                <div class="flex justify-between items-center mb-5">
-                    <div>
-                        <h1 class="text-xl font-bold text-slate-900">Finalizar Serviço / Entregar Obra</h1>
-                        <p class="text-xs text-slate-500 mt-1">Anexe as fotos finais e o vídeo demonstrativo para o R2.</p>
-                    </div>
-                    <button onclick="goHome()" class="text-xs text-slate-400 hover:text-slate-600 font-medium">
-                        <i class="fa-solid fa-arrow-left mr-1"></i> Voltar
-                    </button>
-                </div>
-
-                <form id="completeForm" class="space-y-4">
-                    <input type="hidden" id="completeContractId">
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Fotos do Serviço Concluído ("Depois")</label>
-                        <label class="border-2 border-dashed border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 rounded-xl p-4 text-center cursor-pointer block transition">
-                            <input type="file" id="completionPhotos" accept="image/*" capture="environment" multiple class="hidden">
-                            <div class="flex flex-col items-center pointer-events-none">
-                                <i class="fa-solid fa-circle-check text-emerald-600 text-xl mb-1"></i>
-                                <span class="text-xs font-bold text-emerald-900">Tirar Fotos da Obra Pronta</span>
-                            </div>
-                        </label>
-                        <div id="completionPhotoPreview" class="flex gap-2 mt-3 overflow-x-auto pb-1"></div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Vídeo do Serviço Concluído (Cloudflare R2)</label>
-                        <input type="file" id="completionVideoFile" accept="video/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
-                    </div>
-
-                    <button type="submit" id="btnSubmitComplete" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition shadow-md shadow-emerald-600/20 text-sm flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-flag-checkered text-lg"></i>
-                        <span>Marcar Como Finalizado e Atualizar Link</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- ================= TELA 2: VISUALIZAÇÃO E ACEITE DO CLIENTE (ÁREA DE IMPRESSÃO / PDF) ================= -->
-        <div id="view-client" class="hidden space-y-5">
-            <div id="pdfPrintableArea" class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
-                <div class="text-center pb-4 border-b border-slate-100">
-                    <span id="badgeStatus" class="bg-blue-100 text-blue-800 text-[11px] font-bold px-3 py-1 rounded-full inline-block mb-2">Aguardando Validação</span>
-                    <h2 class="text-lg font-bold text-slate-900" id="displayClientTitle">Termo de Garantia de Serviço</h2>
-                    <p class="text-[11px] text-slate-400 mt-1">Cód. Validação: <span id="displayContractId" class="font-mono font-semibold text-slate-600">---</span></p>
-                </div>
-
-                <div class="space-y-4 text-sm">
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                        <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Serviço Combinado</span>
-                        <p id="displayDesc" class="text-slate-700 font-medium mt-0.5 leading-relaxed">---</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Valor do Serviço</span>
-                            <p id="displayValue" class="text-slate-900 font-bold mt-0.5">---</p>
-                        </div>
-                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Prazo de Garantia</span>
-                            <p id="displayWarranty" class="text-blue-600 font-bold mt-0.5">---</p>
-                        </div>
-                    </div>
-
-                    <!-- SECÇÃO DE ÁUDIO DO PROFISSIONAL -->
-                    <div id="audioClientSection" class="hidden bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">
-                        <span class="text-[10px] font-bold text-blue-900 block uppercase tracking-wider mb-2"><i class="fa-solid fa-volume-high mr-1"></i> Áudio Explicativo do Profissional</span>
-                        <audio id="displayAudioPlayer" controls class="w-full h-8"></audio>
-                    </div>
-
-                    <!-- FOTOS DO INÍCIO (EMBUTIDAS NO PDF) -->
-                    <div id="clientPhotosWrapper" class="hidden pt-1">
-                        <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-2">Registo Fotográfico Inicial (Antes)</span>
-                        <div id="displayPhotos" class="grid grid-cols-3 gap-2"></div>
-                    </div>
-
-                    <!-- SECÇÃO DE CONCLUSÃO (FOTOS DEPOIS + VÍDEO R2) -->
-                    <div id="completionClientSection" class="hidden border-t border-emerald-100 pt-4 mt-4 space-y-3">
-                        <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl">
-                            <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wider block">Serviço Finalizado pelo Profissional!</span>
-                            <p class="text-xs text-emerald-700 mt-0.5">Confira as fotos da entrega e o vídeo demonstrativo abaixo.</p>
-                        </div>
-
-                        <div id="completionPhotosWrapper" class="hidden">
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-2">Fotos do Serviço Concluído (Depois)</span>
-                            <div id="displayCompletionPhotos" class="grid grid-cols-3 gap-2"></div>
-                        </div>
-
-                        <div id="completionVideoWrapper" class="hidden">
-                            <a id="displayCompletionVideoBtn" href="#" target="_blank" class="w-full bg-slate-900 hover:bg-slate-800 text-white p-3.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
-                                <i class="fa-solid fa-circle-play text-red-500 text-base"></i>
-                                <span>Assistir Vídeo Demonstrativo da Obra (Cloudflare R2)</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="acceptSection" class="mt-6 pt-5 border-t border-slate-100 space-y-4 no-print">
-                    <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-200/60 flex items-start space-x-2.5">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5 text-sm"></i>
-                        <p class="text-xs text-amber-800 leading-relaxed">Ao confirmar abaixo, atesta que o serviço foi entregue em conformidade com o combinado.</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">O seu Nome / Assinatura Digital</label>
-                        <input type="text" id="signerName" placeholder="Digite seu nome completo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-                    </div>
-
-                    <button id="btnAccept" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition shadow-md shadow-emerald-600/20 text-sm flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-file-signature text-base"></i>
-                        <span>Confirmar e Assinar Termo Final</span>
-                    </button>
-                </div>
-
-                <div id="signedSuccessBox" class="hidden mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-2">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-                    <h3 class="font-bold text-emerald-900 text-base">Garantia & Recebimento Ativos!</h3>
-                    <p class="text-xs text-emerald-700 leading-relaxed" id="signedDetails">Assinado digitalmente.</p>
-                </div>
-            </div>
-
-            <!-- Botão de Download PDF (Fora da área de impressão para não sair no PDF o botão) -->
-            <div class="no-print">
-                <button onclick="downloadPDF()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition shadow-sm text-sm flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-file-pdf text-red-400"></i>
-                    <span>Baixar Laudo / Termo em PDF (com Fotos e Links)</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- MODAL DE UPGRADE (MERCADO PAGO) -->
         <div id="upgradeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center">
                 <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
                     <i class="fa-solid fa-crown"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900">Limite Gratuito Atingido</h3>
-                    <p class="text-xs text-slate-500 mt-1">Utilizou os seus 2 documentos gratuitos. Assine o plano **PRO** para emissões ilimitadas.</p>
-                </div>
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <span class="text-2xl font-black text-slate-900">R$ 12,00</span>
-                    <span class="text-xs text-slate-500 block">por mês (Pix ou Cartão)</span>
-                </div>
-                <!-- Link do Mercado Pago (Substitua a URL abaixo pelo seu link de Preferência/Assinatura do Mercado Pago) -->
-                <a href="https://www.mercadopago.com.br" target="_blank" onclick="simulateUpgrade()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md text-sm block">
-                    Pagar com Mercado Pago (Pix/Cartão)
+                <h3 class="text-lg font-bold text-slate-900">Plano PRO Ilimitado</h3>
+                <p class="text-xs text-slate-500">Assine por R$ 12,00/mês para liberar emissões ilimitadas.</p>
+                <a href="https://www.mercadopago.com.br" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition text-sm block">
+                    Pagar com Mercado Pago
                 </a>
-                <button onclick="closeUpgradeModal()" class="w-full text-xs text-slate-400 hover:text-slate-600 font-medium py-1">
-                    Agora não
-                </button>
-            </div>
-        </div>
-
-        <!-- MODAL DE COMPARTILHAMENTO WHATSAPP -->
-        <div id="shareModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
-                        <i class="fa-solid fa-link"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">Salvo na Nuvem!</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Envie o link para o cliente conferir o áudio, fotos e assinar.</p>
-                </div>
-
-                <div class="flex items-center space-x-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
-                    <input type="text" id="shareLinkOutput" readonly class="bg-transparent text-xs text-slate-600 w-full px-2 font-mono focus:outline-none">
-                    <button id="btnCopyLink" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-900 transition shrink-0">Copiar</button>
-                </div>
-
-                <a id="whatsappShareBtn" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition text-sm flex items-center justify-center space-x-2 shadow-md">
-                    <i class="fa-brands fa-whatsapp text-lg"></i>
-                    <span>Abrir WhatsApp para Enviar</span>
-                </a>
-
-                <button onclick="goHome()" class="w-full text-xs text-slate-400 hover:text-slate-600 font-medium py-1">
-                    Voltar ao Painel
-                </button>
+                <button onclick="closeUpgradeModal()" class="w-full text-xs text-slate-400 py-1">Fechar</button>
             </div>
         </div>
 
     </main>
 
-    <footer class="text-center py-4 text-[11px] text-slate-400 border-t border-slate-200/60 bg-white no-print">
-        ZapGarantia &bull; Supabase + Cloudflare R2
-    </footer>
-
-    <!-- LÓGICA DO SUPABASE + R2 + GRAVAÇÃO DE ÁUDIO + PDF -->
     <script>
         const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
-        const WORKER_R2_URL = "https://zapgarantia.bmlimp8.workers.dev";
-
+        
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let selectedPhotosFiles = [];
-        let selectedCompletionPhotosFiles = [];
-        let recordedAudioBlob = null;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecording = false;
+        let currentUser = null;
+        const ADMIN_EMAIL = "seu-email-aqui@gmail.com"; // Substitua pelo seu e-mail de admin
 
-        async function uploadToR2(file) {
-            const formData = new FormData();
-            formData.append("file", file);
-            const response = await fetch(`${WORKER_R2_URL}/upload`, {
-                method: "POST",
-                body: formData
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Erro no upload para R2");
-            return data.url;
+        async function initApp() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('view-auth').classList.add('hidden');
+                document.getElementById('headerUserArea').classList.remove('hidden');
+                loadDashboard();
+            } else {
+                document.getElementById('view-auth').classList.remove('hidden');
+                document.getElementById('headerUserArea').classList.add('hidden');
+            }
         }
 
-        function goHome() {
-            window.location.hash = '';
-            document.getElementById('view-client').classList.add('hidden');
-            document.getElementById('view-creator').classList.add('hidden');
-            document.getElementById('view-complete-form').classList.add('hidden');
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600";
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400";
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600";
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400";
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const whatsapp = document.getElementById('regWhatsapp').value;
+            const password = document.getElementById('regPassword').value;
+
+            const { data, error } = await _supabase.auth.signUp({ email, password });
+            if (error) { alert('Erro no registo: ' + error.message); return; }
+
+            if (data.user) {
+                await _supabase.from('profiles').insert([{ id: data.user.id, full_name: name, email, whatsapp, plan: 'free' }]);
+                alert('Conta criada com sucesso! Faça login.');
+                switchAuthTab('login');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) { alert('Credenciais inválidas: ' + error.message); return; }
+            initApp();
+        }
+
+        async function logout() {
+            await _supabase.auth.signOut();
+            location.reload();
+        }
+
+        async function loadDashboard() {
             document.getElementById('view-dashboard').classList.remove('hidden');
-            document.getElementById('shareModal').classList.add('hidden');
-            document.getElementById('upgradeModal').classList.add('hidden');
-            loadDashboard();
+            
+            // Verificar se é o Admin
+            if (currentUser.email === ADMIN_EMAIL) {
+                document.getElementById('adminButtonWrapper').classList.remove('hidden');
+            }
+
+            // Buscar perfil
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (profile) {
+                document.getElementById('welcomeUser').textContent = `Olá, ${profile.full_name}`;
+                if (profile.plan === 'pro') {
+                    document.getElementById('headerPlanBadge').textContent = 'Plano PRO';
+                    document.getElementById('planBanner').style.display = 'none';
+                }
+            }
+
+            // Buscar contratos do profissional
+            const { data: contracts } = await _supabase.from('contracts').select('*').eq('professional_id', currentUser.id);
+            const container = document.getElementById('contractsListContainer');
+            container.innerHTML = '';
+
+            if (!contracts || contracts.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum serviço registado.</p>`;
+                return;
+            }
+
+            contracts.forEach(item => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-sm">${item.client_name}</span>
+                            <p class="text-xs text-slate-500">R$ ${item.service_value} - ${item.warranty_period}</p>
+                        </div>
+                        <span class="text-[10px] bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold">${item.status}</span>
+                    </div>`;
+            });
         }
 
         async function checkLimitAndOpenCreator() {
-            const isPro = localStorage.getItem('zg_pro_active') === 'true';
-            if (!isPro) {
-                const { count, error } = await _supabase
-                    .from('contracts')
-                    .select('*', { count: 'exact', head: true });
-                if (!error && count >= 2) {
+            const { data: profile } = await _supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
+            if (profile.plan !== 'pro') {
+                const { count } = await _supabase.from('contracts').select('*', { count: 'exact', head: true }).eq('professional_id', currentUser.id);
+                if (count >= 2) {
                     showUpgradeModal();
                     return;
                 }
             }
-            showCreator();
-        }
-
-        function showCreator() {
-            selectedPhotosFiles = [];
-            recordedAudioBlob = null;
-            document.getElementById('photoPreviewContainer').innerHTML = '';
-            document.getElementById('audioPlayback').classList.add('hidden');
-            document.getElementById('audioStatus').textContent = 'Nenhum áudio gravado';
-            document.getElementById('contractForm').reset();
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-creator').classList.remove('hidden');
+        }
+
+        async function saveContract(e) {
+            e.preventDefault();
+            const payload = {
+                id: 'zg-' + Math.random().toString(36).substring(2, 8),
+                client_name: document.getElementById('clientName').value,
+                service_value: document.getElementById('serviceValue').value,
+                warranty_period: document.getElementById('warrantyPeriod').value,
+                service_desc: document.getElementById('serviceDesc').value,
+                professional_id: currentUser.id,
+                status: 'Pendente'
+            };
+            await _supabase.from('contracts').insert([payload]);
+            alert('Serviço criado com sucesso!');
+            goHome();
+        }
+
+        // PAINEL MASTER ADMIN
+        async function openMasterAdmin() {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-admin').classList.remove('hidden');
+
+            const { data: users } = await _supabase.from('profiles').select('*');
+            document.getElementById('adminTotalUsers').textContent = users.length;
+            const proUsers = users.filter(u => u.plan === 'pro');
+            document.getElementById('adminTotalPro').textContent = proUsers.length;
+
+            const listContainer = document.getElementById('adminUsersList');
+            listContainer.innerHTML = '';
+
+            users.forEach(u => {
+                const isPro = u.plan === 'pro';
+                listContainer.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                        <div>
+                            <span class="font-bold text-slate-900 block">${u.full_name}</span>
+                            <span class="text-slate-500">${u.email} &bull; WhatsApp: <a href="https://wa.me/55${u.whatsapp}" target="_blank" class="text-emerald-600 font-semibold underline">${u.whatsapp}</a></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 rounded font-bold ${isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${isPro ? 'PRO' : 'Gratuito'}</span>
+                            <a href="https://wa.me/55${u.whatsapp}?text=Olá%20${encodeURIComponent(u.full_name)},%20falamos%20do%20ZapGarantia!" target="_blank" class="bg-emerald-600 text-white p-2 rounded-lg" title="Conversar no WhatsApp">
+                                <i class="fa-brands fa-whatsapp text-sm"></i>
+                            </a>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function goHome() {
+            document.getElementById('view-creator').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            initApp();
         }
 
         function showUpgradeModal() { document.getElementById('upgradeModal').classList.remove('hidden'); }
         function closeUpgradeModal() { document.getElementById('upgradeModal').classList.add('hidden'); }
 
-        function simulateUpgrade() {
-            localStorage.setItem('zg_pro_active', 'true');
-        }
-
-        // GRAVAÇÃO DE ÁUDIO
-        async function toggleAudioRecording() {
-            const btn = document.getElementById('btnRecordAudio');
-            const status = document.getElementById('audioStatus');
-            const player = document.getElementById('audioPlayback');
-
-            if (!isRecording) {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-
-                    mediaRecorder.ondataavailable = event => {
-                        audioChunks.push(event.data);
-                    };
-
-                    mediaRecorder.onstop = () => {
-                        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const audioUrl = URL.createObjectURL(recordedAudioBlob);
-                        player.src = audioUrl;
-                        player.classList.remove('hidden');
-                        status.textContent = 'Áudio gravado com sucesso!';
-                    };
-
-                    mediaRecorder.start();
-                    isRecording = true;
-                    btn.innerHTML = '<i class="fa-solid fa-stop"></i> <span>Parar Gravação</span>';
-                    btn.className = 'bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5';
-                    status.textContent = 'A gravar áudio... Fale agora.';
-                } catch (err) {
-                    alert('Permissão de microfone negada ou indisponível.');
-                }
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                btn.innerHTML = '<i class="fa-solid fa-microphone"></i> <span>Gravar Áudio</span>';
-                btn.className = 'bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5';
-            }
-        }
-
-        async function loadDashboard() {
-            const container = document.getElementById('contractsListContainer');
-            const loader = document.getElementById('loadingIndicator');
-            loader.style.display = 'block';
-            container.innerHTML = '';
-
-            const isPro = localStorage.getItem('zg_pro_active') === 'true';
-
-            const { data, error, count } = await _supabase
-                .from('contracts')
-                .select('*', { count: 'exact' })
-                .order('created_at', { ascending: false });
-
-            loader.style.display = 'none';
-
-            if (isPro) {
-                document.getElementById('planBadge').textContent = 'Plano PRO (Ilimitado)';
-                document.getElementById('planBanner').style.display = 'none';
-            } else {
-                const total = count || (data ? data.length : 0);
-                document.getElementById('planBadge').textContent = `Plano Gratuito (${total}/2)`;
-                document.getElementById('planTitle').textContent = `Plano Gratuito: ${total} de 2 documentos utilizados`;
-            }
-
-            if (error) {
-                container.innerHTML = `<div class="bg-red-50 text-red-700 p-4 rounded-xl text-xs">Erro ao ligar ao Supabase: ${error.message}</div>`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-2">
-                        <i class="fa-solid fa-folder-open text-slate-300 text-3xl"></i>
-                        <p class="text-xs text-slate-500 font-medium">Nenhum serviço registado.</p>
-                    </div>`;
-                return;
-            }
-
-            data.forEach(item => {
-                const isCompleted = item.completion_status === 'Concluído';
-                const isSigned = item.status === 'Assinado';
-
-                const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80 flex justify-between items-center";
-                
-                card.innerHTML = `
-                    <div class="space-y-1">
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-slate-900 text-sm">${item.client_name}</span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isCompleted ? 'bg-purple-100 text-purple-800' : (isSigned ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}">
-                                ${isCompleted ? 'Obra Entregue' : (isSigned ? 'Assinado' : 'Pendente')}
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-500 line-clamp-1">${item.service_desc}</p>
-                        <p class="text-[11px] font-semibold text-blue-600">R$ ${item.service_value} &bull; Garantia: ${item.warranty_period}</p>
-                    </div>
-                    <div class="flex items-center space-x-1.5 shrink-0">
-                        ${!isCompleted ? `
-                            <button onclick="openCompleteForm('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition" title="Finalizar Serviço">
-                                Finalizar
-                            </button>
-                        ` : ''}
-                        <button onclick="openContract('${item.id}')" class="w-8 h-8 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center transition" title="Ver Detalhes">
-                            <i class="fa-solid fa-eye text-xs"></i>
-                        </button>
-                        <button onclick="shareWhatsApp('${item.id}', '${item.client_name}')" class="w-8 h-8 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg flex items-center justify-center transition" title="Enviar WhatsApp">
-                            <i class="fa-brands fa-whatsapp text-sm"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function openContract(id) {
-            window.location.hash = `#c=${id}`;
-            checkHash();
-        }
-
-        function openCompleteForm(id) {
-            document.getElementById('completeContractId').value = id;
-            selectedCompletionPhotosFiles = [];
-            document.getElementById('completionPhotoPreview').innerHTML = '';
-            document.getElementById('completeForm').reset();
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-complete-form').classList.remove('hidden');
-        }
-
-        function shareWhatsApp(id, clientName) {
-            const baseUrl = window.location.origin + window.location.pathname.replace('#','');
-            const fullLink = `${baseUrl}#c=${id}`;
-            const texto = `Olá ${clientName}! Segue o link do seu Termo/Recibo de Garantia e mídias do serviço realizado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
-        }
-
-        document.getElementById('servicePhotos').addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            const previewContainer = document.getElementById('photoPreviewContainer');
-            files.forEach(file => {
-                selectedPhotosFiles.push(file);
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const div = document.createElement('div');
-                    div.className = "relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 shrink-0";
-                    div.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover">`;
-                    previewContainer.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-
-        document.getElementById('completionPhotos').addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            const previewContainer = document.getElementById('completionPhotoPreview');
-            files.forEach(file => {
-                selectedCompletionPhotosFiles.push(file);
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const div = document.createElement('div');
-                    div.className = "relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 shrink-0";
-                    div.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover">`;
-                    previewContainer.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-
-        // SUBMIT DO NOVO CONTRATO
-        document.getElementById('contractForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const submitBtn = document.getElementById('btnSubmitForm');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando mídias para Cloudflare R2...';
-
-            try {
-                let audioUrl = null;
-                if (recordedAudioBlob) {
-                    const audioFile = new File([recordedAudioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
-                    audioUrl = await uploadToR2(audioFile);
-                }
-
-                const uploadedPhotoUrls = [];
-                for (const file of selectedPhotosFiles) {
-                    const url = await uploadToR2(file);
-                    uploadedPhotoUrls.push(url);
-                }
-
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Salvando no Supabase...';
-
-                const clientName = document.getElementById('clientName').value;
-                const serviceValue = document.getElementById('serviceValue').value;
-                const warrantyPeriod = document.getElementById('warrantyPeriod').value;
-                const serviceDesc = document.getElementById('serviceDesc').value;
-                const contractId = 'zg-' + Math.random().toString(36).substring(2, 8);
-
-                const payload = {
-                    id: contractId,
-                    client_name: clientName,
-                    service_value: serviceValue,
-                    warranty_period: warrantyPeriod,
-                    service_desc: serviceDesc,
-                    photos: uploadedPhotoUrls,
-                    audio_link: audioUrl,
-                    status: 'Pendente',
-                    completion_status: 'Em Andamento'
-                };
-
-                const { error } = await _supabase.from('contracts').insert([payload]);
-                if (error) throw new Error(error.message);
-
-                const baseUrl = window.location.origin + window.location.pathname.replace('#','');
-                const fullLink = `${baseUrl}#c=${contractId}`;
-
-                document.getElementById('shareLinkOutput').value = fullLink;
-
-                const textoWhatsApp = `Olá ${clientName}! Segue o seu Termo de Garantia e Recibo com áudio e fotos do serviço executado:\n\n${fullLink}\n\nPor favor, acesse para conferir e assinar.`;
-                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoWhatsApp)}`;
-                
-                const btnWa = document.getElementById('whatsappShareBtn');
-                btnWa.href = whatsappUrl;
-                btnWa.onclick = function() {
-                    window.open(whatsappUrl, '_blank');
-                    return false;
-                };
-
-                document.getElementById('shareModal').classList.remove('hidden');
-            } catch (err) {
-                alert('Erro ao salvar serviço: ' + err.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-brands fa-whatsapp text-lg mr-2"></i> Gerar Termo e Enviar no WhatsApp';
-            }
-        });
-
-        // SUBMIT DA FINALIZAÇÃO
-        document.getElementById('completeForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const btn = document.getElementById('btnSubmitComplete');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando para o R2...';
-
-            try {
-                const contractId = document.getElementById('completeContractId').value;
-                
-                const uploadedCompletionPhotoUrls = [];
-                for (const file of selectedCompletionPhotosFiles) {
-                    const url = await uploadToR2(file);
-                    uploadedCompletionPhotoUrls.push(url);
-                }
-
-                let videoUrl = null;
-                const videoFileInput = document.getElementById('completionVideoFile');
-                if (videoFileInput.files.length > 0) {
-                    videoUrl = await uploadToR2(videoFileInput.files[0]);
-                }
-
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Atualizando no Supabase...';
-
-                const { error } = await _supabase
-                    .from('contracts')
-                    .update({
-                        completion_status: 'Concluído',
-                        completion_photos: uploadedCompletionPhotoUrls,
-                        completion_video_link: videoUrl
-                    })
-                    .eq('id', contractId);
-
-                if (error) throw new Error(error.message);
-
-                alert('Serviço finalizado com sucesso!');
-                goHome();
-            } catch (err) {
-                alert('Erro ao finalizar serviço: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-flag-checkered text-lg mr-2"></i> Marcar Como Finalizado e Atualizar Link';
-            }
-        });
-
-        document.getElementById('btnCopyLink').addEventListener('click', function() {
-            const input = document.getElementById('shareLinkOutput');
-            input.select();
-            navigator.clipboard.writeText(input.value);
-            this.textContent = 'Copiado!';
-            setTimeout(() => this.textContent = 'Copiar', 2000);
-        });
-
-        // GERAR PDF COM html2pdf
-        function downloadPDF() {
-            const element = document.getElementById('pdfPrintableArea');
-            const opt = {
-                margin:       10,
-                filename:     'Termo-Garantia-ZapGarantia.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().from(element).set(opt).save();
-        }
-
-        window.addEventListener('DOMContentLoaded', checkHash);
-        window.addEventListener('hashchange', checkHash);
-
-        async function checkHash() {
-            const hash = window.location.hash;
-            if (hash.startsWith('#c=')) {
-                const contractId = hash.replace('#c=', '');
-
-                const { data, error } = await _supabase
-                    .from('contracts')
-                    .select('*')
-                    .eq('id', contractId)
-                    .single();
-
-                if (error || !data) {
-                    alert('Contrato não encontrado.');
-                    goHome();
-                    return;
-                }
-
-                document.getElementById('view-dashboard').classList.add('hidden');
-                document.getElementById('view-creator').classList.add('hidden');
-                document.getElementById('view-complete-form').classList.add('hidden');
-                document.getElementById('view-client').classList.remove('hidden');
-
-                document.getElementById('displayContractId').textContent = data.id.toUpperCase();
-                document.getElementById('displayClientTitle').textContent = `Garantia para ${data.client_name}`;
-                document.getElementById('displayDesc').textContent = data.service_desc;
-                document.getElementById('displayValue').textContent = `R$ ${data.service_value}`;
-                document.getElementById('displayWarranty').textContent = data.warranty_period;
-
-                // Áudio
-                if (data.audio_link && data.audio_link.trim() !== '') {
-                    document.getElementById('audioClientSection').classList.remove('hidden');
-                    document.getElementById('displayAudioPlayer').src = data.audio_link;
-                } else {
-                    document.getElementById('audioClientSection').classList.add('hidden');
-                }
-
-                // Fotos Iniciais
-                if (data.photos && data.photos.length > 0) {
-                    document.getElementById('clientPhotosWrapper').classList.remove('hidden');
-                    const photosContainer = document.getElementById('displayPhotos');
-                    photosContainer.innerHTML = '';
-                    data.photos.forEach(imgUrl => {
-                        const img = document.createElement('img');
-                        img.src = imgUrl;
-                        img.className = "w-full h-20 object-cover rounded-lg border border-slate-200 shadow-xs";
-                        photosContainer.appendChild(img);
-                    });
-                } else {
-                    document.getElementById('clientPhotosWrapper').classList.add('hidden');
-                }
-
-                // Conclusão (Fotos + Vídeo R2)
-                if (data.completion_status === 'Concluído') {
-                    document.getElementById('completionClientSection').classList.remove('hidden');
-
-                    if (data.completion_photos && data.completion_photos.length > 0) {
-                        document.getElementById('completionPhotosWrapper').classList.remove('hidden');
-                        const container = document.getElementById('displayCompletionPhotos');
-                        container.innerHTML = '';
-                        data.completion_photos.forEach(imgUrl => {
-                            const img = document.createElement('img');
-                            img.src = imgUrl;
-                            img.className = "w-full h-20 object-cover rounded-lg border border-emerald-200 shadow-xs";
-                            container.appendChild(img);
-                        });
-                    }
-
-                    if (data.completion_video_link && data.completion_video_link.trim() !== '') {
-                        document.getElementById('completionVideoWrapper').classList.remove('hidden');
-                        document.getElementById('displayCompletionVideoBtn').href = data.completion_video_link;
-                    }
-                } else {
-                    document.getElementById('completionClientSection').classList.add('hidden');
-                }
-
-                if (data.status === 'Assinado') {
-                    showSignedState(data);
-                } else {
-                    document.getElementById('acceptSection').classList.remove('hidden');
-                    document.getElementById('signedSuccessBox').classList.add('hidden');
-                    document.getElementById('badgeStatus').textContent = 'Aguardando Validação';
-                    document.getElementById('badgeStatus').className = 'bg-blue-100 text-blue-800 text-[11px] font-bold px-3 py-1 rounded-full inline-block mb-2';
-                }
-
-                document.getElementById('btnAccept').onclick = async function() {
-                    const signer = document.getElementById('signerName').value;
-                    if (!signer || signer.trim().length < 3) {
-                        alert('Digite o seu nome completo para assinar.');
-                        return;
-                    }
-
-                    const signedAtStr = new Date().toLocaleString('pt-BR');
-
-                    const { error: updateError } = await _supabase
-                        .from('contracts')
-                        .update({ 
-                            status: 'Assinado', 
-                            signer_name: signer, 
-                            signed_at: signedAtStr 
-                        })
-                        .eq('id', contractId);
-
-                    if (updateError) {
-                        alert('Erro ao assinar: ' + updateError.message);
-                        return;
-                    }
-
-                    data.status = 'Assinado';
-                    data.signer_name = signer;
-                    data.signed_at = signedAtStr;
-                    showSignedState(data);
-                };
-
-            } else {
-                goHome();
-            }
-        }
-
-        function showSignedState(contract) {
-            document.getElementById('badgeStatus').textContent = 'Garantia & Entrega Ativas';
-            document.getElementById('badgeStatus').className = 'bg-emerald-100 text-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full inline-block mb-2';
-            document.getElementById('acceptSection').classList.add('hidden');
-            document.getElementById('signedSuccessBox').classList.remove('hidden');
-            document.getElementById('signedDetails').textContent = `Assinado digitalmente por ${contract.signer_name} em ${contract.signed_at}`;
-        }
+        window.onload = initApp;
     </script>
 </body>
 </html>
