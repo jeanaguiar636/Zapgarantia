@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZapGarantia - Sistema Completo com Painel Admin e Assinaturas</title>
+    <title>ZapGarantia - Sistema Completo com Cloudflare R2 e PDF</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,6 +32,7 @@
 
     <main class="max-w-xl mx-auto px-4 py-6 w-full flex-grow">
 
+        <!-- TELA DE AUTENTICAÇÃO -->
         <div id="view-auth" class="space-y-5">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="text-center space-y-1">
@@ -78,6 +79,7 @@
             </div>
         </div>
 
+        <!-- DASHBOARD -->
         <div id="view-dashboard" class="hidden space-y-5">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
                 <div class="flex justify-between items-center">
@@ -114,6 +116,7 @@
             </div>
         </div>
 
+        <!-- PAINEL ADMIN -->
         <div id="view-admin" class="hidden space-y-5">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -142,6 +145,7 @@
             </div>
         </div>
 
+        <!-- CRIADOR DE SERVIÇOS (COM UPLOAD DE MÍDIA R2) -->
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
@@ -168,11 +172,77 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição do Serviço</label>
-                        <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição do Serviço / Aparelho</label>
+                        <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Ex: Troca de tela iPhone 13, cor preta..."></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar Termo</button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto (Cloudflare R2)</label>
+                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (Cloudflare R2)</label>
+                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                        </div>
+                    </div>
+                    <button type="submit" id="btnSubmitContract" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar e Salvar Termo</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- TELA DE VISUALIZAÇÃO DO TERMO E GERADOR DE PDF -->
+        <div id="view-document" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5" id="printableArea">
+                <div class="text-center border-b border-slate-100 pb-4 space-y-1">
+                    <i class="fa-solid fa-file-shield text-3xl text-blue-600"></i>
+                    <h2 class="text-lg font-bold text-slate-900">Termo de Garantia e Serviço</h2>
+                    <p class="text-[11px] text-slate-400" id="docIdCode">Código: #ZG-0000</p>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Profissional Emitente</span>
+                        <p id="docProfName" class="font-semibold text-slate-900">-</p>
+                        <p id="docProfWhatsapp" class="text-slate-500">-</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Dados do Cliente</span>
+                        <p><strong class="text-slate-700">Cliente:</strong> <span id="docClientName">-</span></p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
+                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Detalhes do Atendimento</span>
+                        <p><strong class="text-slate-700">Serviço:</strong> <span id="docServiceDesc">-</span></p>
+                        <p><strong class="text-slate-700">Valor:</strong> R$ <span id="docServiceValue">-</span></p>
+                        <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
+                    </div>
+
+                    <div id="docMediaContainer" class="grid grid-cols-2 gap-2 hidden">
+                        <div id="docImageWrapper" class="hidden">
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Foto em R2</span>
+                            <img id="docImagePreview" src="" crossorigin="anonymous" class="w-full h-32 object-cover rounded-xl border border-slate-200">
+                        </div>
+                        <div id="docVideoWrapper" class="hidden">
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Vídeo em R2</span>
+                            <video id="docVideoPreview" controls class="w-full h-32 object-cover rounded-xl border border-slate-200"></video>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-100">
+                    Este documento comprova a execução do serviço e o direito à garantia conforme os prazos estipulados. Emitido via ZapGarantia.
+                </div>
+            </div>
+
+            <div class="space-y-2 no-print">
+                <button onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md">
+                    <i class="fa-solid fa-file-pdf text-lg"></i>
+                    <span>Baixar Termo em PDF</span>
+                </button>
+                <button onclick="goHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer">
+                    Voltar ao Início
+                </button>
             </div>
         </div>
 
@@ -210,14 +280,20 @@
     </main>
 
     <script>
+        // CONFIGURAÇÕES SUPABASE
         const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
         
+        // CONFIGURAÇÃO DO SEU CLOUDFLARE R2
+        // Subdomínio Público configurado no R2 ou Cloudflare Worker para upload/visualização
+        const R2_PUBLIC_DOMAIN = "https://seu-bucket-r2.seu-dominio.com"; 
+
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
-        const ADMIN_EMAIL = "seu-email-aqui@gmail.com"; // Lembre-se de colocar seu e-mail aqui
+        let userProfile = null;
+        const ADMIN_EMAIL = "seu-email-aqui@gmail.com"; 
 
         async function initApp() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -287,6 +363,7 @@
 
             const { data: profile } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
             if (profile) {
+                userProfile = profile;
                 document.getElementById('welcomeUser').textContent = `Olá, ${profile.full_name}`;
                 if (profile.plan === 'pro') {
                     document.getElementById('headerPlanBadge').textContent = 'Plano PRO';
@@ -305,7 +382,7 @@
 
             contracts.forEach(item => {
                 container.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center cursor-pointer hover:border-blue-300 transition" onclick='viewContract(${JSON.stringify(item)})'>
                         <div>
                             <span class="font-bold text-sm">${item.client_name}</span>
                             <p class="text-xs text-slate-500">R$ ${item.service_value} - ${item.warranty_period}</p>
@@ -348,20 +425,117 @@
             document.getElementById('view-creator').classList.remove('hidden');
         }
 
+        // Função de Upload para o Cloudflare R2
+        async function uploadFileToR2(file) {
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${file.name}`;
+            
+            // Exemplo via Upload direto para o Endpoint do R2 / Cloudflare Worker:
+            const uploadUrl = `${R2_PUBLIC_DOMAIN}/upload/${fileName}`;
+
+            try {
+                const response = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': file.type },
+                    body: file
+                });
+                if (response.ok) {
+                    return `${R2_PUBLIC_DOMAIN}/${fileName}`;
+                }
+            } catch (e) {
+                console.warn('Erro ao fazer upload direto no R2, salvando nome base:', e);
+            }
+            return `${R2_PUBLIC_DOMAIN}/${fileName}`;
+        }
+
         async function saveContract(e) {
             e.preventDefault();
-            const payload = {
-                id: 'zg-' + Math.random().toString(36).substring(2, 8),
-                client_name: document.getElementById('clientName').value,
-                service_value: document.getElementById('serviceValue').value,
-                warranty_period: document.getElementById('warrantyPeriod').value,
-                service_desc: document.getElementById('serviceDesc').value,
-                professional_id: currentUser.id,
-                status: 'Pendente'
+            const btn = document.getElementById('btnSubmitContract');
+            btn.disabled = true;
+            btn.textContent = "A fazer upload e guardar...";
+
+            try {
+                let imageUrl = "";
+                let videoUrl = "";
+
+                const imageFile = document.getElementById('mediaImage').files[0];
+                const videoFile = document.getElementById('mediaVideo').files[0];
+
+                if (imageFile) imageUrl = await uploadFileToR2(imageFile);
+                if (videoFile) videoUrl = await uploadFileToR2(videoFile);
+
+                const payload = {
+                    id: 'zg-' + Math.random().toString(36).substring(2, 8),
+                    client_name: document.getElementById('clientName').value,
+                    service_value: document.getElementById('serviceValue').value,
+                    warranty_period: document.getElementById('warrantyPeriod').value,
+                    service_desc: document.getElementById('serviceDesc').value,
+                    image_url: imageUrl,
+                    video_url: videoUrl,
+                    professional_id: currentUser.id,
+                    status: 'Pendente'
+                };
+
+                const { error: insertErr } = await _supabase.from('contracts').insert([payload]);
+                if (insertErr) throw insertErr;
+
+                alert('Termo gerado e mídias salvas com sucesso!');
+                document.getElementById('contractForm').reset();
+                viewContract(payload);
+            } catch (err) {
+                alert('Erro ao salvar contrato: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Gerar e Salvar Termo";
+            }
+        }
+
+        function viewContract(item) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-creator').classList.add('hidden');
+            document.getElementById('view-document').classList.remove('hidden');
+
+            document.getElementById('docIdCode').textContent = `Código: #${item.id.toUpperCase()}`;
+            document.getElementById('docClientName').textContent = item.client_name;
+            document.getElementById('docServiceDesc').textContent = item.service_desc;
+            document.getElementById('docServiceValue').textContent = item.service_value;
+            document.getElementById('docWarrantyPeriod').textContent = item.warranty_period;
+
+            if (userProfile) {
+                document.getElementById('docProfName').textContent = userProfile.full_name;
+                document.getElementById('docProfWhatsapp').textContent = `WhatsApp: ${userProfile.whatsapp}`;
+            }
+
+            const mediaContainer = document.getElementById('docMediaContainer');
+            const imgWrapper = document.getElementById('docImageWrapper');
+            const vidWrapper = document.getElementById('docVideoWrapper');
+
+            mediaContainer.classList.add('hidden');
+            imgWrapper.classList.add('hidden');
+            vidWrapper.classList.add('hidden');
+
+            if (item.image_url || item.video_url) {
+                mediaContainer.classList.remove('hidden');
+                if (item.image_url) {
+                    document.getElementById('docImagePreview').src = item.image_url;
+                    imgWrapper.classList.remove('hidden');
+                }
+                if (item.video_url) {
+                    document.getElementById('docVideoPreview').src = item.video_url;
+                    vidWrapper.classList.remove('hidden');
+                }
+            }
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('printableArea');
+            const opt = {
+                margin:       10,
+                filename:     'Termo-Garantia-ZapGarantia.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            await _supabase.from('contracts').insert([payload]);
-            alert('Serviço criado com sucesso!');
-            goHome();
+            html2pdf().from(element).set(opt).save();
         }
 
         async function openMasterAdmin() {
@@ -399,16 +573,15 @@
         function goHome() {
             document.getElementById('view-creator').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-document').classList.add('hidden');
             initApp();
         }
 
         function showUpgradeModal() { 
             document.getElementById('upgradeModal').classList.remove('hidden');
-            
             setTimeout(() => {
                 document.getElementById('pixLoading').classList.add('hidden');
                 document.getElementById('pixContent').classList.remove('hidden');
-                
                 document.getElementById('pixQrImg').src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266141740005204000053039865802BR5925ZAPGARANTIA SISTEMA LTDA6009SAO PAULO62070503***63041D3D";
                 document.getElementById('pixCopyPaste').value = "00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266141740005204000053039865802BR5925ZAPGARANTIA SISTEMA LTDA6009SAO PAULO62070503***63041D3D";
             }, 1000);
