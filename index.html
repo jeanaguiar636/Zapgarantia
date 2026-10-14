@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZapGarantia - Termos de Serviço e Garantia</title>
+    <title>ZapGarantia - Sistema Completo com Recuperação de Senha</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -46,6 +46,7 @@
                     <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer">Criar Conta</button>
                 </div>
 
+                <!-- FORMULÁRIO DE LOGIN -->
                 <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
@@ -55,9 +56,15 @@
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
                         <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
+                    
+                    <div class="text-right">
+                        <button type="button" onclick="showForgotPasswordView()" class="text-xs text-blue-600 hover:underline font-semibold cursor-pointer">Esqueceu a senha?</button>
+                    </div>
+
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
                 </form>
 
+                <!-- FORMULÁRIO DE REGISTRO -->
                 <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Completo</label>
@@ -77,6 +84,28 @@
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Criar Conta Gratuita</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- 1.1 TELA DE RECUPERAÇÃO DE SENHA -->
+        <div id="view-forgot" class="hidden space-y-5">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="text-center space-y-1">
+                    <h1 class="text-xl font-bold text-slate-900">Recuperar Senha</h1>
+                    <p class="text-xs text-slate-500">Insira o seu e-mail cadastrado para receber o link de recuperação.</p>
+                </div>
+
+                <form class="space-y-3" onsubmit="handleForgotPassword(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail da Conta</label>
+                        <input type="email" id="forgotEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button type="submit" id="btnForgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Enviar Link de Recuperação</button>
+                </form>
+
+                <div class="text-center pt-2">
+                    <button onclick="goHome()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer">Voltar para o Login</button>
+                </div>
             </div>
         </div>
 
@@ -219,11 +248,10 @@
                         <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
                     </div>
 
-                    <!-- CONTAINER DE MÍDIAS (IMAGEM COM ZOOM E VÍDEO NO NAVEGADOR) -->
+                    <!-- CONTAINER DE MÍDIAS -->
                     <div id="docMediaContainer" class="space-y-3 hidden">
                         <span class="font-bold text-slate-600 block uppercase text-[10px]">Anexos do Serviço</span>
                         
-                        <!-- ÁREA DA FOTO -->
                         <div id="docImageWrapper" class="hidden">
                             <span class="text-[10px] text-slate-400 block mb-1"><i class="fa-solid fa-circle-info"></i> Clique na foto para ampliar em tela cheia</span>
                             <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-200" onclick="openImageModal()">
@@ -235,7 +263,6 @@
                             </div>
                         </div>
 
-                        <!-- ÁREA DO VÍDEO (RODA NO NAVEGADOR DIRETO) -->
                         <div id="docVideoWrapper" class="hidden space-y-1.5">
                             <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-play-circle"></i> Assista ao vídeo do serviço no próprio navegador</span>
                             <div class="rounded-xl overflow-hidden border border-slate-200 bg-black">
@@ -256,7 +283,6 @@
                 </div>
             </div>
 
-            <!-- BOTÕES DE AÇÃO -->
             <div class="space-y-2 no-print">
                 <button onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md">
                     <i class="fa-solid fa-file-pdf text-lg"></i>
@@ -330,15 +356,19 @@
             if (session) {
                 currentUser = session.user;
                 document.getElementById('view-auth').classList.add('hidden');
+                document.getElementById('view-forgot').classList.add('hidden');
                 document.getElementById('headerUserArea').classList.remove('hidden');
                 loadDashboard();
             } else {
                 document.getElementById('view-auth').classList.remove('hidden');
+                document.getElementById('view-forgot').classList.add('hidden');
                 document.getElementById('headerUserArea').classList.add('hidden');
             }
         }
 
         function switchAuthTab(tab) {
+            document.getElementById('view-auth').classList.remove('hidden');
+            document.getElementById('view-forgot').classList.add('hidden');
             if (tab === 'login') {
                 document.getElementById('loginForm').classList.remove('hidden');
                 document.getElementById('registerForm').classList.add('hidden');
@@ -350,6 +380,34 @@
                 document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
                 document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
             }
+        }
+
+        function showForgotPasswordView() {
+            document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('view-forgot').classList.remove('hidden');
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            const btn = document.getElementById('btnForgot');
+            btn.disabled = true;
+            btn.textContent = "A enviar...";
+
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.href, // Retorna para a mesma página após redefinir
+            });
+
+            btn.disabled = false;
+            btn.textContent = "Enviar Link de Recuperação";
+
+            if (error) {
+                alert('Erro ao enviar e-mail de recuperação: ' + error.message);
+                return;
+            }
+
+            alert('Link de recuperação enviado com sucesso! Verifique sua caixa de entrada e spam.');
+            goHome();
         }
 
         async function handleRegister(e) {
@@ -543,7 +601,6 @@
             if (item.image_url || item.video_url) {
                 mediaContainer.classList.remove('hidden');
                 
-                // EXIBIÇÃO DA FOTO
                 if (item.image_url) {
                     const img = document.getElementById('docImagePreview');
                     img.src = item.image_url;
@@ -551,7 +608,6 @@
                     imgWrapper.classList.remove('hidden');
                 }
                 
-                // EXIBIÇÃO DO VÍDEO (PLAYER DIRETO NO NAVEGADOR)
                 if (item.video_url) {
                     const video = document.getElementById('docVideoPreview');
                     video.src = item.video_url;
@@ -561,7 +617,6 @@
             }
         }
 
-        // FUNÇÃO DE ZOOM NA FOTO
         function openImageModal() {
             document.getElementById('imageZoomModal').classList.remove('hidden');
         }
@@ -617,6 +672,7 @@
             document.getElementById('view-creator').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('view-document').classList.add('hidden');
+            document.getElementById('view-forgot').classList.add('hidden');
             initApp();
         }
 
