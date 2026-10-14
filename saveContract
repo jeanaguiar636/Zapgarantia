@@ -1,0 +1,59 @@
+async function saveContract(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitContract');
+    btn.disabled = true;
+    btn.textContent = "A fazer upload e guardar...";
+
+    try {
+        if (!currentUser) {
+            alert('Sessão expirada. Faça login novamente.');
+            goHome();
+            return;
+        }
+
+        // 1. Verifica se o perfil existe na tabela profiles, senão cria automaticamente
+        const { data: existingProfile } = await _supabase.from('profiles').select('id').eq('id', currentUser.id).single();
+        if (!existingProfile) {
+            await _supabase.from('profiles').insert([{
+                id: currentUser.id,
+                full_name: currentUser.email.split('@')[0], // Nome provisório baseado no e-mail
+                email: currentUser.email,
+                whatsapp: "00000000000",
+                plan: 'free'
+            }]);
+        }
+
+        let imageUrl = "";
+        let videoUrl = "";
+
+        const imageFile = document.getElementById('mediaImage').files[0];
+        const videoFile = document.getElementById('mediaVideo').files[0];
+
+        if (imageFile) imageUrl = await uploadFileToR2(imageFile);
+        if (videoFile) videoUrl = await uploadFileToR2(videoFile);
+
+        const payload = {
+            id: 'zg-' + Math.random().toString(36).substring(2, 8),
+            client_name: document.getElementById('clientName').value,
+            service_value: document.getElementById('serviceValue').value,
+            warranty_period: document.getElementById('warrantyPeriod').value,
+            service_desc: document.getElementById('serviceDesc').value,
+            image_url: imageUrl,
+            video_url: videoUrl,
+            professional_id: currentUser.id,
+            status: 'Pendente'
+        };
+
+        const { error: insertErr } = await _supabase.from('contracts').insert([payload]);
+        if (insertErr) throw insertErr;
+
+        alert('Termo gerado com sucesso!');
+        document.getElementById('contractForm').reset();
+        viewContract(payload);
+    } catch (err) {
+        alert('Erro ao salvar contrato: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Gerar e Salvar Termo";
+    }
+}
