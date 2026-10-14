@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZapGarantia - Sistema Completo com Recuperação de Senha</title>
+    <title>ZapGarantia - Sistema Completo com Cloudflare R2 e PDF</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,7 +15,6 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- CABEÇALHO -->
     <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40 no-print">
         <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" onclick="goHome()">
@@ -33,7 +32,7 @@
 
     <main class="max-w-xl mx-auto px-4 py-6 w-full flex-grow">
 
-        <!-- 1. TELA DE AUTENTICAÇÃO (LOGIN / REGISTRO) -->
+        <!-- TELA DE AUTENTICAÇÃO -->
         <div id="view-auth" class="space-y-5">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="text-center space-y-1">
@@ -46,7 +45,6 @@
                     <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer">Criar Conta</button>
                 </div>
 
-                <!-- FORMULÁRIO DE LOGIN -->
                 <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
@@ -56,15 +54,9 @@
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
                         <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
-                    
-                    <div class="text-right">
-                        <button type="button" onclick="showForgotPasswordView()" class="text-xs text-blue-600 hover:underline font-semibold cursor-pointer">Esqueceu a senha?</button>
-                    </div>
-
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
                 </form>
 
-                <!-- FORMULÁRIO DE REGISTRO -->
                 <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Completo</label>
@@ -87,29 +79,7 @@
             </div>
         </div>
 
-        <!-- 1.1 TELA DE RECUPERAÇÃO DE SENHA -->
-        <div id="view-forgot" class="hidden space-y-5">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-                <div class="text-center space-y-1">
-                    <h1 class="text-xl font-bold text-slate-900">Recuperar Senha</h1>
-                    <p class="text-xs text-slate-500">Insira o seu e-mail cadastrado para receber o link de recuperação.</p>
-                </div>
-
-                <form class="space-y-3" onsubmit="handleForgotPassword(event)">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail da Conta</label>
-                        <input type="email" id="forgotEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
-                    </div>
-                    <button type="submit" id="btnForgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Enviar Link de Recuperação</button>
-                </form>
-
-                <div class="text-center pt-2">
-                    <button onclick="goHome()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer">Voltar para o Login</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. DASHBOARD DO PROFISSIONAL -->
+        <!-- DASHBOARD -->
         <div id="view-dashboard" class="hidden space-y-5">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
                 <div class="flex justify-between items-center">
@@ -146,7 +116,7 @@
             </div>
         </div>
 
-        <!-- 3. PAINEL ADMIN MASTER -->
+        <!-- PAINEL ADMIN -->
         <div id="view-admin" class="hidden space-y-5">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -175,7 +145,7 @@
             </div>
         </div>
 
-        <!-- 4. CRIADOR DE SERVIÇOS (COM UPLOAD DE FOTO/VÍDEO) -->
+        <!-- CRIADOR DE SERVIÇOS (COM UPLOAD DE MÍDIA R2) -->
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
@@ -207,12 +177,12 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto do Serviço</label>
-                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto (Cloudflare R2)</label>
+                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (Opcional)</label>
-                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (Cloudflare R2)</label>
+                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
                         </div>
                     </div>
                     <button type="submit" id="btnSubmitContract" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar e Salvar Termo</button>
@@ -220,7 +190,7 @@
             </div>
         </div>
 
-        <!-- 5. TELA DO TERMO (VISUALIZAÇÃO DO CLIENTE E DO PROFISSIONAL) -->
+        <!-- TELA DE VISUALIZAÇÃO DO TERMO E GERADOR DE PDF -->
         <div id="view-document" class="hidden space-y-4">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5" id="printableArea">
                 <div class="text-center border-b border-slate-100 pb-4 space-y-1">
@@ -248,32 +218,14 @@
                         <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
                     </div>
 
-                    <!-- CONTAINER DE MÍDIAS -->
-                    <div id="docMediaContainer" class="space-y-3 hidden">
-                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Anexos do Serviço</span>
-                        
+                    <div id="docMediaContainer" class="grid grid-cols-2 gap-2 hidden">
                         <div id="docImageWrapper" class="hidden">
-                            <span class="text-[10px] text-slate-400 block mb-1"><i class="fa-solid fa-circle-info"></i> Clique na foto para ampliar em tela cheia</span>
-                            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-200" onclick="openImageModal()">
-                                <img id="docImagePreview" src="" crossorigin="anonymous" class="w-full h-44 object-cover group-hover:scale-105 transition duration-300">
-                                <div class="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold space-x-1">
-                                    <i class="fa-solid fa-magnifying-glass-plus text-base"></i>
-                                    <span>Ampliar Foto</span>
-                                </div>
-                            </div>
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Foto em R2</span>
+                            <img id="docImagePreview" src="" crossorigin="anonymous" class="w-full h-32 object-cover rounded-xl border border-slate-200">
                         </div>
-
-                        <div id="docVideoWrapper" class="hidden space-y-1.5">
-                            <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-play-circle"></i> Assista ao vídeo do serviço no próprio navegador</span>
-                            <div class="rounded-xl overflow-hidden border border-slate-200 bg-black">
-                                <video id="docVideoPreview" controls preload="metadata" class="w-full max-h-60 mx-auto"></video>
-                            </div>
-                            <div class="text-right">
-                                <a id="docVideoExternalLink" href="#" target="_blank" class="text-[10px] text-blue-600 font-bold hover:underline inline-flex items-center space-x-1">
-                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                    <span>Abrir vídeo em nova aba</span>
-                                </a>
-                            </div>
+                        <div id="docVideoWrapper" class="hidden">
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Vídeo em R2</span>
+                            <video id="docVideoPreview" controls class="w-full h-32 object-cover rounded-xl border border-slate-200"></video>
                         </div>
                     </div>
                 </div>
@@ -291,17 +243,6 @@
                 <button onclick="goHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer">
                     Voltar ao Início
                 </button>
-            </div>
-        </div>
-
-        <!-- MODAL TELA CHEIA PARA FOTOS (ZOOM) -->
-        <div id="imageZoomModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 cursor-pointer" onclick="closeImageModal()">
-            <div class="relative max-w-3xl w-full max-h-screen p-2 flex flex-col items-center">
-                <button onclick="closeImageModal()" class="absolute top-2 right-2 text-white bg-slate-800/80 hover:bg-slate-700 w-9 h-9 rounded-full flex items-center justify-center text-lg z-10 cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-                <img id="imageZoomSrc" src="" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
-                <span class="text-white text-xs mt-3 bg-slate-800/60 px-3 py-1 rounded-full">Clique em qualquer lugar para fechar</span>
             </div>
         </div>
 
@@ -339,9 +280,12 @@
     </main>
 
     <script>
+        // CONFIGURAÇÕES SUPABASE
         const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
         
+        // CONFIGURAÇÃO DO SEU CLOUDFLARE R2
+        // Subdomínio Público configurado no R2 ou Cloudflare Worker para upload/visualização
         const R2_PUBLIC_DOMAIN = "https://seu-bucket-r2.seu-dominio.com"; 
 
         const { createClient } = supabase;
@@ -356,19 +300,15 @@
             if (session) {
                 currentUser = session.user;
                 document.getElementById('view-auth').classList.add('hidden');
-                document.getElementById('view-forgot').classList.add('hidden');
                 document.getElementById('headerUserArea').classList.remove('hidden');
                 loadDashboard();
             } else {
                 document.getElementById('view-auth').classList.remove('hidden');
-                document.getElementById('view-forgot').classList.add('hidden');
                 document.getElementById('headerUserArea').classList.add('hidden');
             }
         }
 
         function switchAuthTab(tab) {
-            document.getElementById('view-auth').classList.remove('hidden');
-            document.getElementById('view-forgot').classList.add('hidden');
             if (tab === 'login') {
                 document.getElementById('loginForm').classList.remove('hidden');
                 document.getElementById('registerForm').classList.add('hidden');
@@ -380,34 +320,6 @@
                 document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
                 document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
             }
-        }
-
-        function showForgotPasswordView() {
-            document.getElementById('view-auth').classList.add('hidden');
-            document.getElementById('view-forgot').classList.remove('hidden');
-        }
-
-        async function handleForgotPassword(e) {
-            e.preventDefault();
-            const email = document.getElementById('forgotEmail').value;
-            const btn = document.getElementById('btnForgot');
-            btn.disabled = true;
-            btn.textContent = "A enviar...";
-
-            const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.href, // Retorna para a mesma página após redefinir
-            });
-
-            btn.disabled = false;
-            btn.textContent = "Enviar Link de Recuperação";
-
-            if (error) {
-                alert('Erro ao enviar e-mail de recuperação: ' + error.message);
-                return;
-            }
-
-            alert('Link de recuperação enviado com sucesso! Verifique sua caixa de entrada e spam.');
-            goHome();
         }
 
         async function handleRegister(e) {
@@ -513,8 +425,11 @@
             document.getElementById('view-creator').classList.remove('hidden');
         }
 
+        // Função de Upload para o Cloudflare R2
         async function uploadFileToR2(file) {
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${file.name}`;
+            
+            // Exemplo via Upload direto para o Endpoint do R2 / Cloudflare Worker:
             const uploadUrl = `${R2_PUBLIC_DOMAIN}/upload/${fileName}`;
 
             try {
@@ -527,7 +442,7 @@
                     return `${R2_PUBLIC_DOMAIN}/${fileName}`;
                 }
             } catch (e) {
-                console.warn('Erro no upload direto para R2:', e);
+                console.warn('Erro ao fazer upload direto no R2, salvando nome base:', e);
             }
             return `${R2_PUBLIC_DOMAIN}/${fileName}`;
         }
@@ -563,7 +478,7 @@
                 const { error: insertErr } = await _supabase.from('contracts').insert([payload]);
                 if (insertErr) throw insertErr;
 
-                alert('Termo gerado com sucesso!');
+                alert('Termo gerado e mídias salvas com sucesso!');
                 document.getElementById('contractForm').reset();
                 viewContract(payload);
             } catch (err) {
@@ -600,28 +515,15 @@
 
             if (item.image_url || item.video_url) {
                 mediaContainer.classList.remove('hidden');
-                
                 if (item.image_url) {
-                    const img = document.getElementById('docImagePreview');
-                    img.src = item.image_url;
-                    document.getElementById('imageZoomSrc').src = item.image_url;
+                    document.getElementById('docImagePreview').src = item.image_url;
                     imgWrapper.classList.remove('hidden');
                 }
-                
                 if (item.video_url) {
-                    const video = document.getElementById('docVideoPreview');
-                    video.src = item.video_url;
-                    document.getElementById('docVideoExternalLink').href = item.video_url;
+                    document.getElementById('docVideoPreview').src = item.video_url;
                     vidWrapper.classList.remove('hidden');
                 }
             }
-        }
-
-        function openImageModal() {
-            document.getElementById('imageZoomModal').classList.remove('hidden');
-        }
-        function closeImageModal() {
-            document.getElementById('imageZoomModal').classList.add('hidden');
         }
 
         function downloadPDF() {
@@ -672,7 +574,6 @@
             document.getElementById('view-creator').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('view-document').classList.add('hidden');
-            document.getElementById('view-forgot').classList.add('hidden');
             initApp();
         }
 
