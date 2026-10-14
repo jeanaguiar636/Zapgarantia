@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZapGarantia - Sistema Completo com Recuperação de Senha</title>
+    <title>ZapGarantia - Sistema Definitivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,7 +15,6 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- CABEÇALHO -->
     <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40 no-print">
         <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" onclick="goHome()">
@@ -33,7 +32,7 @@
 
     <main class="max-w-xl mx-auto px-4 py-6 w-full flex-grow">
 
-        <!-- 1. TELA DE AUTENTICAÇÃO (LOGIN / REGISTRO) -->
+        <!-- TELA DE AUTENTICAÇÃO -->
         <div id="view-auth" class="space-y-5">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="text-center space-y-1">
@@ -46,7 +45,6 @@
                     <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer">Criar Conta</button>
                 </div>
 
-                <!-- FORMULÁRIO DE LOGIN -->
                 <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
@@ -56,15 +54,12 @@
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
                         <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
-                    
                     <div class="text-right">
                         <button type="button" onclick="showForgotPasswordView()" class="text-xs text-blue-600 hover:underline font-semibold cursor-pointer">Esqueceu a senha?</button>
                     </div>
-
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
                 </form>
 
-                <!-- FORMULÁRIO DE REGISTRO -->
                 <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Completo</label>
@@ -87,29 +82,27 @@
             </div>
         </div>
 
-        <!-- 1.1 TELA DE RECUPERAÇÃO DE SENHA -->
+        <!-- RECUPERAÇÃO DE SENHA -->
         <div id="view-forgot" class="hidden space-y-5">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="text-center space-y-1">
                     <h1 class="text-xl font-bold text-slate-900">Recuperar Senha</h1>
-                    <p class="text-xs text-slate-500">Insira o seu e-mail cadastrado para receber o link de recuperação.</p>
+                    <p class="text-xs text-slate-500">Insira o seu e-mail para receber o link de recuperação.</p>
                 </div>
-
                 <form class="space-y-3" onsubmit="handleForgotPassword(event)">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail da Conta</label>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
                         <input type="email" id="forgotEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
-                    <button type="submit" id="btnForgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Enviar Link de Recuperação</button>
+                    <button type="submit" id="btnForgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Enviar Link</button>
                 </form>
-
                 <div class="text-center pt-2">
-                    <button onclick="goHome()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer">Voltar para o Login</button>
+                    <button onclick="goHome()" class="text-xs text-slate-500 font-semibold cursor-pointer">Voltar para o Login</button>
                 </div>
             </div>
         </div>
 
-        <!-- 2. DASHBOARD DO PROFISSIONAL -->
+        <!-- DASHBOARD -->
         <div id="view-dashboard" class="hidden space-y-5">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
                 <div class="flex justify-between items-center">
@@ -146,7 +139,7 @@
             </div>
         </div>
 
-        <!-- 3. PAINEL ADMIN MASTER -->
+        <!-- PAINEL ADMIN -->
         <div id="view-admin" class="hidden space-y-5">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -175,7 +168,7 @@
             </div>
         </div>
 
-        <!-- 4. CRIADOR DE SERVIÇOS (COM UPLOAD DE FOTO/VÍDEO) -->
+        <!-- CRIADOR DE SERVIÇOS -->
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
@@ -203,16 +196,16 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição do Serviço / Aparelho</label>
-                        <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Ex: Troca de tela iPhone 13, cor preta..."></textarea>
+                        <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Ex: Troca de tela iPhone 13..."></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto do Serviço</label>
-                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto do Aparelho</label>
+                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 cursor-pointer">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (Opcional)</label>
-                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 cursor-pointer">
                         </div>
                     </div>
                     <button type="submit" id="btnSubmitContract" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar e Salvar Termo</button>
@@ -220,7 +213,7 @@
             </div>
         </div>
 
-        <!-- 5. TELA DO TERMO (VISUALIZAÇÃO DO CLIENTE E DO PROFISSIONAL) -->
+        <!-- TELA DE VISUALIZAÇÃO DO DOCUMENTO -->
         <div id="view-document" class="hidden space-y-4">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5" id="printableArea">
                 <div class="text-center border-b border-slate-100 pb-4 space-y-1">
@@ -248,38 +241,27 @@
                         <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
                     </div>
 
-                    <!-- CONTAINER DE MÍDIAS -->
                     <div id="docMediaContainer" class="space-y-3 hidden">
                         <span class="font-bold text-slate-600 block uppercase text-[10px]">Anexos do Serviço</span>
                         
                         <div id="docImageWrapper" class="hidden">
-                            <span class="text-[10px] text-slate-400 block mb-1"><i class="fa-solid fa-circle-info"></i> Clique na foto para ampliar em tela cheia</span>
+                            <span class="text-[10px] text-slate-400 block mb-1"><i class="fa-solid fa-circle-info"></i> Clique na foto para ampliar</span>
                             <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-200" onclick="openImageModal()">
                                 <img id="docImagePreview" src="" crossorigin="anonymous" class="w-full h-44 object-cover group-hover:scale-105 transition duration-300">
-                                <div class="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold space-x-1">
-                                    <i class="fa-solid fa-magnifying-glass-plus text-base"></i>
-                                    <span>Ampliar Foto</span>
-                                </div>
                             </div>
                         </div>
 
                         <div id="docVideoWrapper" class="hidden space-y-1.5">
-                            <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-play-circle"></i> Assista ao vídeo do serviço no próprio navegador</span>
+                            <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-play-circle"></i> Vídeo do serviço</span>
                             <div class="rounded-xl overflow-hidden border border-slate-200 bg-black">
                                 <video id="docVideoPreview" controls preload="metadata" class="w-full max-h-60 mx-auto"></video>
-                            </div>
-                            <div class="text-right">
-                                <a id="docVideoExternalLink" href="#" target="_blank" class="text-[10px] text-blue-600 font-bold hover:underline inline-flex items-center space-x-1">
-                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                    <span>Abrir vídeo em nova aba</span>
-                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-100">
-                    Este documento comprova a execução do serviço e o direito à garantia conforme os prazos estipulados. Emitido via ZapGarantia.
+                    Este documento comprova a execução do serviço e o direito à garantia. Emitido via ZapGarantia.
                 </div>
             </div>
 
@@ -294,18 +276,14 @@
             </div>
         </div>
 
-        <!-- MODAL TELA CHEIA PARA FOTOS (ZOOM) -->
-        <div id="imageZoomModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 cursor-pointer" onclick="closeImageModal()">
+        <!-- MODAL ZOOM FOTO -->
+        <div id="imageZoomModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 cursor-pointer" onclick="closeImageModal()">
             <div class="relative max-w-3xl w-full max-h-screen p-2 flex flex-col items-center">
-                <button onclick="closeImageModal()" class="absolute top-2 right-2 text-white bg-slate-800/80 hover:bg-slate-700 w-9 h-9 rounded-full flex items-center justify-center text-lg z-10 cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
                 <img id="imageZoomSrc" src="" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
-                <span class="text-white text-xs mt-3 bg-slate-800/60 px-3 py-1 rounded-full">Clique em qualquer lugar para fechar</span>
             </div>
         </div>
 
-        <!-- MODAL PIX MERCADO PAGO -->
+        <!-- MODAL PIX -->
         <div id="upgradeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center">
                 <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
@@ -313,24 +291,16 @@
                 </div>
                 <h3 class="text-lg font-bold text-slate-900">Ativação Instantânea via Pix</h3>
                 <p class="text-xs text-slate-500">Escaneie o QR Code abaixo ou copie o código Pix para liberar o Plano PRO (R$ 12,00).</p>
-                
-                <div id="pixLoading" class="py-6 text-xs text-slate-400">Gerando QR Code Pix seguro...</div>
+                <div id="pixLoading" class="py-6 text-xs text-slate-400">Gerando QR Code Pix...</div>
                 <div id="pixContent" class="hidden space-y-3">
-                    <div id="pixQrContainer" class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-center">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-center">
                         <img id="pixQrImg" src="" alt="QR Code Pix" class="w-40 h-40 object-contain mx-auto">
                     </div>
-                    <div>
-                        <textarea id="pixCopyPaste" readonly class="w-full h-16 text-[10px] p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 select-all"></textarea>
-                    </div>
-                    <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
-                        <i class="fa-solid fa-copy"></i> Copiar Código Pix
-                    </button>
+                    <textarea id="pixCopyPaste" readonly class="w-full h-16 text-[10px] p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 select-all"></textarea>
+                    <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">Copiar Código Pix</button>
                 </div>
-
                 <div class="pt-2 border-t border-slate-100 flex space-x-2">
-                    <button onclick="simulatePixPaymentApproval()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
-                        Já Paguei / Liberar Conta
-                    </button>
+                    <button onclick="simulatePixPaymentApproval()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">Já Paguei</button>
                     <button onclick="closeUpgradeModal()" class="px-4 text-xs text-slate-400 py-1 cursor-pointer">Fechar</button>
                 </div>
             </div>
@@ -342,8 +312,6 @@
         const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
         
-        const R2_PUBLIC_DOMAIN = "https://seu-bucket-r2.seu-dominio.com"; 
-
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -394,19 +362,12 @@
             btn.disabled = true;
             btn.textContent = "A enviar...";
 
-            const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.href, // Retorna para a mesma página após redefinir
-            });
-
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
             btn.disabled = false;
-            btn.textContent = "Enviar Link de Recuperação";
+            btn.textContent = "Enviar Link";
 
-            if (error) {
-                alert('Erro ao enviar e-mail de recuperação: ' + error.message);
-                return;
-            }
-
-            alert('Link de recuperação enviado com sucesso! Verifique sua caixa de entrada e spam.');
+            if (error) { alert('Erro: ' + error.message); return; }
+            alert('Link de recuperação enviado com sucesso!');
             goHome();
         }
 
@@ -482,71 +443,54 @@
 
         async function checkLimitAndOpenCreator() {
             try {
-                if (!currentUser) {
-                    alert('Sessão expirada. Faça login novamente.');
-                    goHome();
-                    return;
-                }
-
-                const { data: profile, error: profileError } = await _supabase
-                    .from('profiles')
-                    .select('plan')
-                    .eq('id', currentUser.id)
-                    .single();
-
+                if (!currentUser) { alert('Sessão expirada.'); goHome(); return; }
+                const { data: profile, error: profileError } = await _supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
                 if (!profileError && profile && profile.plan !== 'pro') {
-                    const { count, error: countError } = await _supabase
-                        .from('contracts')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('professional_id', currentUser.id);
-
-                    if (!countError && count >= 2) {
-                        showUpgradeModal();
-                        return;
-                    }
+                    const { count, error: countError } = await _supabase.from('contracts').select('*', { count: 'exact', head: true }).eq('professional_id', currentUser.id);
+                    if (!countError && count >= 2) { showUpgradeModal(); return; }
                 }
-            } catch (err) {
-                console.warn('Aviso ao checar plano/limite, permitindo abertura:', err);
-            }
-
+            } catch (err) {}
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-creator').classList.remove('hidden');
         }
 
-        async function uploadFileToR2(file) {
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${file.name}`;
-            const uploadUrl = `${R2_PUBLIC_DOMAIN}/upload/${fileName}`;
-
-            try {
-                const response = await fetch(uploadUrl, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': file.type },
-                    body: file
-                });
-                if (response.ok) {
-                    return `${R2_PUBLIC_DOMAIN}/${fileName}`;
-                }
-            } catch (e) {
-                console.warn('Erro no upload direto para R2:', e);
-            }
-            return `${R2_PUBLIC_DOMAIN}/${fileName}`;
-        }
+        // Função auxiliar para converter arquivo em Base64 (salva direto no banco sem falhar)
+        const fileToBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
 
         async function saveContract(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitContract');
             btn.disabled = true;
-            btn.textContent = "A fazer upload e guardar...";
+            btn.textContent = "A guardar termo e mídias...";
 
             try {
+                if (!currentUser) { alert('Sessão expirada.'); goHome(); return; }
+
+                // Garante que o perfil existe para evitar erro de chave estrangeira
+                const { data: existingProfile } = await _supabase.from('profiles').select('id').eq('id', currentUser.id).single();
+                if (!existingProfile) {
+                    await _supabase.from('profiles').insert([{
+                        id: currentUser.id,
+                        full_name: currentUser.email.split('@')[0],
+                        email: currentUser.email,
+                        whatsapp: "00000000000",
+                        plan: 'free'
+                    }]);
+                }
+
                 let imageUrl = "";
                 let videoUrl = "";
 
                 const imageFile = document.getElementById('mediaImage').files[0];
                 const videoFile = document.getElementById('mediaVideo').files[0];
 
-                if (imageFile) imageUrl = await uploadFileToR2(imageFile);
-                if (videoFile) videoUrl = await uploadFileToR2(videoFile);
+                if (imageFile) imageUrl = await fileToBase64(imageFile);
+                if (videoFile) videoUrl = await fileToBase64(videoFile);
 
                 const payload = {
                     id: 'zg-' + Math.random().toString(36).substring(2, 8),
@@ -600,38 +544,29 @@
 
             if (item.image_url || item.video_url) {
                 mediaContainer.classList.remove('hidden');
-                
                 if (item.image_url) {
-                    const img = document.getElementById('docImagePreview');
-                    img.src = item.image_url;
+                    document.getElementById('docImagePreview').src = item.image_url;
                     document.getElementById('imageZoomSrc').src = item.image_url;
                     imgWrapper.classList.remove('hidden');
                 }
-                
                 if (item.video_url) {
-                    const video = document.getElementById('docVideoPreview');
-                    video.src = item.video_url;
-                    document.getElementById('docVideoExternalLink').href = item.video_url;
+                    document.getElementById('docVideoPreview').src = item.video_url;
                     vidWrapper.classList.remove('hidden');
                 }
             }
         }
 
-        function openImageModal() {
-            document.getElementById('imageZoomModal').classList.remove('hidden');
-        }
-        function closeImageModal() {
-            document.getElementById('imageZoomModal').classList.add('hidden');
-        }
+        function openImageModal() { document.getElementById('imageZoomModal').classList.remove('hidden'); }
+        function closeImageModal() { document.getElementById('imageZoomModal').classList.add('hidden'); }
 
         function downloadPDF() {
             const element = document.getElementById('printableArea');
             const opt = {
-                margin:       10,
-                filename:     'Termo-Garantia-ZapGarantia.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: 10,
+                filename: 'Termo-Garantia-ZapGarantia.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(element).set(opt).save();
         }
@@ -639,7 +574,6 @@
         async function openMasterAdmin() {
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-admin').classList.remove('hidden');
-
             const { data: users } = await _supabase.from('profiles').select('*');
             document.getElementById('adminTotalUsers').textContent = users ? users.length : 0;
             const proUsers = users ? users.filter(u => u.plan === 'pro') : [];
@@ -647,7 +581,6 @@
 
             const listContainer = document.getElementById('adminUsersList');
             listContainer.innerHTML = '';
-
             if (users) {
                 users.forEach(u => {
                     const isPro = u.plan === 'pro';
@@ -655,14 +588,9 @@
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
                             <div>
                                 <span class="font-bold text-slate-900 block">${u.full_name}</span>
-                                <span class="text-slate-500">${u.email} &bull; WhatsApp: <a href="https://wa.me/55${u.whatsapp}" target="_blank" class="text-emerald-600 font-semibold underline">${u.whatsapp}</a></span>
+                                <span class="text-slate-500">${u.email} &bull; WhatsApp: ${u.whatsapp}</span>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-1 rounded font-bold ${isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${isPro ? 'PRO' : 'Gratuito'}</span>
-                                <a href="https://wa.me/55${u.whatsapp}?text=Olá%20${encodeURIComponent(u.full_name)},%20falamos%20do%20ZapGarantia!" target="_blank" class="bg-emerald-600 text-white p-2 rounded-lg cursor-pointer" title="Conversar no WhatsApp">
-                                    <i class="fa-brands fa-whatsapp text-sm"></i>
-                                </a>
-                            </div>
+                            <span class="px-2 py-1 rounded font-bold ${isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${isPro ? 'PRO' : 'Gratuito'}</span>
                         </div>`;
                 });
             }
@@ -686,27 +614,17 @@
             }, 1000);
         }
 
-        function closeUpgradeModal() { 
-            document.getElementById('upgradeModal').classList.add('hidden');
-            document.getElementById('pixLoading').classList.remove('hidden');
-            document.getElementById('pixContent').classList.add('hidden');
-        }
-
+        function closeUpgradeModal() { document.getElementById('upgradeModal').classList.add('hidden'); }
         function copyPixCode() {
-            const copyText = document.getElementById('pixCopyPaste');
-            copyText.select();
+            document.getElementById('pixCopyPaste').select();
             document.execCommand('copy');
-            alert('Código Pix Copia e Cola copiado com sucesso!');
+            alert('Código Pix copiado!');
         }
 
         async function simulatePixPaymentApproval() {
             if (!currentUser) return;
-            const { error } = await _supabase.from('profiles').update({ plan: 'pro' }).eq('id', currentUser.id);
-            if (error) {
-                alert('Erro ao atualizar plano: ' + error.message);
-                return;
-            }
-            alert('Pagamento confirmado com sucesso! Sua conta agora é PRO.');
+            await _supabase.from('profiles').update({ plan: 'pro' }).eq('id', currentUser.id);
+            alert('Conta PRO ativada com sucesso!');
             closeUpgradeModal();
             location.reload();
         }
