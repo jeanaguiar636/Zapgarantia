@@ -334,11 +334,11 @@
             const whatsapp = document.getElementById('regWhatsapp').value;
             const password = document.getElementById('regPassword').value;
 
-            const { data, error } = await _supabase.auth.signUp({ email, password });
+            // O perfil é criado automaticamente no banco (trigger) a partir destes dados.
+            const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: name, whatsapp } } });
             if (error) { alert('Erro no registo: ' + error.message); return; }
 
             if (data.user) {
-                await _supabase.from('profiles').insert([{ id: data.user.id, full_name: name, email, whatsapp, plan: 'free' }]);
                 alert('Conta criada com sucesso! Faça login.');
                 switchAuthTab('login');
             }
