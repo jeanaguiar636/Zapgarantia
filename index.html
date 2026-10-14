@@ -431,14 +431,34 @@
         }
 
         // Função de Upload para o Cloudflare R2
+        async function compressImage(file) {
+            if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+            try {
+                const bmp = await createImageBitmap(file);
+                const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(bmp.width * scale);
+                c.height = Math.round(bmp.height * scale);
+                c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+                const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
+                return blob || file;
+            } catch (e) { return file; }
+        }
+
         async function uploadFileToR2(file) {
+            file = await compressImage(file);
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) throw new Error('Sessão expirada. Faça login novamente.');
-            const res = await fetch(`${R2_PUBLIC_DOMAIN}/upload`, {
-                method: 'PUT',
-                headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${session.access_token}` },
-                body: file
-            });
+            let res;
+            try {
+                res = await fetch(`${R2_PUBLIC_DOMAIN}/upload`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${session.access_token}` },
+                    body: file
+                });
+            } catch (e) {
+                throw new Error('Não consegui enviar o arquivo ao Worker da Cloudflare (conexão ou CORS). Confira ALLOWED_ORIGIN.');
+            }
             if (!res.ok) throw new Error('Falha no upload: ' + (await res.text()));
             const { key } = await res.json();
             return `${R2_PUBLIC_DOMAIN}/${key}`;
