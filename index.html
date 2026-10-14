@@ -195,7 +195,7 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5" id="printableArea">
                 <div class="text-center border-b border-slate-100 pb-4 space-y-1">
                     <i class="fa-solid fa-file-shield text-3xl text-blue-600"></i>
-                    <h2 class="text-lg font-bold text-slate-900">Termo de Garantia e Serviço</h2>
+                    <h2 class="text-lg font-bold text-slate-900">Orçamento e Termo de Serviço</h2>
                     <p class="text-[11px] text-slate-400" id="docIdCode">Código: #ZG-0000</p>
                 </div>
 
@@ -220,30 +220,55 @@
 
                     <div id="docMediaContainer" class="grid grid-cols-2 gap-2 hidden">
                         <div id="docImageWrapper" class="hidden">
-                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Foto em R2</span>
-                            <img id="docImagePreview" src="" crossorigin="anonymous" class="w-full h-32 object-cover rounded-xl border border-slate-200">
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Foto (toque para ampliar)</span>
+                            <img id="docImagePreview" src="" crossorigin="anonymous" onclick="openLightbox(this.src)" class="w-full h-32 object-cover rounded-xl border border-slate-200 cursor-zoom-in">
                         </div>
                         <div id="docVideoWrapper" class="hidden">
-                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Vídeo em R2</span>
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Vídeo</span>
                             <video id="docVideoPreview" controls class="w-full h-32 object-cover rounded-xl border border-slate-200"></video>
                         </div>
                     </div>
                 </div>
 
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
+                    <span class="font-bold text-slate-600 block uppercase text-[10px]">Assinatura do Cliente</span>
+                    <p id="docSignatureText" class="text-slate-500">Aguardando assinatura</p>
+                </div>
+
                 <div class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-100">
-                    Este documento comprova a execução do serviço e o direito à garantia conforme os prazos estipulados. Emitido via ZapGarantia.
+                    Documento emitido via ZapGarantia. A assinatura eletrônica registra o nome digitado, a data e a hora do aceite.
                 </div>
             </div>
 
             <div class="space-y-2 no-print">
-                <button onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md">
+                <div id="clientSignArea" class="hidden bg-white p-4 rounded-2xl border border-blue-200 space-y-3">
+                    <p class="text-sm font-bold text-slate-800">Assinar documento</p>
+                    <p class="text-[11px] text-slate-500">Confira os dados acima. Para aceitar o orçamento, digite seu nome completo e toque em assinar.</p>
+                    <input id="signName" type="text" placeholder="Seu nome completo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    <button id="btnSign" onclick="signContract()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Assinar e aceitar</button>
+                </div>
+                <div id="proLinkArea" class="hidden bg-blue-50 border border-blue-100 p-3.5 rounded-xl space-y-2">
+                    <p class="text-xs font-bold text-blue-900">Link para o cliente assinar</p>
+                    <input id="shareLink" readonly class="w-full text-[11px] p-2 bg-white border border-slate-200 rounded-lg text-slate-600 select-all">
+                    <div class="flex space-x-2">
+                        <button onclick="copyShareLink()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-solid fa-copy"></i> Copiar link</button>
+                        <button onclick="shareWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
+                    </div>
+                </div>
+                <button id="btnPdf" onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-file-pdf text-lg"></i>
-                    <span>Baixar Termo em PDF</span>
+                    <span>Baixar em PDF</span>
                 </button>
-                <button onclick="goHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer">
+                <button id="btnBackHome" onclick="goHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer">
                     Voltar ao Início
                 </button>
             </div>
+        </div>
+
+        <!-- AMPLIAR FOTO -->
+        <div id="lightbox" class="hidden fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-3" onclick="closeLightbox()">
+            <button class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Fechar">&times;</button>
+            <img id="lightboxImg" src="" alt="Foto ampliada" class="max-w-full max-h-full object-contain" style="touch-action: pinch-zoom;">
         </div>
 
         <!-- MODAL PIX MERCADO PAGO -->
@@ -492,12 +517,12 @@
                     status: 'Pendente'
                 };
 
-                const { error: insertErr } = await _supabase.from('contracts').insert([payload]);
+                const { data: saved, error: insertErr } = await _supabase.from('contracts').insert([payload]).select().single();
                 if (insertErr) throw insertErr;
 
-                alert('Termo gerado e mídias salvas com sucesso!');
+                alert('Orçamento criado! Copie o link abaixo para enviar ao cliente.');
                 document.getElementById('contractForm').reset();
-                viewContract(payload);
+                viewContract(saved);
             } catch (err) {
                 if ((err.message || '').includes('LIMITE_GRATUITO')) { showUpgradeModal(); } else { alert('Erro ao salvar contrato: ' + err.message); }
             } finally {
@@ -506,30 +531,38 @@
             }
         }
 
+        let clientMode = false, clientToken = null, currentContract = null;
+
+        function shareUrl(item) { return `${location.origin}${location.pathname}?c=${item.public_token}`; }
+
         function viewContract(item) {
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-creator').classList.add('hidden');
             document.getElementById('view-document').classList.remove('hidden');
+            renderDoc(item, userProfile && userProfile.full_name, userProfile && userProfile.whatsapp);
+        }
 
-            document.getElementById('docIdCode').textContent = `Código: #${item.id.toUpperCase()}`;
+        function renderDoc(item, profName, profWhats) {
+            currentContract = item;
+            const signed = !!item.signed_at;
+            document.getElementById('docIdCode').textContent = `Código: #${String(item.id).toUpperCase()}`;
             document.getElementById('docClientName').textContent = item.client_name;
             document.getElementById('docServiceDesc').textContent = item.service_desc;
             document.getElementById('docServiceValue').textContent = item.service_value;
             document.getElementById('docWarrantyPeriod').textContent = item.warranty_period;
+            document.getElementById('docProfName').textContent = profName || '-';
+            document.getElementById('docProfWhatsapp').textContent = profWhats ? `WhatsApp: ${profWhats}` : '';
 
-            if (userProfile) {
-                document.getElementById('docProfName').textContent = userProfile.full_name;
-                document.getElementById('docProfWhatsapp').textContent = `WhatsApp: ${userProfile.whatsapp}`;
-            }
+            document.getElementById('docSignatureText').textContent = signed
+                ? `Assinado por ${item.signed_name} em ${new Date(item.signed_at).toLocaleString('pt-BR')}`
+                : 'Aguardando assinatura do cliente';
 
             const mediaContainer = document.getElementById('docMediaContainer');
             const imgWrapper = document.getElementById('docImageWrapper');
             const vidWrapper = document.getElementById('docVideoWrapper');
-
             mediaContainer.classList.add('hidden');
             imgWrapper.classList.add('hidden');
             vidWrapper.classList.add('hidden');
-
             if (item.image_url || item.video_url) {
                 mediaContainer.classList.remove('hidden');
                 if (item.image_url) {
@@ -541,13 +574,67 @@
                     vidWrapper.classList.remove('hidden');
                 }
             }
+
+            document.getElementById('clientSignArea').classList.toggle('hidden', !(clientMode && !signed));
+            document.getElementById('proLinkArea').classList.toggle('hidden', clientMode || !item.public_token);
+            document.getElementById('btnPdf').classList.toggle('hidden', clientMode && !signed);
+            document.getElementById('btnBackHome').classList.toggle('hidden', clientMode);
+            if (!clientMode && item.public_token) document.getElementById('shareLink').value = shareUrl(item);
+        }
+
+        function openLightbox(src) {
+            if (!src) return;
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.remove('hidden');
+        }
+        function closeLightbox() { document.getElementById('lightbox').classList.add('hidden'); }
+
+        function copyShareLink() {
+            const el = document.getElementById('shareLink');
+            if (navigator.clipboard) navigator.clipboard.writeText(el.value).catch(() => {});
+            el.select(); try { document.execCommand('copy'); } catch (e) {}
+            alert('Link copiado! Envie para o cliente.');
+        }
+        function shareWhatsApp() {
+            const msg = `Olá! Segue o orçamento do serviço para você conferir e assinar: ${document.getElementById('shareLink').value}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        async function initClient(token) {
+            clientMode = true;
+            clientToken = token;
+            document.getElementById('view-auth').classList.add('hidden');
+            const { data, error } = await _supabase.rpc('get_public_contract', { p_token: token });
+            if (error || !data) {
+                document.querySelector('main').innerHTML = '<p class="text-center text-sm text-slate-500 py-10">Link inválido ou documento não encontrado.</p>';
+                return;
+            }
+            document.getElementById('view-document').classList.remove('hidden');
+            renderDoc(data, data.prof_name, data.prof_whatsapp);
+        }
+
+        async function signContract() {
+            const name = document.getElementById('signName').value.trim();
+            if (name.length < 5) { alert('Digite seu nome completo para assinar.'); return; }
+            const btn = document.getElementById('btnSign');
+            btn.disabled = true; btn.textContent = 'Assinando...';
+            const { error } = await _supabase.rpc('sign_public_contract', { p_token: clientToken, p_name: name });
+            if (error) {
+                btn.disabled = false; btn.textContent = 'Assinar e aceitar';
+                alert((error.message || '').includes('JA_ASSINADO') ? 'Este documento já foi assinado.' : 'Não foi possível assinar: ' + error.message);
+                return;
+            }
+            const { data } = await _supabase.rpc('get_public_contract', { p_token: clientToken });
+            if (data) renderDoc(data, data.prof_name, data.prof_whatsapp);
+            alert('Documento assinado! Toque em "Baixar em PDF" para guardar sua cópia.');
         }
 
         function downloadPDF() {
             const element = document.getElementById('printableArea');
+            const id = currentContract ? currentContract.id : 'documento';
             const opt = {
                 margin:       10,
-                filename:     'Termo-Garantia-ZapGarantia.pdf',
+                filename:     `Orcamento-${id}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -588,6 +675,7 @@
         }
 
         function goHome() {
+            if (clientMode) return;
             document.getElementById('view-creator').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('view-document').classList.add('hidden');
@@ -649,7 +737,10 @@
             else alert('Pagamento ainda não confirmado. Pode levar alguns segundos após pagar.');
         }
 
-        window.onload = initApp;
+        window.onload = () => {
+            const t = new URLSearchParams(location.search).get('c');
+            if (t) initClient(t); else initApp();
+        };
     </script>
 </body>
 </html>
