@@ -219,13 +219,17 @@
                     </div>
 
                     <div id="docMediaContainer" class="grid grid-cols-2 gap-2 hidden">
-                        <div id="docImageWrapper" class="hidden">
+                        <div id="docImageWrapper" class="hidden col-span-2">
                             <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Foto (toque para ampliar)</span>
-                            <img id="docImagePreview" src="" crossorigin="anonymous" onclick="openLightbox(this.src)" class="w-full h-32 object-cover rounded-xl border border-slate-200 cursor-zoom-in">
+                            <div class="relative">
+                                <img id="docImagePreview" src="" alt="Foto do serviço" onclick="openLightbox(this.src)" onerror="imgFailed()" class="w-full max-h-64 object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100">
+                                <button data-html2canvas-ignore="true" onclick="openLightbox(document.getElementById('docImagePreview').src)" class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2.5 py-1.5 rounded-lg cursor-pointer"><i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar</button>
+                            </div>
+                            <p id="docImageError" data-html2canvas-ignore="true" class="hidden text-[11px] text-red-500 mt-1">Não foi possível carregar a foto. Verifique o endereço do Worker e o bucket na Cloudflare.</p>
                         </div>
-                        <div id="docVideoWrapper" class="hidden">
+                        <div id="docVideoWrapper" class="hidden col-span-2">
                             <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Vídeo</span>
-                            <video id="docVideoPreview" controls class="w-full h-32 object-cover rounded-xl border border-slate-200"></video>
+                            <video id="docVideoPreview" controls playsinline class="w-full max-h-64 rounded-xl border border-slate-200 bg-black"></video>
                         </div>
                     </div>
                 </div>
@@ -563,6 +567,7 @@
             mediaContainer.classList.add('hidden');
             imgWrapper.classList.add('hidden');
             vidWrapper.classList.add('hidden');
+            document.getElementById('docImageError').classList.add('hidden');
             if (item.image_url || item.video_url) {
                 mediaContainer.classList.remove('hidden');
                 if (item.image_url) {
@@ -580,6 +585,10 @@
             document.getElementById('btnPdf').classList.toggle('hidden', clientMode && !signed);
             document.getElementById('btnBackHome').classList.toggle('hidden', clientMode);
             if (!clientMode && item.public_token) document.getElementById('shareLink').value = shareUrl(item);
+        }
+
+        function imgFailed() {
+            if (currentContract && currentContract.image_url) document.getElementById('docImageError').classList.remove('hidden');
         }
 
         function openLightbox(src) {
@@ -629,9 +638,18 @@
             alert('Documento assinado! Toque em "Baixar em PDF" para guardar sua cópia.');
         }
 
-        function downloadPDF() {
+        async function downloadPDF() {
             const element = document.getElementById('printableArea');
             const id = currentContract ? currentContract.id : 'documento';
+            const img = document.getElementById('docImagePreview');
+            const original = img.src;
+            // embute a foto no PDF (precisa estar em base64 para o gerador de PDF)
+            try {
+                if (currentContract && currentContract.image_url) {
+                    const blob = await (await fetch(currentContract.image_url)).blob();
+                    img.src = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+                }
+            } catch (e) { /* segue sem a foto no PDF */ }
             const opt = {
                 margin:       10,
                 filename:     `Orcamento-${id}.pdf`,
@@ -639,7 +657,7 @@
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(element).set(opt).save();
+            try { await html2pdf().from(element).set(opt).save(); } finally { img.src = original; }
         }
 
         async function openMasterAdmin() {
