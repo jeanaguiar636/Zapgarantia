@@ -484,19 +484,13 @@
             file = await compressImage(file);
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) throw new Error('Sessão expirada. Faça login novamente.');
-            let res;
-            try {
-                res = await fetch(`${R2_PUBLIC_DOMAIN}/upload`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${session.access_token}` },
-                    body: file
-                });
-            } catch (e) {
-                throw new Error('Não consegui enviar o arquivo ao Worker da Cloudflare (conexão ou CORS). Confira ALLOWED_ORIGIN.');
-            }
-            if (!res.ok) throw new Error('Falha no upload: ' + (await res.text()));
-            const { key } = await res.json();
-            return `${R2_PUBLIC_DOMAIN}/${key}`;
+            const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4', 'video/webm': 'webm' }[file.type];
+            if (!ext) throw new Error('Tipo de arquivo não permitido. Use foto (JPG, PNG, WEBP) ou vídeo (MP4, WEBM).');
+            if (file.size > 50 * 1024 * 1024) throw new Error('O arquivo passa de 50 MB.');
+            const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`;
+            const { error } = await _supabase.storage.from('midia').upload(path, file, { contentType: file.type, cacheControl: '31536000' });
+            if (error) throw new Error('Falha no upload: ' + error.message);
+            return _supabase.storage.from('midia').getPublicUrl(path).data.publicUrl;
         }
 
         async function saveContract(e) {
