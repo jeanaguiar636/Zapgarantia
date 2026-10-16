@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZapGarantia - Sistema Completo com Cloudflare R2 e PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        @media print { body { background: white !important; } .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40 no-print">
+        <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="goHome()">
+                <i class="fa-solid fa-file-shield text-2xl text-blue-200"></i>
+                <span class="text-lg font-bold tracking-tight">ZapGarantia</span>
+            </div>
+            <div id="headerUserArea" class="flex items-center space-x-2 hidden">
+                <span id="headerPlanBadge" class="text-[10px] bg-blue-700 px-2.5 py-1 rounded-full font-medium">Plano Gratuito</span>
+                <button onclick="logout()" class="text-xs bg-red-600 px-3 py-1.5 rounded-full font-medium hover:bg-red-700 transition cursor-pointer">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto px-4 py-6 w-full flex-grow">
+
+        <!-- TELA DE AUTENTICAÇÃO -->
+        <div id="view-auth" class="space-y-5">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="text-center space-y-1">
+                    <h1 class="text-xl font-bold text-slate-900">Portal do Profissional</h1>
+                    <p class="text-xs text-slate-500">Faça login ou crie sua conta para emitir termos de garantia.</p>
+                </div>
+
+                <div class="flex border-b border-slate-200">
+                    <button onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer">Entrar</button>
+                    <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer">Criar Conta</button>
+                </div>
+
+                <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="loginEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
+                        <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
+                </form>
+
+                <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Completo</label>
+                        <input type="text" id="regName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="regEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp (com DDD)</label>
+                        <input type="text" id="regWhatsapp" required placeholder="11999999999" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
+                        <input type="password" id="regPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Criar Conta Gratuita</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="view-dashboard" class="hidden space-y-5">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900" id="welcomeUser">Olá, Profissional</h1>
+                        <p class="text-xs text-slate-500">Painel de Atendimentos e Garantias.</p>
+                    </div>
+                    <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Novo Serviço</span>
+                    </button>
+                </div>
+                
+                <div id="planBanner" class="bg-blue-50 border border-blue-100 p-3.5 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-blue-900">Plano Gratuito: 2 documentos disponíveis</p>
+                    </div>
+                    <button onclick="showUpgradeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shrink-0 cursor-pointer">
+                        Assinar Pix R$ 12
+                    </button>
+                </div>
+            </div>
+
+            <div id="adminButtonWrapper" class="hidden">
+                <button onclick="openMasterAdmin()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-crown text-amber-300"></i>
+                    <span>Abrir Painel Master (Admin)</span>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Meus Registos</h2>
+                <div id="contractsListContainer" class="space-y-2.5"></div>
+            </div>
+        </div>
+
+        <!-- PAINEL ADMIN -->
+        <div id="view-admin" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <div>
+                        <h1 class="text-lg font-bold text-purple-900"><i class="fa-solid fa-shield-halved mr-1"></i> Painel Admin</h1>
+                        <p class="text-xs text-slate-500">Controle de usuários, planos, termos e pagamentos.</p>
+                    </div>
+                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-600 cursor-pointer">Voltar</button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-center" id="adminCards"></div>
+
+                <div class="flex space-x-2 text-xs font-bold">
+                    <button id="tabUsers" onclick="adminTab('users')" class="flex-1 py-2 rounded-lg cursor-pointer">Usuários</button>
+                    <button id="tabPay" onclick="adminTab('pay')" class="flex-1 py-2 rounded-lg cursor-pointer">Pagamentos</button>
+                </div>
+
+                <div id="adminPaneUsers" class="space-y-3">
+                    <input id="adminSearch" oninput="renderAdminUsers()" placeholder="Buscar por nome, e-mail ou WhatsApp" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    <div id="adminUsersList" class="space-y-2"></div>
+                </div>
+                <div id="adminPanePay" class="hidden space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- CRIADOR DE SERVIÇOS (COM UPLOAD DE MÍDIA R2) -->
+        <div id="view-creator" class="hidden space-y-5">
+            <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                <div class="flex justify-between items-center mb-5">
+                    <h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1>
+                    <button onclick="goHome()" class="text-xs text-slate-400 font-medium cursor-pointer">Voltar</button>
+                </div>
+                <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome do Cliente</label>
+                        <input type="text" id="clientName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Valor Total (R$)</label>
+                            <input type="text" id="serviceValue" required placeholder="350,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Garantia</label>
+                            <select id="warrantyPeriod" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                                <option value="30 dias">30 Dias</option>
+                                <option value="90 dias" selected>90 Dias</option>
+                                <option value="1 ano">1 Ano</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição do Serviço / Aparelho</label>
+                        <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Ex: Troca de tela iPhone 13, cor preta..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto (Cloudflare R2)</label>
+                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (Cloudflare R2)</label>
+                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                        </div>
+                    </div>
+                    <button type="submit" id="btnSubmitContract" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar e Salvar Termo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- TELA DE VISUALIZAÇÃO DO TERMO E GERADOR DE PDF -->
+        <div id="view-document" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5" id="printableArea">
+                <div class="text-center border-b border-slate-100 pb-4 space-y-1">
+                    <i class="fa-solid fa-file-shield text-3xl text-blue-600"></i>
+                    <h2 class="text-lg font-bold text-slate-900">Orçamento e Termo de Serviço</h2>
+                    <p class="text-[11px] text-slate-400" id="docIdCode">Código: #ZG-0000</p>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Profissional Emitente</span>
+                        <p id="docProfName" class="font-semibold text-slate-900">-</p>
+                        <p id="docProfWhatsapp" class="text-slate-500">-</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Dados do Cliente</span>
+                        <p><strong class="text-slate-700">Cliente:</strong> <span id="docClientName">-</span></p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
+                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Detalhes do Atendimento</span>
+                        <p><strong class="text-slate-700">Serviço:</strong> <span id="docServiceDesc">-</span></p>
+                        <p><strong class="text-slate-700">Valor:</strong> R$ <span id="docServiceValue">-</span></p>
+                        <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
+                    </div>
+
+                    <div id="docMediaContainer" class="grid grid-cols-2 gap-2 hidden">
+                        <div id="docImageWrapper" class="hidden col-span-2">
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Foto (toque para ampliar)</span>
+                            <div class="relative">
+                                <img id="docImagePreview" src="" alt="Foto do serviço" onclick="openLightbox(this.src)" onerror="imgFailed()" class="w-full max-h-64 object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100">
+                                <button data-html2canvas-ignore="true" onclick="openLightbox(document.getElementById('docImagePreview').src)" class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2.5 py-1.5 rounded-lg cursor-pointer"><i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar</button>
+                            </div>
+                            <p id="docImageError" data-html2canvas-ignore="true" class="hidden text-[11px] text-red-500 mt-1">Não foi possível carregar a foto. Verifique o endereço do Worker e o bucket na Cloudflare.</p>
+                        </div>
+                        <div id="docVideoWrapper" class="hidden col-span-2">
+                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Vídeo</span>
+                            <video id="docVideoPreview" controls playsinline class="w-full max-h-64 rounded-xl border border-slate-200 bg-black"></video>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
+                    <span class="font-bold text-slate-600 block uppercase text-[10px]">Assinatura do Cliente</span>
+                    <p id="docSignatureText" class="text-slate-500">Aguardando assinatura</p>
+                </div>
+
+                <div class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-100">
+                    Documento emitido via ZapGarantia. A assinatura eletrônica registra o nome digitado, a data e a hora do aceite.
+                </div>
+            </div>
+
+            <div class="space-y-2 no-print">
+                <div id="clientSignArea" class="hidden bg-white p-4 rounded-2xl border border-blue-200 space-y-3">
+                    <p class="text-sm font-bold text-slate-800">Assinar documento</p>
+                    <p class="text-[11px] text-slate-500">Confira os dados acima. Para aceitar o orçamento, digite seu nome completo e toque em assinar.</p>
+                    <input id="signName" type="text" placeholder="Seu nome completo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    <button id="btnSign" onclick="signContract()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Assinar e aceitar</button>
+                </div>
+                <div id="proLinkArea" class="hidden bg-blue-50 border border-blue-100 p-3.5 rounded-xl space-y-2">
+                    <p class="text-xs font-bold text-blue-900">Link para o cliente assinar</p>
+                    <input id="shareLink" readonly class="w-full text-[11px] p-2 bg-white border border-slate-200 rounded-lg text-slate-600 select-all">
+                    <div class="flex space-x-2">
+                        <button onclick="copyShareLink()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-solid fa-copy"></i> Copiar link</button>
+                        <button onclick="shareWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
+                    </div>
+                </div>
+                <button id="btnPdf" onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-file-pdf text-lg"></i>
+                    <span>Baixar em PDF</span>
+                </button>
+                <button id="btnBackHome" onclick="goHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer">
+                    Voltar ao Início
+                </button>
+            </div>
+        </div>
+
+        <!-- AMPLIAR FOTO -->
+        <div id="lightbox" class="hidden fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-3" onclick="closeLightbox()">
+            <button class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Fechar">&times;</button>
+            <img id="lightboxImg" src="" alt="Foto ampliada" class="max-w-full max-h-full object-contain" style="touch-action: pinch-zoom;">
+        </div>
+
+        <!-- MODAL PIX MERCADO PAGO -->
+        <div id="upgradeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">Ativação Instantânea via Pix</h3>
+                <p class="text-xs text-slate-500">Escaneie o QR Code abaixo ou copie o código Pix para liberar o Plano PRO (R$ 12,00).</p>
+                
+                <div id="pixLoading" class="py-6 text-xs text-slate-400">Gerando QR Code Pix seguro...</div>
+                <div id="pixContent" class="hidden space-y-3">
+                    <div id="pixQrContainer" class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-center">
+                        <img id="pixQrImg" src="" alt="QR Code Pix" class="w-40 h-40 object-contain mx-auto">
+                    </div>
+                    <div>
+                        <textarea id="pixCopyPaste" readonly class="w-full h-16 text-[10px] p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 select-all"></textarea>
+                    </div>
+                    <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
+                        <i class="fa-solid fa-copy"></i> Copiar Código Pix
+                    </button>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 flex space-x-2">
+                    <button onclick="manualCheckPayment()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+                        Já paguei / Verificar
+                    </button>
+                    <button onclick="closeUpgradeModal()" class="px-4 text-xs text-slate-400 py-1 cursor-pointer">Fechar</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // CONFIGURAÇÕES SUPABASE
+        const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
+        
+        // CONFIGURAÇÃO DO SEU CLOUDFLARE R2
+        // Subdomínio Público configurado no R2 ou Cloudflare Worker para upload/visualização
+        const R2_PUBLIC_DOMAIN = "https://zapgarantia.bmlimp8.workers.dev"; // URL do Worker (r2-worker)
+
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let userProfile = null;
+        // Admin vem do banco (profiles.is_admin), não do navegador.
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        const contractsCache = {};
+        let pixPoll = null;
+
+        async function initApp() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('view-auth').classList.add('hidden');
+                document.getElementById('headerUserArea').classList.remove('hidden');
+                loadDashboard();
+            } else {
+                document.getElementById('view-auth').classList.remove('hidden');
+                document.getElementById('headerUserArea').classList.add('hidden');
+            }
+        }
+
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const whatsapp = document.getElementById('regWhatsapp').value;
+            const password = document.getElementById('regPassword').value;
+
+            // O perfil é criado automaticamente no banco (trigger) a partir destes dados.
+            const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: name, whatsapp } } });
+            if (error) { alert('Erro no registo: ' + error.message); return; }
+
+            if (data.user) {
+                alert('Conta criada com sucesso! Faça login.');
+                switchAuthTab('login');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) { alert('Credenciais inválidas: ' + error.message); return; }
+            initApp();
+        }
+
+        async function logout() {
+            await _supabase.auth.signOut();
+            location.reload();
+        }
+
+        async function loadDashboard() {
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (profile) {
+                userProfile = profile;
+                if (profile.blocked) { alert('Sua conta está bloqueada. Fale com o suporte.'); await _supabase.auth.signOut(); location.reload(); return; }
+                if (profile.is_admin) document.getElementById('adminButtonWrapper').classList.remove('hidden');
+                document.getElementById('welcomeUser').textContent = `Olá, ${profile.full_name}`;
+                if (profile.plan === 'pro') {
+                    document.getElementById('headerPlanBadge').textContent = 'Plano PRO';
+                    document.getElementById('planBanner').style.display = 'none';
+                }
+            }
+
+            const { data: contracts } = await _supabase.from('contracts').select('*').eq('professional_id', currentUser.id);
+            const container = document.getElementById('contractsListContainer');
+            container.innerHTML = '';
+
+            if (!contracts || contracts.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum serviço registado.</p>`;
+                return;
+            }
+
+            contracts.forEach(item => {
+                contractsCache[item.id] = item;
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center cursor-pointer hover:border-blue-300 transition" onclick="viewContract(contractsCache['${esc(item.id)}'])">
+                        <div>
+                            <span class="font-bold text-sm">${esc(item.client_name)}</span>
+                            <p class="text-xs text-slate-500">R$ ${esc(item.service_value)} - ${esc(item.warranty_period)}</p>
+                        </div>
+                        <span class="text-[10px] bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold">${esc(item.status)}</span>
+                    </div>`;
+            });
+        }
+
+        async function checkLimitAndOpenCreator() {
+            try {
+                if (!currentUser) {
+                    alert('Sessão expirada. Faça login novamente.');
+                    goHome();
+                    return;
+                }
+
+                const { data: profile, error: profileError } = await _supabase
+                    .from('profiles')
+                    .select('plan')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profileError && profile && profile.plan !== 'pro') {
+                    const { count, error: countError } = await _supabase
+                        .from('contracts')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('professional_id', currentUser.id);
+
+                    if (!countError && count >= 2) {
+                        showUpgradeModal();
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao checar plano/limite:', err);
+                alert('Não foi possível verificar seu plano. Tente novamente.');
+                return;
+            }
+
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-creator').classList.remove('hidden');
+        }
+
+        // Função de Upload para o Cloudflare R2
+        async function compressImage(file) {
+            if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+            try {
+                const bmp = await createImageBitmap(file);
+                const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(bmp.width * scale);
+                c.height = Math.round(bmp.height * scale);
+                c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+                const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
+                return blob || file;
+            } catch (e) { return file; }
+        }
+
+        async function uploadFileToR2(file) {
+            file = await compressImage(file);
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) throw new Error('Sessão expirada. Faça login novamente.');
+            let res;
+            try {
+                res = await fetch(`${R2_PUBLIC_DOMAIN}/upload`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${session.access_token}` },
+                    body: file
+                });
+            } catch (e) {
+                throw new Error('Não consegui enviar o arquivo ao Worker da Cloudflare (conexão ou CORS). Confira ALLOWED_ORIGIN.');
+            }
+            if (!res.ok) throw new Error('Falha no upload: ' + (await res.text()));
+            const { key } = await res.json();
+            return `${R2_PUBLIC_DOMAIN}/${key}`;
+        }
+
+        async function saveContract(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitContract');
+            btn.disabled = true;
+            btn.textContent = "A fazer upload e guardar...";
+
+            try {
+                let imageUrl = "";
+                let videoUrl = "";
+
+                const imageFile = document.getElementById('mediaImage').files[0];
+                const videoFile = document.getElementById('mediaVideo').files[0];
+
+                if (imageFile) imageUrl = await uploadFileToR2(imageFile);
+                if (videoFile) videoUrl = await uploadFileToR2(videoFile);
+
+                const payload = {
+                    id: 'zg-' + Math.random().toString(36).substring(2, 8),
+                    client_name: document.getElementById('clientName').value,
+                    service_value: document.getElementById('serviceValue').value,
+                    warranty_period: document.getElementById('warrantyPeriod').value,
+                    service_desc: document.getElementById('serviceDesc').value,
+                    image_url: imageUrl,
+                    video_url: videoUrl,
+                    professional_id: currentUser.id,
+                    status: 'Pendente'
+                };
+
+                const { data: saved, error: insertErr } = await _supabase.from('contracts').insert([payload]).select().single();
+                if (insertErr) throw insertErr;
+
+                alert('Orçamento criado! Copie o link abaixo para enviar ao cliente.');
+                document.getElementById('contractForm').reset();
+                viewContract(saved);
+            } catch (err) {
+                if ((err.message || '').includes('LIMITE_GRATUITO')) { showUpgradeModal(); } else { alert('Erro ao salvar contrato: ' + err.message); }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Gerar e Salvar Termo";
+            }
+        }
+
+        let clientMode = false, clientToken = null, currentContract = null;
+
+        function shareUrl(item) { return `${location.origin}${location.pathname}?c=${item.public_token}`; }
+
+        function viewContract(item) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-creator').classList.add('hidden');
+            document.getElementById('view-document').classList.remove('hidden');
+            renderDoc(item, userProfile && userProfile.full_name, userProfile && userProfile.whatsapp);
+        }
+
+        function renderDoc(item, profName, profWhats) {
+            currentContract = item;
+            const signed = !!item.signed_at;
+            document.getElementById('docIdCode').textContent = `Código: #${String(item.id).toUpperCase()}`;
+            document.getElementById('docClientName').textContent = item.client_name;
+            document.getElementById('docServiceDesc').textContent = item.service_desc;
+            document.getElementById('docServiceValue').textContent = item.service_value;
+            document.getElementById('docWarrantyPeriod').textContent = item.warranty_period;
+            document.getElementById('docProfName').textContent = profName || '-';
+            document.getElementById('docProfWhatsapp').textContent = profWhats ? `WhatsApp: ${profWhats}` : '';
+
+            document.getElementById('docSignatureText').textContent = signed
+                ? `Assinado por ${item.signed_name} em ${new Date(item.signed_at).toLocaleString('pt-BR')}`
+                : 'Aguardando assinatura do cliente';
+
+            const mediaContainer = document.getElementById('docMediaContainer');
+            const imgWrapper = document.getElementById('docImageWrapper');
+            const vidWrapper = document.getElementById('docVideoWrapper');
+            mediaContainer.classList.add('hidden');
+            imgWrapper.classList.add('hidden');
+            vidWrapper.classList.add('hidden');
+            document.getElementById('docImageError').classList.add('hidden');
+            if (item.image_url || item.video_url) {
+                mediaContainer.classList.remove('hidden');
+                if (item.image_url) {
+                    document.getElementById('docImagePreview').src = item.image_url;
+                    imgWrapper.classList.remove('hidden');
+                }
+                if (item.video_url) {
+                    document.getElementById('docVideoPreview').src = item.video_url;
+                    vidWrapper.classList.remove('hidden');
+                }
+            }
+
+            document.getElementById('clientSignArea').classList.toggle('hidden', !(clientMode && !signed));
+            document.getElementById('proLinkArea').classList.toggle('hidden', clientMode || !item.public_token);
+            document.getElementById('btnPdf').classList.toggle('hidden', clientMode && !signed);
+            document.getElementById('btnBackHome').classList.toggle('hidden', clientMode);
+            if (!clientMode && item.public_token) document.getElementById('shareLink').value = shareUrl(item);
+        }
+
+        function imgFailed() {
+            if (currentContract && currentContract.image_url) document.getElementById('docImageError').classList.remove('hidden');
+        }
+
+        function openLightbox(src) {
+            if (!src) return;
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.remove('hidden');
+        }
+        function closeLightbox() { document.getElementById('lightbox').classList.add('hidden'); }
+
+        function copyShareLink() {
+            const el = document.getElementById('shareLink');
+            if (navigator.clipboard) navigator.clipboard.writeText(el.value).catch(() => {});
+            el.select(); try { document.execCommand('copy'); } catch (e) {}
+            alert('Link copiado! Envie para o cliente.');
+        }
+        function shareWhatsApp() {
+            const msg = `Olá! Segue o orçamento do serviço para você conferir e assinar: ${document.getElementById('shareLink').value}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        async function initClient(token) {
+            clientMode = true;
+            clientToken = token;
+            document.getElementById('view-auth').classList.add('hidden');
+            const { data, error } = await _supabase.rpc('get_public_contract', { p_token: token });
+            if (error || !data) {
+                document.querySelector('main').innerHTML = '<p class="text-center text-sm text-slate-500 py-10">Link inválido ou documento não encontrado.</p>';
+                return;
+            }
+            document.getElementById('view-document').classList.remove('hidden');
+            renderDoc(data, data.prof_name, data.prof_whatsapp);
+        }
+
+        async function signContract() {
+            const name = document.getElementById('signName').value.trim();
+            if (name.length < 5) { alert('Digite seu nome completo para assinar.'); return; }
+            const btn = document.getElementById('btnSign');
+            btn.disabled = true; btn.textContent = 'Assinando...';
+            const { error } = await _supabase.rpc('sign_public_contract', { p_token: clientToken, p_name: name });
+            if (error) {
+                btn.disabled = false; btn.textContent = 'Assinar e aceitar';
+                alert((error.message || '').includes('JA_ASSINADO') ? 'Este documento já foi assinado.' : 'Não foi possível assinar: ' + error.message);
+                return;
+            }
+            const { data } = await _supabase.rpc('get_public_contract', { p_token: clientToken });
+            if (data) renderDoc(data, data.prof_name, data.prof_whatsapp);
+            alert('Documento assinado! Toque em "Baixar em PDF" para guardar sua cópia.');
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('printableArea');
+            const id = currentContract ? currentContract.id : 'documento';
+            const img = document.getElementById('docImagePreview');
+            const original = img.src;
+            // embute a foto no PDF (precisa estar em base64 para o gerador de PDF)
+            try {
+                if (currentContract && currentContract.image_url) {
+                    const blob = await (await fetch(currentContract.image_url)).blob();
+                    img.src = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+                }
+            } catch (e) { /* segue sem a foto no PDF */ }
+            const opt = {
+                margin:       10,
+                filename:     `Orcamento-${id}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            try { await html2pdf().from(element).set(opt).save(); } finally { img.src = original; }
+        }
+
+        let adminUsers = [], adminOpenUser = null, adminContracts = [];
+
+        async function adminRpc(name, args) {
+            const { data, error } = await _supabase.rpc(name, args || {});
+            if (error) { alert('Erro: ' + error.message); return null; }
+            return data === null ? true : data;
+        }
+
+        async function openMasterAdmin() {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-admin').classList.remove('hidden');
+            adminTab('users');
+            await loadAdmin();
+        }
+
+        function adminTab(t) {
+            const on = 'flex-1 py-2 rounded-lg cursor-pointer bg-purple-700 text-white', off = 'flex-1 py-2 rounded-lg cursor-pointer bg-slate-100 text-slate-600';
+            document.getElementById('tabUsers').className = t === 'users' ? on : off;
+            document.getElementById('tabPay').className = t === 'pay' ? on : off;
+            document.getElementById('adminPaneUsers').classList.toggle('hidden', t !== 'users');
+            document.getElementById('adminPanePay').classList.toggle('hidden', t !== 'pay');
+            if (t === 'pay') loadAdminPayments();
+        }
+
+        async function loadAdmin() {
+            const ov = await adminRpc('admin_overview');
+            if (ov && ov !== true) {
+                const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-2"><span class="text-[10px] font-bold text-${c}-700 block uppercase">${label}</span><span class="text-lg font-black text-${c}-900">${esc(val)}</span></div>`;
+                document.getElementById('adminCards').innerHTML =
+                    card('Usuários', ov.users, 'purple') + card('PRO', ov.pro, 'emerald') + card('Bloqueados', ov.blocked, 'red') +
+                    card('Termos', ov.contracts, 'blue') + card('Assinados', ov.signed, 'sky') + card('Receita', 'R$ ' + Number(ov.revenue).toFixed(2).replace('.', ','), 'amber');
+            }
+            const users = await adminRpc('admin_list_users');
+            adminUsers = Array.isArray(users) ? users : [];
+            renderAdminUsers();
+        }
+
+        function renderAdminUsers() {
+            const q = (document.getElementById('adminSearch').value || '').toLowerCase().trim();
+            const list = document.getElementById('adminUsersList');
+            const rows = adminUsers.filter(u => !q || [u.full_name, u.email, u.whatsapp].some(v => String(v || '').toLowerCase().includes(q)));
+            if (!rows.length) { list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Nenhum usuário encontrado.</p>'; return; }
+            list.innerHTML = rows.map(u => {
+                const open = adminOpenUser === u.id, pro = u.plan === 'pro';
+                const wa = encodeURIComponent(String(u.whatsapp || '').replace(/\D/g, ''));
+                return `<div class="bg-slate-50 rounded-xl border ${u.blocked ? 'border-red-300' : 'border-slate-200'} p-3 text-xs space-y-2">
+                    <div class="flex justify-between items-start" onclick="adminToggleUser('${esc(u.id)}')">
+                        <div class="cursor-pointer">
+                            <span class="font-bold text-slate-900 block">${esc(u.full_name)} ${u.is_admin ? '<span class="text-purple-700">(admin)</span>' : ''}</span>
+                            <span class="text-slate-500 break-all">${esc(u.email)}</span>
+                            <span class="text-slate-400 block">${esc(u.contracts)} termos &bull; ${esc(u.signed)} assinados</span>
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <span class="px-2 py-0.5 rounded font-bold ${pro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${pro ? 'PRO' : 'Gratuito'}</span>
+                            ${u.blocked ? '<span class="px-2 py-0.5 rounded font-bold bg-red-100 text-red-800">Bloqueado</span>' : ''}
+                        </div>
+                    </div>
+                    ${open ? `<div class="space-y-2 pt-2 border-t border-slate-200">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="adminSetPlan('${esc(u.id)}','${pro ? 'free' : 'pro'}')" class="py-2 rounded-lg font-bold text-white ${pro ? 'bg-amber-600' : 'bg-emerald-600'} cursor-pointer">${pro ? 'Voltar p/ Gratuito' : 'Liberar PRO'}</button>
+                            <button onclick="adminSetBlocked('${esc(u.id)}',${!u.blocked})" class="py-2 rounded-lg font-bold text-white ${u.blocked ? 'bg-slate-700' : 'bg-red-600'} cursor-pointer">${u.blocked ? 'Desbloquear' : 'Bloquear'}</button>
+                            <a href="https://wa.me/55${wa}" target="_blank" class="py-2 rounded-lg font-bold text-white bg-emerald-700 text-center">WhatsApp</a>
+                            <button onclick="adminDeleteUser('${esc(u.id)}')" class="py-2 rounded-lg font-bold text-red-700 bg-red-50 border border-red-200 cursor-pointer">Excluir usuário</button>
+                        </div>
+                        <textarea id="adminNotes" rows="2" placeholder="Anotações internas (só você vê)" class="w-full p-2 border border-slate-200 rounded-lg text-xs">${esc(u.admin_notes || '')}</textarea>
+                        <button onclick="adminSaveNotes('${esc(u.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Salvar anotação</button>
+                        <p class="font-bold text-slate-500 uppercase text-[10px]">Termos deste usuário</p>
+                        <div id="adminContracts" class="space-y-1">Carregando...</div>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+            if (adminOpenUser) renderAdminContracts();
+        }
+
+        async function adminToggleUser(id) {
+            adminOpenUser = adminOpenUser === id ? null : id;
+            renderAdminUsers();
+            if (adminOpenUser) {
+                const c = await adminRpc('admin_user_contracts', { p_user: id });
+                adminContracts = Array.isArray(c) ? c : [];
+                renderAdminContracts();
+            }
+        }
+
+        function renderAdminContracts() {
+            const el = document.getElementById('adminContracts');
+            if (!el) return;
+            if (!adminContracts.length) { el.innerHTML = '<span class="text-slate-400">Nenhum termo.</span>'; return; }
+            el.innerHTML = adminContracts.map((c, i) => `<div class="flex justify-between items-center bg-white border border-slate-200 rounded-lg p-2">
+                <div><span class="font-semibold block">${esc(c.client_name)}</span><span class="text-slate-400">R$ ${esc(c.service_value)} &bull; ${esc(c.status)}</span></div>
+                <div class="space-x-1">
+                    <button onclick="adminViewContract(${i})" class="px-2 py-1 rounded bg-blue-600 text-white cursor-pointer">Ver</button>
+                    <button onclick="adminDeleteContract('${esc(c.id)}')" class="px-2 py-1 rounded bg-red-100 text-red-700 cursor-pointer">Apagar</button>
+                </div></div>`).join('');
+        }
+
+        function adminViewContract(i) {
+            const c = adminContracts[i];
+            const u = adminUsers.find(x => x.id === c.professional_id) || {};
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-document').classList.remove('hidden');
+            renderDoc(c, u.full_name, u.whatsapp);
+        }
+
+        async function adminSetPlan(id, plan) {
+            if (!confirm(plan === 'pro' ? 'Liberar PRO para este usuário?' : 'Voltar este usuário para o plano Gratuito?')) return;
+            if (await adminRpc('admin_set_plan', { p_user: id, p_plan: plan })) loadAdmin();
+        }
+        async function adminSetBlocked(id, blocked) {
+            if (!confirm(blocked ? 'Bloquear este usuário? Ele não poderá criar novos termos.' : 'Desbloquear este usuário?')) return;
+            if (await adminRpc('admin_set_blocked', { p_user: id, p_blocked: blocked })) loadAdmin();
+        }
+        async function adminSaveNotes(id) {
+            if (await adminRpc('admin_set_notes', { p_user: id, p_notes: document.getElementById('adminNotes').value })) {
+                const u = adminUsers.find(x => x.id === id); if (u) u.admin_notes = document.getElementById('adminNotes').value;
+                alert('Anotação salva.');
+            }
+        }
+        async function adminDeleteContract(id) {
+            if (!confirm('Apagar este termo definitivamente?')) return;
+            const uid = adminOpenUser;
+            if (await adminRpc('admin_delete_contract', { p_id: id })) {
+                const c = await adminRpc('admin_user_contracts', { p_user: uid });
+                adminContracts = Array.isArray(c) ? c : [];
+                loadAdmin();
+            }
+        }
+        async function adminDeleteUser(id) {
+            if (!confirm('EXCLUIR este usuário e todos os termos dele? Não dá para desfazer.')) return;
+            if (!confirm('Tem certeza? Confirme de novo para excluir.')) return;
+            if (await adminRpc('admin_delete_user', { p_user: id })) { adminOpenUser = null; loadAdmin(); }
+        }
+
+        async function loadAdminPayments() {
+            const el = document.getElementById('adminPanePay');
+            el.innerHTML = '<p class="text-xs text-slate-400">Carregando...</p>';
+            const rows = await adminRpc('admin_payments');
+            if (!Array.isArray(rows) || !rows.length) { el.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Nenhum pagamento ainda.</p>'; return; }
+            el.innerHTML = rows.map(r => `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex justify-between">
+                <div><span class="font-bold block">${esc(r.name || '-')}</span><span class="text-slate-500">${esc(r.email || '')}</span><span class="text-slate-400 block">${esc(new Date(r.created_at).toLocaleString('pt-BR'))}</span></div>
+                <div class="text-right"><span class="font-bold block">R$ ${esc(Number(r.amount).toFixed(2).replace('.', ','))}</span>
+                <span class="px-2 py-0.5 rounded font-bold ${r.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status === 'approved' ? 'Pago' : esc(r.status)}</span></div></div>`).join('');
+        }
+
+        function goHome() {
+            if (clientMode) return;
+            document.getElementById('view-creator').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-document').classList.add('hidden');
+            initApp();
+        }
+
+        async function showUpgradeModal() {
+            document.getElementById('upgradeModal').classList.remove('hidden');
+            document.getElementById('pixLoading').classList.remove('hidden');
+            document.getElementById('pixLoading').textContent = 'Gerando QR Code Pix seguro...';
+            document.getElementById('pixContent').classList.add('hidden');
+            try {
+                const { data, error } = await _supabase.functions.invoke('create-pix');
+                if (error || !data || data.error) throw new Error((data && data.error) || (error && error.message) || 'erro');
+                document.getElementById('pixQrImg').src = 'data:image/png;base64,' + data.qr_base64;
+                document.getElementById('pixCopyPaste').value = data.qr_code;
+                document.getElementById('pixLoading').classList.add('hidden');
+                document.getElementById('pixContent').classList.remove('hidden');
+                startPixPolling();
+            } catch (e) {
+                document.getElementById('pixLoading').textContent = 'Não foi possível gerar o Pix: ' + e.message;
+            }
+        }
+
+        function startPixPolling() {
+            stopPixPolling();
+            let tries = 0;
+            pixPoll = setInterval(async () => {
+                tries++;
+                const ok = await checkPlanIsPro();
+                if (ok) { stopPixPolling(); alert('Pagamento confirmado! Sua conta agora é PRO.'); location.reload(); }
+                else if (tries > 150) stopPixPolling(); // ~10 min
+            }, 4000);
+        }
+        function stopPixPolling() { if (pixPoll) { clearInterval(pixPoll); pixPoll = null; } }
+
+        async function checkPlanIsPro() {
+            if (!currentUser) return false;
+            const { data } = await _supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
+            return !!data && data.plan === 'pro';
+        }
+
+        function closeUpgradeModal() { 
+            stopPixPolling();
+            document.getElementById('upgradeModal').classList.add('hidden');
+            document.getElementById('pixLoading').classList.remove('hidden');
+            document.getElementById('pixContent').classList.add('hidden');
+        }
+
+        function copyPixCode() {
+            const copyText = document.getElementById('pixCopyPaste');
+            copyText.select();
+            document.execCommand('copy');
+            alert('Código Pix Copia e Cola copiado com sucesso!');
+        }
+
+        async function manualCheckPayment() {
+            if (await checkPlanIsPro()) { location.reload(); }
+            else alert('Pagamento ainda não confirmado. Pode levar alguns segundos após pagar.');
+        }
+
+        window.onload = () => {
+            const t = new URLSearchParams(location.search).get('c');
+            if (t) initClient(t); else initApp();
+        };
+    </script>
+</body>
+</html>
