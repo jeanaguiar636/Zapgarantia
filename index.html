@@ -10,6 +10,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        html { font-size: 17px; }
+        body { color: #0f172a; }
+        input, textarea, select { color: #0f172a !important; font-weight: 500; }
+        input::placeholder, textarea::placeholder { color: #475569 !important; opacity: 1; }
+        label { color: #1e293b !important; }
         @media print { body { background: white !important; } .no-print { display: none !important; } }
     </style>
 </head>
@@ -18,11 +23,11 @@
     <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40 no-print">
         <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" onclick="goHome()">
-                <i class="fa-solid fa-file-shield text-2xl text-blue-200"></i>
+                <i class="fa-solid fa-file-shield text-2xl text-blue-100"></i>
                 <span class="text-lg font-bold tracking-tight">ZapGarantia</span>
             </div>
             <div id="headerUserArea" class="flex items-center space-x-2 hidden">
-                <span id="headerPlanBadge" class="text-[10px] bg-blue-700 px-2.5 py-1 rounded-full font-medium">Plano Gratuito</span>
+                <span id="headerPlanBadge" class="text-xs bg-blue-700 px-2.5 py-1 rounded-full font-medium">Plano Gratuito</span>
                 <button onclick="logout()" class="text-xs bg-red-600 px-3 py-1.5 rounded-full font-medium hover:bg-red-700 transition cursor-pointer">
                     <i class="fa-solid fa-right-from-bracket"></i> Sair
                 </button>
@@ -37,21 +42,21 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="text-center space-y-1">
                     <h1 class="text-xl font-bold text-slate-900">Portal do Profissional</h1>
-                    <p class="text-xs text-slate-500">Faça login ou crie sua conta para emitir termos de garantia.</p>
+                    <p class="text-xs text-slate-700">Faça login ou crie sua conta para emitir termos de garantia.</p>
                 </div>
 
                 <div class="flex border-b border-slate-200">
                     <button onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer">Entrar</button>
-                    <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer">Criar Conta</button>
+                    <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-600 cursor-pointer">Criar Conta</button>
                 </div>
 
                 <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">E-mail</label>
                         <input type="email" id="loginEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Senha</label>
                         <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
@@ -59,19 +64,19 @@
 
                 <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Completo</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Nome Completo</label>
                         <input type="text" id="regName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">E-mail</label>
                         <input type="email" id="regEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp (com DDD)</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">WhatsApp (com DDD)</label>
                         <input type="text" id="regWhatsapp" required placeholder="11999999999" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Senha</label>
                         <input type="password" id="regPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Criar Conta Gratuita</button>
@@ -85,7 +90,7 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <h1 class="text-lg font-bold text-slate-900" id="welcomeUser">Olá, Profissional</h1>
-                        <p class="text-xs text-slate-500">Painel de Atendimentos e Garantias.</p>
+                        <p class="text-xs text-slate-700">Painel de Atendimentos e Garantias.</p>
                     </div>
                     <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5 cursor-pointer">
                         <i class="fa-solid fa-plus"></i>
@@ -111,7 +116,7 @@
             </div>
 
             <div class="space-y-3">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Meus Registos</h2>
+                <h2 class="text-xs font-bold text-slate-600 uppercase tracking-wider px-1">Meus Registos</h2>
                 <div id="contractsListContainer" class="space-y-2.5"></div>
             </div>
         </div>
@@ -122,9 +127,9 @@
                 <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                     <div>
                         <h1 class="text-lg font-bold text-purple-900"><i class="fa-solid fa-shield-halved mr-1"></i> Painel Admin</h1>
-                        <p class="text-xs text-slate-500">Controle de usuários, planos, termos e pagamentos.</p>
+                        <p class="text-xs text-slate-700">Controle de usuários, planos, termos e pagamentos.</p>
                     </div>
-                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-600 cursor-pointer">Voltar</button>
+                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-800 cursor-pointer">Voltar</button>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2 text-center" id="adminCards"></div>
@@ -146,21 +151,21 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-[10px] text-emerald-600 font-semibold">versão 6 · fotos no Supabase</p></div>
-                    <button onclick="goHome()" class="text-xs text-slate-400 font-medium cursor-pointer">Voltar</button>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 7 · letras mais fortes</p></div>
+                    <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome do Cliente</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Nome do Cliente</label>
                         <input type="text" id="clientName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Valor Total (R$)</label>
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Valor Total (R$)</label>
                             <input type="text" id="serviceValue" required placeholder="350,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Garantia</label>
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Garantia</label>
                             <select id="warrantyPeriod" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                                 <option value="30 dias">30 Dias</option>
                                 <option value="90 dias" selected>90 Dias</option>
@@ -169,21 +174,21 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição do Serviço / Aparelho</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Descrição do Serviço / Aparelho</label>
                         <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Ex: Troca de tela iPhone 13, cor preta..."></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto</label>
-                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto</label>
+                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (arquivo)</label>
-                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (arquivo)</label>
+                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1"><i class="fa-solid fa-link"></i> Link do vídeo (opcional)</label>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-link"></i> Link do vídeo (opcional)</label>
                         <input type="text" id="mediaVideoLink" inputmode="url" placeholder="Cole aqui o link (YouTube, Google Drive...)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                     </div>
                     <button type="submit" id="btnSubmitContract" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar e Salvar Termo</button>
@@ -197,23 +202,23 @@
                 <div class="text-center border-b border-slate-100 pb-4 space-y-1">
                     <i class="fa-solid fa-file-shield text-3xl text-blue-600"></i>
                     <h2 class="text-lg font-bold text-slate-900">Orçamento e Termo de Serviço</h2>
-                    <p class="text-[11px] text-slate-400" id="docIdCode">Código: #ZG-0000</p>
+                    <p class="text-[13px] text-slate-600" id="docIdCode">Código: #ZG-0000</p>
                 </div>
 
                 <div class="space-y-3 text-xs">
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
-                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Profissional Emitente</span>
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Profissional Emitente</span>
                         <p id="docProfName" class="font-semibold text-slate-900">-</p>
-                        <p id="docProfWhatsapp" class="text-slate-500">-</p>
+                        <p id="docProfWhatsapp" class="text-slate-700">-</p>
                     </div>
 
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
-                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Dados do Cliente</span>
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Dados do Cliente</span>
                         <p><strong class="text-slate-700">Cliente:</strong> <span id="docClientName">-</span></p>
                     </div>
 
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
-                        <span class="font-bold text-slate-600 block uppercase text-[10px]">Detalhes do Atendimento</span>
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Detalhes do Atendimento</span>
                         <p><strong class="text-slate-700">Serviço:</strong> <span id="docServiceDesc">-</span></p>
                         <p><strong class="text-slate-700">Valor:</strong> R$ <span id="docServiceValue">-</span></p>
                         <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
@@ -221,30 +226,30 @@
 
                     <div id="docMediaContainer" class="grid grid-cols-2 gap-2 hidden">
                         <div id="docImageWrapper" class="hidden col-span-2">
-                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Foto (toque para ampliar)</span>
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Foto (toque para ampliar)</span>
                             <div class="relative">
                                 <img id="docImagePreview" src="" alt="Foto do serviço" onclick="openLightbox(this.src)" onerror="imgFailed()" class="w-full max-h-64 object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100">
                                 <button data-html2canvas-ignore="true" onclick="openLightbox(document.getElementById('docImagePreview').src)" class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2.5 py-1.5 rounded-lg cursor-pointer"><i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar</button>
                             </div>
-                            <p id="docImageError" data-html2canvas-ignore="true" class="hidden text-[11px] text-red-500 mt-1">Não foi possível carregar a foto. Verifique o endereço do Worker e o bucket na Cloudflare.</p>
+                            <p id="docImageError" data-html2canvas-ignore="true" class="hidden text-[13px] text-red-600 mt-1">Não foi possível carregar a foto. Verifique o endereço do Worker e o bucket na Cloudflare.</p>
                         </div>
                         <div id="docVideoWrapper" class="hidden col-span-2">
-                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Vídeo</span>
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Vídeo</span>
                             <video id="docVideoPreview" controls playsinline class="w-full max-h-64 rounded-xl border border-slate-200 bg-black"></video>
                         </div>
                         <div id="docVideoLinkWrapper" class="hidden col-span-2">
-                            <span class="font-bold text-[10px] text-slate-500 uppercase block mb-1">Link do vídeo</span>
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Link do vídeo</span>
                             <a id="docVideoLink" href="#" target="_blank" rel="noopener noreferrer" class="block break-all text-blue-600 underline text-xs font-semibold"></a>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
-                    <span class="font-bold text-slate-600 block uppercase text-[10px]">Assinatura do Cliente</span>
-                    <p id="docSignatureText" class="text-slate-500">Aguardando assinatura</p>
+                    <span class="font-bold text-slate-800 block uppercase text-xs">Assinatura do Cliente</span>
+                    <p id="docSignatureText" class="text-slate-700">Aguardando assinatura</p>
                 </div>
 
-                <div class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-100">
+                <div class="text-xs text-slate-600 text-center pt-2 border-t border-slate-100">
                     Documento emitido via ZapGarantia. A assinatura eletrônica registra o nome digitado, a data e a hora do aceite.
                 </div>
             </div>
@@ -252,13 +257,13 @@
             <div class="space-y-2 no-print">
                 <div id="clientSignArea" class="hidden bg-white p-4 rounded-2xl border border-blue-200 space-y-3">
                     <p class="text-sm font-bold text-slate-800">Assinar documento</p>
-                    <p class="text-[11px] text-slate-500">Confira os dados acima. Para aceitar o orçamento, digite seu nome completo e toque em assinar.</p>
+                    <p class="text-[13px] text-slate-700">Confira os dados acima. Para aceitar o orçamento, digite seu nome completo e toque em assinar.</p>
                     <input id="signName" type="text" placeholder="Seu nome completo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     <button id="btnSign" onclick="signContract()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Assinar e aceitar</button>
                 </div>
                 <div id="proLinkArea" class="hidden bg-blue-50 border border-blue-100 p-3.5 rounded-xl space-y-2">
                     <p class="text-xs font-bold text-blue-900">Link para o cliente assinar</p>
-                    <input id="shareLink" readonly class="w-full text-[11px] p-2 bg-white border border-slate-200 rounded-lg text-slate-600 select-all">
+                    <input id="shareLink" readonly class="w-full text-[13px] p-2 bg-white border border-slate-200 rounded-lg text-slate-800 select-all">
                     <div class="flex space-x-2">
                         <button onclick="copyShareLink()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-solid fa-copy"></i> Copiar link</button>
                         <button onclick="shareWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
@@ -283,19 +288,19 @@
         <!-- MODAL PIX MERCADO PAGO -->
         <div id="upgradeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center">
-                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-xl">
                     <i class="fa-solid fa-qrcode"></i>
                 </div>
                 <h3 class="text-lg font-bold text-slate-900">Ativação Instantânea via Pix</h3>
-                <p class="text-xs text-slate-500">Escaneie o QR Code abaixo ou copie o código Pix para liberar o Plano PRO (R$ 12,00).</p>
+                <p class="text-xs text-slate-700">Escaneie o QR Code abaixo ou copie o código Pix para liberar o Plano PRO (R$ 12,00).</p>
                 
-                <div id="pixLoading" class="py-6 text-xs text-slate-400">Gerando QR Code Pix seguro...</div>
+                <div id="pixLoading" class="py-6 text-xs text-slate-600">Gerando QR Code Pix seguro...</div>
                 <div id="pixContent" class="hidden space-y-3">
                     <div id="pixQrContainer" class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-center">
                         <img id="pixQrImg" src="" alt="QR Code Pix" class="w-40 h-40 object-contain mx-auto">
                     </div>
                     <div>
-                        <textarea id="pixCopyPaste" readonly class="w-full h-16 text-[10px] p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 select-all"></textarea>
+                        <textarea id="pixCopyPaste" readonly class="w-full h-16 text-xs p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 select-all"></textarea>
                     </div>
                     <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
                         <i class="fa-solid fa-copy"></i> Copiar Código Pix
@@ -306,7 +311,7 @@
                     <button onclick="manualCheckPayment()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
                         Já paguei / Verificar
                     </button>
-                    <button onclick="closeUpgradeModal()" class="px-4 text-xs text-slate-400 py-1 cursor-pointer">Fechar</button>
+                    <button onclick="closeUpgradeModal()" class="px-4 text-xs text-slate-600 py-1 cursor-pointer">Fechar</button>
                 </div>
             </div>
         </div>
@@ -352,12 +357,12 @@
                 document.getElementById('loginForm').classList.remove('hidden');
                 document.getElementById('registerForm').classList.add('hidden');
                 document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
-                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-slate-600 cursor-pointer";
             } else {
                 document.getElementById('loginForm').classList.add('hidden');
                 document.getElementById('registerForm').classList.remove('hidden');
                 document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
-                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-400 cursor-pointer";
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-600 cursor-pointer";
             }
         }
 
@@ -413,7 +418,7 @@
             container.innerHTML = '';
 
             if (!contracts || contracts.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum serviço registado.</p>`;
+                container.innerHTML = `<p class="text-xs text-slate-600 text-center py-4">Nenhum serviço registado.</p>`;
                 return;
             }
 
@@ -423,9 +428,9 @@
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center cursor-pointer hover:border-blue-300 transition" onclick="viewContract(contractsCache['${esc(item.id)}'])">
                         <div>
                             <span class="font-bold text-sm">${esc(item.client_name)}</span>
-                            <p class="text-xs text-slate-500">R$ ${esc(item.service_value)} - ${esc(item.warranty_period)}</p>
+                            <p class="text-xs text-slate-700">R$ ${esc(item.service_value)} - ${esc(item.warranty_period)}</p>
                         </div>
-                        <span class="text-[10px] bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold">${esc(item.status)}</span>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold">${esc(item.status)}</span>
                     </div>`;
             });
         }
@@ -630,7 +635,7 @@
             document.getElementById('view-auth').classList.add('hidden');
             const { data, error } = await _supabase.rpc('get_public_contract', { p_token: token });
             if (error || !data) {
-                document.querySelector('main').innerHTML = '<p class="text-center text-sm text-slate-500 py-10">Link inválido ou documento não encontrado.</p>';
+                document.querySelector('main').innerHTML = '<p class="text-center text-sm text-slate-700 py-10">Link inválido ou documento não encontrado.</p>';
                 return;
             }
             document.getElementById('view-document').classList.remove('hidden');
@@ -691,7 +696,7 @@
         }
 
         function adminTab(t) {
-            const on = 'flex-1 py-2 rounded-lg cursor-pointer bg-purple-700 text-white', off = 'flex-1 py-2 rounded-lg cursor-pointer bg-slate-100 text-slate-600';
+            const on = 'flex-1 py-2 rounded-lg cursor-pointer bg-purple-700 text-white', off = 'flex-1 py-2 rounded-lg cursor-pointer bg-slate-100 text-slate-800';
             document.getElementById('tabUsers').className = t === 'users' ? on : off;
             document.getElementById('tabPay').className = t === 'pay' ? on : off;
             document.getElementById('adminPaneUsers').classList.toggle('hidden', t !== 'users');
@@ -702,7 +707,7 @@
         async function loadAdmin() {
             const ov = await adminRpc('admin_overview');
             if (ov && ov !== true) {
-                const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-2"><span class="text-[10px] font-bold text-${c}-700 block uppercase">${label}</span><span class="text-lg font-black text-${c}-900">${esc(val)}</span></div>`;
+                const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-2"><span class="text-xs font-bold text-${c}-700 block uppercase">${label}</span><span class="text-lg font-black text-${c}-900">${esc(val)}</span></div>`;
                 document.getElementById('adminCards').innerHTML =
                     card('Usuários', ov.users, 'purple') + card('PRO', ov.pro, 'emerald') + card('Bloqueados', ov.blocked, 'red') +
                     card('Termos', ov.contracts, 'blue') + card('Assinados', ov.signed, 'sky') + card('Receita', 'R$ ' + Number(ov.revenue).toFixed(2).replace('.', ','), 'amber');
@@ -716,7 +721,7 @@
             const q = (document.getElementById('adminSearch').value || '').toLowerCase().trim();
             const list = document.getElementById('adminUsersList');
             const rows = adminUsers.filter(u => !q || [u.full_name, u.email, u.whatsapp].some(v => String(v || '').toLowerCase().includes(q)));
-            if (!rows.length) { list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Nenhum usuário encontrado.</p>'; return; }
+            if (!rows.length) { list.innerHTML = '<p class="text-xs text-slate-600 text-center py-4">Nenhum usuário encontrado.</p>'; return; }
             list.innerHTML = rows.map(u => {
                 const open = adminOpenUser === u.id, pro = u.plan === 'pro';
                 const wa = encodeURIComponent(String(u.whatsapp || '').replace(/\D/g, ''));
@@ -724,8 +729,8 @@
                     <div class="flex justify-between items-start" onclick="adminToggleUser('${esc(u.id)}')">
                         <div class="cursor-pointer">
                             <span class="font-bold text-slate-900 block">${esc(u.full_name)} ${u.is_admin ? '<span class="text-purple-700">(admin)</span>' : ''}</span>
-                            <span class="text-slate-500 break-all">${esc(u.email)}</span>
-                            <span class="text-slate-400 block">${esc(u.contracts)} termos &bull; ${esc(u.signed)} assinados</span>
+                            <span class="text-slate-700 break-all">${esc(u.email)}</span>
+                            <span class="text-slate-600 block">${esc(u.contracts)} termos &bull; ${esc(u.signed)} assinados</span>
                         </div>
                         <div class="flex flex-col items-end space-y-1">
                             <span class="px-2 py-0.5 rounded font-bold ${pro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${pro ? 'PRO' : 'Gratuito'}</span>
@@ -741,7 +746,7 @@
                         </div>
                         <textarea id="adminNotes" rows="2" placeholder="Anotações internas (só você vê)" class="w-full p-2 border border-slate-200 rounded-lg text-xs">${esc(u.admin_notes || '')}</textarea>
                         <button onclick="adminSaveNotes('${esc(u.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Salvar anotação</button>
-                        <p class="font-bold text-slate-500 uppercase text-[10px]">Termos deste usuário</p>
+                        <p class="font-bold text-slate-700 uppercase text-xs">Termos deste usuário</p>
                         <div id="adminContracts" class="space-y-1">Carregando...</div>
                     </div>` : ''}
                 </div>`;
@@ -762,9 +767,9 @@
         function renderAdminContracts() {
             const el = document.getElementById('adminContracts');
             if (!el) return;
-            if (!adminContracts.length) { el.innerHTML = '<span class="text-slate-400">Nenhum termo.</span>'; return; }
+            if (!adminContracts.length) { el.innerHTML = '<span class="text-slate-600">Nenhum termo.</span>'; return; }
             el.innerHTML = adminContracts.map((c, i) => `<div class="flex justify-between items-center bg-white border border-slate-200 rounded-lg p-2">
-                <div><span class="font-semibold block">${esc(c.client_name)}</span><span class="text-slate-400">R$ ${esc(c.service_value)} &bull; ${esc(c.status)}</span></div>
+                <div><span class="font-semibold block">${esc(c.client_name)}</span><span class="text-slate-600">R$ ${esc(c.service_value)} &bull; ${esc(c.status)}</span></div>
                 <div class="space-x-1">
                     <button onclick="adminViewContract(${i})" class="px-2 py-1 rounded bg-blue-600 text-white cursor-pointer">Ver</button>
                     <button onclick="adminDeleteContract('${esc(c.id)}')" class="px-2 py-1 rounded bg-red-100 text-red-700 cursor-pointer">Apagar</button>
@@ -810,11 +815,11 @@
 
         async function loadAdminPayments() {
             const el = document.getElementById('adminPanePay');
-            el.innerHTML = '<p class="text-xs text-slate-400">Carregando...</p>';
+            el.innerHTML = '<p class="text-xs text-slate-600">Carregando...</p>';
             const rows = await adminRpc('admin_payments');
-            if (!Array.isArray(rows) || !rows.length) { el.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Nenhum pagamento ainda.</p>'; return; }
+            if (!Array.isArray(rows) || !rows.length) { el.innerHTML = '<p class="text-xs text-slate-600 text-center py-4">Nenhum pagamento ainda.</p>'; return; }
             el.innerHTML = rows.map(r => `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex justify-between">
-                <div><span class="font-bold block">${esc(r.name || '-')}</span><span class="text-slate-500">${esc(r.email || '')}</span><span class="text-slate-400 block">${esc(new Date(r.created_at).toLocaleString('pt-BR'))}</span></div>
+                <div><span class="font-bold block">${esc(r.name || '-')}</span><span class="text-slate-700">${esc(r.email || '')}</span><span class="text-slate-600 block">${esc(new Date(r.created_at).toLocaleString('pt-BR'))}</span></div>
                 <div class="text-right"><span class="font-bold block">R$ ${esc(Number(r.amount).toFixed(2).replace('.', ','))}</span>
                 <span class="px-2 py-0.5 rounded font-bold ${r.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status === 'approved' ? 'Pago' : esc(r.status)}</span></div></div>`).join('');
         }
