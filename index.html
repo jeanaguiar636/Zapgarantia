@@ -91,6 +91,7 @@
                     <div>
                         <h1 class="text-lg font-bold text-slate-900" id="welcomeUser">Olá, Profissional</h1>
                         <p class="text-xs text-slate-700">Painel de Atendimentos e Garantias.</p>
+                        <button onclick="openProfileModal()" class="text-xs font-bold text-blue-700 underline mt-1 cursor-pointer"><i class="fa-solid fa-pen"></i> Editar meu nome</button>
                     </div>
                     <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5 cursor-pointer">
                         <i class="fa-solid fa-plus"></i>
@@ -151,7 +152,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 7 · letras mais fortes</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 8 · editar nome</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -286,6 +287,26 @@
         </div>
 
         <!-- MODAL PIX MERCADO PAGO -->
+        <!-- EDITAR PERFIL -->
+        <div id="profileModal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-3">
+                <h2 class="text-lg font-bold text-slate-900">Editar meu perfil</h2>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1">Nome</label>
+                    <input id="profName" type="text" maxlength="80" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1">WhatsApp (com DDD)</label>
+                    <input id="profWhats" type="tel" inputmode="numeric" maxlength="20" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                </div>
+                <p class="text-xs text-slate-700">O nome aparece nos seus orçamentos, inclusive nos que você já enviou.</p>
+                <div class="flex space-x-2">
+                    <button onclick="closeProfileModal()" class="flex-1 bg-slate-200 text-slate-800 font-semibold py-2.5 rounded-xl text-sm cursor-pointer">Cancelar</button>
+                    <button id="btnSaveProfile" onclick="saveProfile()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm cursor-pointer">Salvar</button>
+                </div>
+            </div>
+        </div>
+
         <div id="upgradeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center">
                 <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-xl">
@@ -822,6 +843,29 @@
                 <div><span class="font-bold block">${esc(r.name || '-')}</span><span class="text-slate-700">${esc(r.email || '')}</span><span class="text-slate-600 block">${esc(new Date(r.created_at).toLocaleString('pt-BR'))}</span></div>
                 <div class="text-right"><span class="font-bold block">R$ ${esc(Number(r.amount).toFixed(2).replace('.', ','))}</span>
                 <span class="px-2 py-0.5 rounded font-bold ${r.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status === 'approved' ? 'Pago' : esc(r.status)}</span></div></div>`).join('');
+        }
+
+        function openProfileModal() {
+            document.getElementById('profName').value = (userProfile && userProfile.full_name) || '';
+            document.getElementById('profWhats').value = (userProfile && userProfile.whatsapp) || '';
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+        function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
+
+        async function saveProfile() {
+            const name = document.getElementById('profName').value.trim().replace(/\s+/g, ' ');
+            const whats = document.getElementById('profWhats').value.replace(/\D/g, '');
+            if (name.length < 2) { alert('Digite um nome com pelo menos 2 letras.'); return; }
+            if (whats && (whats.length < 10 || whats.length > 13)) { alert('WhatsApp inválido. Use DDD + número.'); return; }
+            const btn = document.getElementById('btnSaveProfile');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+            const { error } = await _supabase.from('profiles').update({ full_name: name, whatsapp: whats }).eq('id', currentUser.id);
+            btn.disabled = false; btn.textContent = 'Salvar';
+            if (error) { alert('Não foi possível salvar: ' + error.message); return; }
+            userProfile.full_name = name; userProfile.whatsapp = whats;
+            document.getElementById('welcomeUser').textContent = `Olá, ${name}`;
+            closeProfileModal();
+            alert('Perfil atualizado!');
         }
 
         function goHome() {
