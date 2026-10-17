@@ -38,6 +38,26 @@
     <main class="max-w-xl mx-auto px-4 py-6 w-full flex-grow">
 
         <!-- TELA DE AUTENTICAÇÃO -->
+        <div id="view-recovery" class="hidden space-y-5">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="text-center space-y-1">
+                    <h1 class="text-xl font-bold text-slate-900">Criar nova senha</h1>
+                    <p class="text-xs text-slate-700">Digite a nova senha da sua conta (mínimo 6 caracteres).</p>
+                </div>
+                <form class="space-y-3" onsubmit="saveNewPassword(event)">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1">Nova senha</label>
+                        <input type="password" id="newPass" minlength="6" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1">Repita a nova senha</label>
+                        <input type="password" id="newPass2" minlength="6" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button id="btnNewPass" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm cursor-pointer">Salvar nova senha</button>
+                </form>
+            </div>
+        </div>
+
         <div id="view-auth" class="space-y-5">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="text-center space-y-1">
@@ -60,6 +80,7 @@
                         <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
+                    <button type="button" onclick="forgotPassword()" class="w-full text-xs font-bold text-blue-700 underline pt-1 cursor-pointer">Esqueci minha senha</button>
                 </form>
 
                 <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
@@ -152,7 +173,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 8 · editar nome</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 9 · várias fotos e senha</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -180,14 +201,15 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-image"></i> Foto</label>
-                            <input type="file" id="mediaImage" accept="image/*" class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-image"></i> Fotos</label>
+                            <input type="file" id="mediaImage" accept="image/*" multiple class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeo (arquivo)</label>
-                            <input type="file" id="mediaVideo" accept="video/*" class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeos (arquivo)</label>
+                            <input type="file" id="mediaVideo" accept="video/*" multiple class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
                         </div>
                     </div>
+                    <p id="mediaLimitHint" class="text-xs font-semibold text-blue-800"></p>
                     <div>
                         <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-link"></i> Link do vídeo (opcional)</label>
                         <input type="text" id="mediaVideoLink" inputmode="url" placeholder="Cole aqui o link (YouTube, Google Drive...)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
@@ -225,22 +247,19 @@
                         <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
                     </div>
 
-                    <div id="docMediaContainer" class="grid grid-cols-2 gap-2 hidden">
-                        <div id="docImageWrapper" class="hidden col-span-2">
-                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Foto (toque para ampliar)</span>
-                            <div class="relative">
-                                <img id="docImagePreview" src="" alt="Foto do serviço" onclick="openLightbox(this.src)" onerror="imgFailed()" class="w-full max-h-64 object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100">
-                                <button data-html2canvas-ignore="true" onclick="openLightbox(document.getElementById('docImagePreview').src)" class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2.5 py-1.5 rounded-lg cursor-pointer"><i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar</button>
-                            </div>
-                            <p id="docImageError" data-html2canvas-ignore="true" class="hidden text-[13px] text-red-600 mt-1">Não foi possível carregar a foto. Verifique o endereço do Worker e o bucket na Cloudflare.</p>
+                    <div id="docMediaContainer" class="space-y-3 hidden">
+                        <div id="docGalleryWrap" class="hidden">
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Fotos (toque para ampliar)</span>
+                            <div id="docGallery" class="grid grid-cols-2 gap-2"></div>
+                            <p id="docImageError" data-html2canvas-ignore="true" class="hidden text-[13px] text-red-600 mt-1">Algumas fotos não carregaram. Tente abrir de novo.</p>
                         </div>
-                        <div id="docVideoWrapper" class="hidden col-span-2">
-                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Vídeo</span>
-                            <video id="docVideoPreview" controls playsinline class="w-full max-h-64 rounded-xl border border-slate-200 bg-black"></video>
+                        <div id="docVideosWrap" class="hidden" data-html2canvas-ignore="true">
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Vídeos</span>
+                            <div id="docVideos" class="space-y-2"></div>
                         </div>
-                        <div id="docVideoLinkWrapper" class="hidden col-span-2">
+                        <div id="docVideoLinkWrapper" class="hidden">
                             <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Link do vídeo</span>
-                            <a id="docVideoLink" href="#" target="_blank" rel="noopener noreferrer" class="block break-all text-blue-600 underline text-xs font-semibold"></a>
+                            <a id="docVideoLink" href="#" target="_blank" rel="noopener noreferrer" class="block break-all text-blue-700 underline text-xs font-semibold"></a>
                         </div>
                     </div>
                 </div>
@@ -283,6 +302,9 @@
         <!-- AMPLIAR FOTO -->
         <div id="lightbox" class="hidden fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-3" onclick="closeLightbox()">
             <button class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Fechar">&times;</button>
+            <button id="lbPrev" onclick="event.stopPropagation(); lbStep(-1)" class="absolute left-1 top-1/2 text-white text-5xl px-3" aria-label="Anterior">&#8249;</button>
+            <button id="lbNext" onclick="event.stopPropagation(); lbStep(1)" class="absolute right-1 top-1/2 text-white text-5xl px-3" aria-label="Próxima">&#8250;</button>
+            <span id="lbCount" class="absolute bottom-4 left-0 right-0 text-center text-white text-sm"></span>
             <img id="lightboxImg" src="" alt="Foto ampliada" class="max-w-full max-h-full object-contain" style="touch-action: pinch-zoom;">
         </div>
 
@@ -350,6 +372,7 @@
 
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        _supabase.auth.onAuthStateChange((event) => { if (event === 'PASSWORD_RECOVERY') showRecovery(); });
 
         let currentUser = null;
         let userProfile = null;
@@ -371,6 +394,39 @@
                 document.getElementById('view-auth').classList.remove('hidden');
                 document.getElementById('headerUserArea').classList.add('hidden');
             }
+        }
+
+        async function forgotPassword() {
+            let email = (document.getElementById('loginEmail').value || '').trim();
+            if (!email) email = (prompt('Digite o e-mail da sua conta:') || '').trim();
+            if (!email) return;
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+            if (error) { alert('Não foi possível enviar o e-mail: ' + error.message); return; }
+            alert('Se esse e-mail tiver conta, enviamos um link para criar uma nova senha. Confira também a caixa de spam.');
+        }
+
+        function showRecovery() {
+            ['view-auth', 'view-dashboard', 'view-creator', 'view-document', 'view-admin'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.classList.add('hidden');
+            });
+            document.getElementById('headerUserArea').classList.add('hidden');
+            document.getElementById('view-recovery').classList.remove('hidden');
+        }
+
+        async function saveNewPassword(e) {
+            e.preventDefault();
+            const p1 = document.getElementById('newPass').value, p2 = document.getElementById('newPass2').value;
+            if (p1.length < 6) { alert('A senha precisa ter pelo menos 6 caracteres.'); return; }
+            if (p1 !== p2) { alert('As senhas não são iguais.'); return; }
+            const btn = document.getElementById('btnNewPass');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+            const { error } = await _supabase.auth.updateUser({ password: p1 });
+            btn.disabled = false; btn.textContent = 'Salvar nova senha';
+            if (error) { alert('Não foi possível trocar a senha: ' + error.message + ' (o link pode ter expirado; peça outro).'); return; }
+            alert('Senha alterada! Entre com a nova senha.');
+            history.replaceState(null, '', location.pathname);
+            await _supabase.auth.signOut();
+            location.reload();
         }
 
         function switchAuthTab(tab) {
@@ -425,6 +481,7 @@
             const { data: profile } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
             if (profile) {
                 userProfile = profile;
+                updateMediaHint();
                 if (profile.blocked) { alert('Sua conta está bloqueada. Fale com o suporte.'); await _supabase.auth.signOut(); location.reload(); return; }
                 if (profile.is_admin) document.getElementById('adminButtonWrapper').classList.remove('hidden');
                 document.getElementById('welcomeUser').textContent = `Olá, ${profile.full_name}`;
@@ -526,19 +583,27 @@
             btn.textContent = "A fazer upload e guardar...";
 
             try {
-                let imageUrl = "";
-                let videoUrl = "";
-
-                const imageFile = document.getElementById('mediaImage').files[0];
+                const lim = mediaLimits();
+                const imgFiles = Array.from(document.getElementById('mediaImage').files);
+                const vidFiles = Array.from(document.getElementById('mediaVideo').files);
+                if (imgFiles.length > lim.photos) throw new Error(`Seu plano permite até ${lim.photos} foto(s). Você escolheu ${imgFiles.length}.`);
+                if (vidFiles.length > lim.videos) throw new Error(`Seu plano permite até ${lim.videos} vídeo(s). Você escolheu ${vidFiles.length}.`);
                 let videoLink = (document.getElementById('mediaVideoLink').value || '').trim();
                 if (videoLink) {
                     if (!/^https?:\/\//i.test(videoLink)) videoLink = 'https://' + videoLink;
                     try { new URL(videoLink); } catch (e) { throw new Error('O link do vídeo não parece válido.'); }
                 } else { videoLink = null; }
-                const videoFile = document.getElementById('mediaVideo').files[0];
 
-                if (imageFile) imageUrl = await uploadFileToR2(imageFile);
-                if (videoFile) videoUrl = await uploadFileToR2(videoFile);
+                const images = [], videos = [];
+                for (let i = 0; i < imgFiles.length; i++) {
+                    btn.textContent = `Enviando foto ${i + 1} de ${imgFiles.length}...`;
+                    images.push(await uploadFileToR2(imgFiles[i]));
+                }
+                for (let i = 0; i < vidFiles.length; i++) {
+                    btn.textContent = `Enviando vídeo ${i + 1} de ${vidFiles.length}...`;
+                    videos.push(await uploadFileToR2(vidFiles[i]));
+                }
+                btn.textContent = 'Salvando...';
 
                 const payload = {
                     id: 'zg-' + Math.random().toString(36).substring(2, 8),
@@ -546,8 +611,10 @@
                     service_value: document.getElementById('serviceValue').value,
                     warranty_period: document.getElementById('warrantyPeriod').value,
                     service_desc: document.getElementById('serviceDesc').value,
-                    image_url: imageUrl,
-                    video_url: videoUrl,
+                    image_url: images[0] || '',
+                    video_url: videos[0] || '',
+                    images: images,
+                    videos: videos,
                     video_link: videoLink,
                     professional_id: currentUser.id,
                     status: 'Pendente'
@@ -594,32 +661,40 @@
                 : 'Aguardando assinatura do cliente';
 
             const mediaContainer = document.getElementById('docMediaContainer');
-            const imgWrapper = document.getElementById('docImageWrapper');
-            const vidWrapper = document.getElementById('docVideoWrapper');
             mediaContainer.classList.add('hidden');
-            imgWrapper.classList.add('hidden');
-            vidWrapper.classList.add('hidden');
+            const images = (Array.isArray(item.images) && item.images.length) ? item.images : (item.image_url ? [item.image_url] : []);
+            const videos = (Array.isArray(item.videos) && item.videos.length) ? item.videos : (item.video_url ? [item.video_url] : []);
+            galleryImages = images;
             document.getElementById('docImageError').classList.add('hidden');
+            const gal = document.getElementById('docGallery'); gal.innerHTML = '';
+            images.forEach((u, i) => {
+                const box = document.createElement('div');
+                if (images.length === 1) box.className = 'col-span-2';
+                const im = document.createElement('img');
+                im.src = u; im.alt = 'Foto ' + (i + 1);
+                im.className = 'w-full ' + (images.length === 1 ? 'h-56' : 'h-32') + ' object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100';
+                im.onclick = () => openLightbox(i);
+                im.onerror = imgFailed;
+                box.appendChild(im); gal.appendChild(box);
+            });
+            const vids = document.getElementById('docVideos'); vids.innerHTML = '';
+            videos.forEach(u => {
+                const v = document.createElement('video');
+                v.src = u; v.controls = true; v.playsInline = true; v.preload = 'metadata';
+                v.className = 'w-full max-h-64 rounded-xl border border-slate-200 bg-black';
+                vids.appendChild(v);
+            });
+            document.getElementById('docGalleryWrap').classList.toggle('hidden', !images.length);
+            document.getElementById('docVideosWrap').classList.toggle('hidden', !videos.length);
             const linkWrap = document.getElementById('docVideoLinkWrapper');
             linkWrap.classList.add('hidden');
-            if (item.video_link && /^https?:\/\//i.test(item.video_link)) {
+            const hasLink = !!item.video_link && /^https?:\/\//i.test(item.video_link);
+            if (hasLink) {
                 const a = document.getElementById('docVideoLink');
-                a.href = item.video_link;
-                a.textContent = item.video_link;
+                a.href = item.video_link; a.textContent = item.video_link;
                 linkWrap.classList.remove('hidden');
-                mediaContainer.classList.remove('hidden');
             }
-            if (item.image_url || item.video_url) {
-                mediaContainer.classList.remove('hidden');
-                if (item.image_url) {
-                    document.getElementById('docImagePreview').src = item.image_url;
-                    imgWrapper.classList.remove('hidden');
-                }
-                if (item.video_url) {
-                    document.getElementById('docVideoPreview').src = item.video_url;
-                    vidWrapper.classList.remove('hidden');
-                }
-            }
+            if (images.length || videos.length || hasLink) mediaContainer.classList.remove('hidden');
 
             document.getElementById('clientSignArea').classList.toggle('hidden', !(clientMode && !signed));
             document.getElementById('proLinkArea').classList.toggle('hidden', clientMode || !item.public_token);
@@ -628,16 +703,41 @@
             if (!clientMode && item.public_token) document.getElementById('shareLink').value = shareUrl(item);
         }
 
-        function imgFailed() {
-            if (currentContract && currentContract.image_url) document.getElementById('docImageError').classList.remove('hidden');
+        let galleryImages = [], lbIndex = 0;
+        function imgFailed() { document.getElementById('docImageError').classList.remove('hidden'); }
+        function showLb() {
+            const n = galleryImages.length;
+            document.getElementById('lightboxImg').src = galleryImages[lbIndex];
+            document.getElementById('lbCount').textContent = n > 1 ? `${lbIndex + 1} / ${n}` : '';
+            document.getElementById('lbPrev').classList.toggle('hidden', n < 2);
+            document.getElementById('lbNext').classList.toggle('hidden', n < 2);
         }
-
-        function openLightbox(src) {
-            if (!src) return;
-            document.getElementById('lightboxImg').src = src;
+        function openLightbox(i) {
+            if (typeof i !== 'number' || !galleryImages[i]) return;
+            lbIndex = i; showLb();
             document.getElementById('lightbox').classList.remove('hidden');
         }
+        function lbStep(d) { const n = galleryImages.length; lbIndex = (lbIndex + d + n) % n; showLb(); }
         function closeLightbox() { document.getElementById('lightbox').classList.add('hidden'); }
+        (function () {
+            const lb = document.getElementById('lightbox'); let x0 = null;
+            lb.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+            lb.addEventListener('touchend', e => {
+                if (x0 === null) return;
+                const dx = e.changedTouches[0].clientX - x0; x0 = null;
+                if (Math.abs(dx) > 60 && galleryImages.length > 1) lbStep(dx < 0 ? 1 : -1);
+            }, { passive: true });
+        })();
+
+        function mediaLimits() {
+            return (userProfile && userProfile.plan === 'pro') ? { photos: 15, videos: 2, pro: true } : { photos: 1, videos: 1, pro: false };
+        }
+        function updateMediaHint() {
+            const l = mediaLimits();
+            document.getElementById('mediaLimitHint').textContent = l.pro
+                ? 'Plano PRO: até 15 fotos e 2 vídeos por orçamento.'
+                : 'Plano gratuito: 1 foto e 1 vídeo. No plano PRO: até 15 fotos e 2 vídeos.';
+        }
 
         function copyShareLink() {
             const el = document.getElementById('shareLink');
@@ -682,23 +782,24 @@
         async function downloadPDF() {
             const element = document.getElementById('printableArea');
             const id = currentContract ? currentContract.id : 'documento';
-            const img = document.getElementById('docImagePreview');
-            const original = img.src;
-            // embute a foto no PDF (precisa estar em base64 para o gerador de PDF)
-            try {
-                if (currentContract && currentContract.image_url) {
-                    const blob = await (await fetch(currentContract.image_url)).blob();
-                    img.src = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
-                }
-            } catch (e) { /* segue sem a foto no PDF */ }
+            const imgs = Array.from(document.querySelectorAll('#docGallery img'));
+            const originals = imgs.map(i => i.src);
+            // embute as fotos no PDF (precisam estar em base64 para o gerador)
+            for (const im of imgs) {
+                try {
+                    const blob = await (await fetch(im.src)).blob();
+                    im.src = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+                } catch (e) { /* segue sem esta foto */ }
+            }
             const opt = {
                 margin:       10,
                 filename:     `Orcamento-${id}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
+                image:        { type: 'jpeg', quality: 0.95 },
                 html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'], avoid: ['img'] }
             };
-            try { await html2pdf().from(element).set(opt).save(); } finally { img.src = original; }
+            try { await html2pdf().from(element).set(opt).save(); } finally { imgs.forEach((im, i) => { im.src = originals[i]; }); }
         }
 
         let adminUsers = [], adminOpenUser = null, adminContracts = [];
@@ -933,7 +1034,12 @@
 
         window.onload = () => {
             const t = new URLSearchParams(location.search).get('c');
-            if (t) initClient(t); else initApp();
+            if (t) { initClient(t); return; }
+            if (location.hash.includes('error_code=otp_expired') || location.hash.includes('error=access_denied')) {
+                alert('Esse link para trocar a senha expirou ou já foi usado. Peça um novo em "Esqueci minha senha".');
+                history.replaceState(null, '', location.pathname);
+            }
+            if (location.hash.includes('type=recovery')) showRecovery(); else initApp();
         };
     </script>
 </body>
