@@ -130,6 +130,10 @@
                 </div>
             </div>
 
+            <button id="btnCatalog" onclick="openCatalog()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm shadow-md transition cursor-pointer">
+                <i class="fa-solid fa-store"></i> Catálogo de Produtos
+            </button>
+
             <div id="adminButtonWrapper" class="hidden">
                 <button onclick="openMasterAdmin()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-crown text-amber-300"></i>
@@ -144,6 +148,19 @@
         </div>
 
         <!-- PAINEL ADMIN -->
+        <div id="view-catalog" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-store text-amber-500"></i> Catálogo ZapGarantia</h1>
+                        <p class="text-xs text-slate-700">Produtos recomendados para você.</p>
+                    </div>
+                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-800 cursor-pointer">Voltar</button>
+                </div>
+                <div id="catalogList" class="space-y-3"></div>
+            </div>
+        </div>
+
         <div id="view-admin" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -156,9 +173,11 @@
 
                 <div class="grid grid-cols-3 gap-2 text-center" id="adminCards"></div>
 
-                <div class="flex space-x-2 text-xs font-bold">
+                <div class="flex space-x-1 text-xs font-bold">
                     <button id="tabUsers" onclick="adminTab('users')" class="flex-1 py-2 rounded-lg cursor-pointer">Usuários</button>
-                    <button id="tabPay" onclick="adminTab('pay')" class="flex-1 py-2 rounded-lg cursor-pointer">Pagamentos</button>
+                    <button id="tabPay" onclick="adminTab('pay')" class="flex-1 py-2 rounded-lg cursor-pointer">Pagos</button>
+                    <button id="tabSet" onclick="adminTab('set')" class="flex-1 py-2 rounded-lg cursor-pointer">Funções</button>
+                    <button id="tabCat" onclick="adminTab('cat')" class="flex-1 py-2 rounded-lg cursor-pointer">Catálogo</button>
                 </div>
 
                 <div id="adminPaneUsers" class="space-y-3">
@@ -166,6 +185,8 @@
                     <div id="adminUsersList" class="space-y-2"></div>
                 </div>
                 <div id="adminPanePay" class="hidden space-y-2"></div>
+                <div id="adminPaneSettings" class="hidden space-y-3"></div>
+                <div id="adminPaneCatalog" class="hidden space-y-3"></div>
             </div>
         </div>
 
@@ -173,7 +194,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 10 · PRO R$ 18</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 12 · funções e catálogo</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -204,13 +225,13 @@
                             <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-image"></i> Fotos</label>
                             <input type="file" id="mediaImage" accept="image/*" multiple class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         </div>
-                        <div>
+                        <div id="mediaVideoWrap">
                             <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeos (arquivo)</label>
                             <input type="file" id="mediaVideo" accept="video/*" multiple class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
                         </div>
                     </div>
                     <p id="mediaLimitHint" class="text-xs font-semibold text-blue-800"></p>
-                    <div>
+                    <div id="mediaVideoLinkWrap">
                         <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-link"></i> Link do vídeo (opcional)</label>
                         <input type="text" id="mediaVideoLink" inputmode="url" placeholder="Cole aqui o link (YouTube, Google Drive...)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                     </div>
@@ -368,7 +389,7 @@
         
         // CONFIGURAÇÃO DO SEU CLOUDFLARE R2
         // Subdomínio Público configurado no R2 ou Cloudflare Worker para upload/visualização
-        const R2_PUBLIC_DOMAIN = "https://zapgarantia.bmlimp8.workers.dev"; // URL do Worker (r2-worker)
+        const API_URL = "https://zapgarantia-api.bmlimp8.workers.dev"; // Worker da Cloudflare (fotos, vídeos e Pix)
 
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -484,7 +505,7 @@
             const { data: profile } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
             if (profile) {
                 userProfile = profile;
-                updateMediaHint();
+                await loadLimits();
                 if (profile.blocked) { alert('Sua conta está bloqueada. Fale com o suporte.'); await _supabase.auth.signOut(); location.reload(); return; }
                 if (profile.is_admin) document.getElementById('adminButtonWrapper').classList.remove('hidden');
                 document.getElementById('welcomeUser').textContent = `Olá, ${profile.full_name}`;
@@ -578,13 +599,19 @@
             file = await compressImage(file);
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) throw new Error('Sessão expirada. Faça login novamente.');
-            const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4', 'video/webm': 'webm' }[file.type];
-            if (!ext) throw new Error('Tipo de arquivo não permitido. Use foto (JPG, PNG, WEBP) ou vídeo (MP4, WEBM).');
-            if (file.size > 50 * 1024 * 1024) throw new Error('O arquivo passa de 50 MB.');
-            const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`;
-            const { error } = await _supabase.storage.from('midia').upload(path, file, { contentType: file.type, cacheControl: '31536000' });
-            if (error) throw new Error('Falha no upload: ' + error.message);
-            return _supabase.storage.from('midia').getPublicUrl(path).data.publicUrl;
+            let res;
+            try {
+                res = await fetch(`${API_URL}/upload`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${session.access_token}` },
+                    body: file
+                });
+            } catch (e) {
+                throw new Error('Não consegui enviar o arquivo (conexão com o servidor de mídia).');
+            }
+            if (!res.ok) throw new Error('Falha no upload: ' + (await res.text()));
+            const { key } = await res.json();
+            return `${API_URL}/media/${key}`;
         }
 
         async function saveContract(e) {
@@ -740,14 +767,33 @@
             }, { passive: true });
         })();
 
+        let appSettings = {}, userLimits = null;
+        async function loadLimits() {
+            const { data: lim } = await _supabase.rpc('my_limits');
+            userLimits = lim || null;
+            const { data: st } = await _supabase.from('app_settings').select('data').eq('id', 1).single();
+            appSettings = (st && st.data) || {};
+            applyFeatureFlags();
+        }
+        function applyFeatureFlags() {
+            const on = k => appSettings[k] !== false;
+            document.getElementById('btnCatalog').classList.toggle('hidden', !on('catalog_enabled'));
+            if (!on('pix_enabled')) document.getElementById('planBanner').style.display = 'none';
+            const l = mediaLimits();
+            document.getElementById('mediaVideoWrap').classList.toggle('hidden', l.videos < 1);
+            document.getElementById('mediaVideoLinkWrap').classList.toggle('hidden', userLimits ? !userLimits.video_link : !on('video_link_enabled'));
+            updateMediaHint();
+        }
+
         function mediaLimits() {
+            if (userLimits) return { photos: userLimits.photos, videos: userLimits.videos, pro: !!userLimits.pro };
             return proActive(userProfile) ? { photos: 15, videos: 2, pro: true } : { photos: 1, videos: 1, pro: false };
         }
         function updateMediaHint() {
             const l = mediaLimits();
-            document.getElementById('mediaLimitHint').textContent = l.pro
-                ? 'Plano PRO: até 15 fotos e 2 vídeos por orçamento.'
-                : 'Plano gratuito: 1 foto e 1 vídeo. No plano PRO: até 15 fotos e 2 vídeos.';
+            let t = `Limite por orçamento: ${l.photos} foto(s)` + (l.videos > 0 ? ` e ${l.videos} vídeo(s).` : '.');
+            if (!l.pro && appSettings.pix_enabled !== false) t += ' Assine o PRO para ter mais.';
+            document.getElementById('mediaLimitHint').textContent = t;
         }
 
         function copyShareLink() {
@@ -813,6 +859,133 @@
             try { await html2pdf().from(element).set(opt).save(); } finally { imgs.forEach((im, i) => { im.src = originals[i]; }); }
         }
 
+        // ---------- limites por usuário ----------
+        async function adminSaveUserLimits(id) {
+            const num = v => (v === '' || v === null) ? null : parseInt(v, 10);
+            const ph = num(document.getElementById('uLimPhotos').value), vd = num(document.getElementById('uLimVideos').value);
+            if (await adminRpc('admin_set_user_limits', { p_user: id, p_photos: ph, p_videos: vd })) {
+                const u = adminUsers.find(x => x.id === id); if (u) { u.limit_photos = ph; u.limit_videos = vd; }
+                alert('Limites salvos para este usuário.');
+            }
+        }
+
+        // ---------- funções liberadas (global) ----------
+        async function renderAdminSettings() {
+            const pane = document.getElementById('adminPaneSettings');
+            const { data: st } = await _supabase.from('app_settings').select('data').eq('id', 1).single();
+            const d = (st && st.data) || {};
+            const on = k => d[k] !== false;
+            const sw = (id, label, k) => `<label class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold"><span>${label}</span><input id="${id}" type="checkbox" ${on(k) ? 'checked' : ''} class="w-5 h-5"></label>`;
+            const nm = (id, label, v, max) => `<label class="text-xs font-semibold block">${label}<input id="${id}" type="number" min="0" max="${max}" value="${esc(v)}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>`;
+            pane.innerHTML = `<p class="text-xs text-slate-700">Ligue ou desligue funções para todos os usuários. Desligada, a função some do app.</p>
+                ${sw('setVideoUpload', 'Envio de vídeo (arquivo)', 'video_upload_enabled')}
+                ${sw('setVideoLink', 'Link de vídeo', 'video_link_enabled')}
+                ${sw('setCatalog', 'Catálogo de produtos', 'catalog_enabled')}
+                ${sw('setPix', 'Assinatura PRO por Pix (botão de assinar)', 'pix_enabled')}
+                <p class="font-bold text-xs uppercase text-slate-700 pt-1">Limites por orçamento</p>
+                <div class="grid grid-cols-2 gap-2">
+                    ${nm('setFreePhotos', 'Gratuito: fotos', d.free_photos ?? 1, 50)}
+                    ${nm('setFreeVideos', 'Gratuito: vídeos', d.free_videos ?? 1, 20)}
+                    ${nm('setProPhotos', 'PRO: fotos', d.pro_photos ?? 15, 50)}
+                    ${nm('setProVideos', 'PRO: vídeos', d.pro_videos ?? 2, 20)}
+                </div>
+                <button onclick="saveAdminSettings()" class="w-full py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer">Salvar funções</button>`;
+        }
+        async function saveAdminSettings() {
+            const g = id => document.getElementById(id);
+            const data = {
+                video_upload_enabled: g('setVideoUpload').checked, video_link_enabled: g('setVideoLink').checked,
+                catalog_enabled: g('setCatalog').checked, pix_enabled: g('setPix').checked,
+                free_photos: parseInt(g('setFreePhotos').value, 10), free_videos: parseInt(g('setFreeVideos').value, 10),
+                pro_photos: parseInt(g('setProPhotos').value, 10), pro_videos: parseInt(g('setProVideos').value, 10)
+            };
+            if (Object.values(data).some(v => v !== v)) { alert('Confira os números dos limites.'); return; }
+            if (await adminRpc('admin_save_settings', { p_data: data })) { await loadLimits(); alert('Funções salvas.'); }
+        }
+
+        // ---------- catálogo ----------
+        let adminCatalog = [], catEditing = null;
+        function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+
+        async function openCatalog() {
+            ['view-dashboard', 'view-creator', 'view-document', 'view-admin'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('view-catalog').classList.remove('hidden');
+            const list = document.getElementById('catalogList');
+            list.innerHTML = '<p class="text-xs text-slate-700">Carregando...</p>';
+            const { data, error } = await _supabase.from('catalog_items').select('*').eq('active', true)
+                .order('sort_order').order('created_at', { ascending: false });
+            if (error) { list.innerHTML = '<p class="text-xs text-red-600">Não foi possível carregar o catálogo.</p>'; return; }
+            if (!data.length) { list.innerHTML = '<p class="text-sm text-slate-700 text-center py-6">Em breve novos produtos por aqui.</p>'; return; }
+            list.innerHTML = data.map(i => `<div class="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                ${i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" class="w-full h-44 object-cover bg-slate-100">` : ''}
+                <div class="p-4 space-y-2">
+                    <h2 class="font-bold text-slate-900">${esc(i.title)}</h2>
+                    <p class="text-sm text-slate-800 whitespace-pre-line">${esc(i.description)}</p>
+                    <a href="${esc(safeUrl(i.affiliate_url))}" target="_blank" rel="noopener noreferrer sponsored" class="block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm">Ver oferta</a>
+                </div></div>`).join('');
+        }
+
+        async function loadAdminCatalog() {
+            const { data } = await _supabase.from('catalog_items').select('*').order('sort_order').order('created_at', { ascending: false });
+            adminCatalog = data || [];
+            renderAdminCatalog();
+        }
+        function renderAdminCatalog() {
+            const pane = document.getElementById('adminPaneCatalog');
+            const cur = catEditing && catEditing !== 'new' ? adminCatalog.find(x => x.id === catEditing) : null;
+            const form = catEditing ? `<div class="bg-white border border-purple-200 rounded-xl p-3 space-y-2 text-xs">
+                <p class="font-bold text-sm">${cur ? 'Editar produto' : 'Novo produto'}</p>
+                <input id="catTitle" maxlength="120" placeholder="Título" value="${esc(cur ? cur.title : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
+                <textarea id="catDesc" rows="3" maxlength="600" placeholder="Descrição" class="w-full p-2 border border-slate-200 rounded-lg text-sm">${esc(cur ? cur.description : '')}</textarea>
+                <input id="catUrl" inputmode="url" placeholder="Link de afiliado (https://...)" value="${esc(cur ? cur.affiliate_url : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
+                <label class="block font-semibold">Foto do produto (opcional)${cur && cur.image_url ? ' — já tem foto; escolha outra para trocar' : ''}<input id="catImage" type="file" accept="image/*" class="w-full mt-1 text-xs"></label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="font-semibold">Ordem<input id="catSort" type="number" value="${esc(cur ? cur.sort_order : 0)}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
+                    <label class="flex items-center space-x-2 font-semibold pt-5"><input id="catActive" type="checkbox" ${!cur || cur.active ? 'checked' : ''} class="w-5 h-5"><span>Visível</span></label>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="catEditing=null;renderAdminCatalog()" class="py-2 rounded-lg bg-slate-200 font-semibold cursor-pointer">Cancelar</button>
+                    <button id="btnSaveCat" onclick="saveCatalogItem()" class="py-2 rounded-lg bg-purple-700 text-white font-bold cursor-pointer">Salvar</button>
+                </div></div>` : `<button onclick="catEditing='new';renderAdminCatalog()" class="w-full py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-plus"></i> Novo produto</button>`;
+            const rows = adminCatalog.map(i => `<div class="bg-slate-50 border ${i.active ? 'border-slate-200' : 'border-amber-300'} rounded-xl p-3 text-xs space-y-2">
+                <div class="flex justify-between"><span class="font-bold text-sm">${esc(i.title)}</span><span class="font-bold ${i.active ? 'text-emerald-700' : 'text-amber-700'}">${i.active ? 'Visível' : 'Oculto'}</span></div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="catEditing='${esc(i.id)}';renderAdminCatalog()" class="py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Editar</button>
+                    <button onclick="toggleCatalogItem('${esc(i.id)}',${!i.active})" class="py-1.5 rounded-lg bg-amber-100 text-amber-900 font-semibold cursor-pointer">${i.active ? 'Ocultar' : 'Mostrar'}</button>
+                    <button onclick="deleteCatalogItem('${esc(i.id)}')" class="py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold cursor-pointer">Excluir</button>
+                </div></div>`).join('');
+            pane.innerHTML = form + (rows || '<p class="text-xs text-slate-700 text-center py-3">Nenhum produto ainda.</p>');
+        }
+        async function saveCatalogItem() {
+            const g = id => document.getElementById(id);
+            const title = g('catTitle').value.trim(), desc = g('catDesc').value.trim();
+            let url = g('catUrl').value.trim();
+            if (title.length < 2) { alert('Digite o título do produto.'); return; }
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            try { new URL(url); } catch (e) { alert('O link de afiliado não parece válido.'); return; }
+            const btn = g('btnSaveCat'); btn.disabled = true; btn.textContent = 'Salvando...';
+            try {
+                const cur = catEditing !== 'new' ? adminCatalog.find(x => x.id === catEditing) : null;
+                let image_url = cur ? cur.image_url : null;
+                const f = g('catImage').files[0];
+                if (f) image_url = await uploadFileToR2(f);
+                const row = { title, description: desc, affiliate_url: url, image_url, active: g('catActive').checked, sort_order: parseInt(g('catSort').value, 10) || 0 };
+                const q = cur ? _supabase.from('catalog_items').update(row).eq('id', cur.id) : _supabase.from('catalog_items').insert([row]);
+                const { error } = await q;
+                if (error) throw error;
+                catEditing = null; await loadAdminCatalog();
+            } catch (e) { alert('Não foi possível salvar: ' + (e.message || e)); btn.disabled = false; btn.textContent = 'Salvar'; }
+        }
+        async function toggleCatalogItem(id, active) {
+            const { error } = await _supabase.from('catalog_items').update({ active }).eq('id', id);
+            if (error) alert('Erro: ' + error.message); else loadAdminCatalog();
+        }
+        async function deleteCatalogItem(id) {
+            if (!confirm('Excluir este produto do catálogo?')) return;
+            const { error } = await _supabase.from('catalog_items').delete().eq('id', id);
+            if (error) alert('Erro: ' + error.message); else loadAdminCatalog();
+        }
+
         let adminUsers = [], adminOpenUser = null, adminContracts = [];
 
         async function adminRpc(name, args) {
@@ -830,11 +1003,13 @@
 
         function adminTab(t) {
             const on = 'flex-1 py-2 rounded-lg cursor-pointer bg-purple-700 text-white', off = 'flex-1 py-2 rounded-lg cursor-pointer bg-slate-100 text-slate-800';
-            document.getElementById('tabUsers').className = t === 'users' ? on : off;
-            document.getElementById('tabPay').className = t === 'pay' ? on : off;
-            document.getElementById('adminPaneUsers').classList.toggle('hidden', t !== 'users');
-            document.getElementById('adminPanePay').classList.toggle('hidden', t !== 'pay');
+            [['users', 'tabUsers', 'adminPaneUsers'], ['pay', 'tabPay', 'adminPanePay'], ['set', 'tabSet', 'adminPaneSettings'], ['cat', 'tabCat', 'adminPaneCatalog']].forEach(([k, b, p]) => {
+                document.getElementById(b).className = t === k ? on : off;
+                document.getElementById(p).classList.toggle('hidden', t !== k);
+            });
             if (t === 'pay') loadAdminPayments();
+            if (t === 'set') renderAdminSettings();
+            if (t === 'cat') loadAdminCatalog();
         }
 
         async function loadAdmin() {
@@ -879,6 +1054,12 @@
                         </div>
                         <textarea id="adminNotes" rows="2" placeholder="Anotações internas (só você vê)" class="w-full p-2 border border-slate-200 rounded-lg text-xs">${esc(u.admin_notes || '')}</textarea>
                         <button onclick="adminSaveNotes('${esc(u.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Salvar anotação</button>
+                        <p class="font-bold text-slate-700 uppercase text-xs">Limites só deste usuário (vazio = padrão do plano)</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input id="uLimPhotos" type="number" min="0" max="50" placeholder="Fotos" value="${u.limit_photos ?? ''}" class="p-2 border border-slate-200 rounded-lg text-xs">
+                            <input id="uLimVideos" type="number" min="0" max="20" placeholder="Vídeos" value="${u.limit_videos ?? ''}" class="p-2 border border-slate-200 rounded-lg text-xs">
+                        </div>
+                        <button onclick="adminSaveUserLimits('${esc(u.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Salvar limites</button>
                         <p class="font-bold text-slate-700 uppercase text-xs">Termos deste usuário</p>
                         <div id="adminContracts" class="space-y-1">Carregando...</div>
                     </div>` : ''}
@@ -984,6 +1165,7 @@
             if (clientMode) return;
             document.getElementById('view-creator').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-catalog').classList.add('hidden');
             document.getElementById('view-document').classList.add('hidden');
             initApp();
         }
@@ -996,8 +1178,11 @@
             document.getElementById('pixLoading').textContent = 'Gerando QR Code Pix seguro...';
             document.getElementById('pixContent').classList.add('hidden');
             try {
-                const { data, error } = await _supabase.functions.invoke('create-pix');
-                if (error || !data || data.error) throw new Error((data && data.error) || (error && error.message) || 'erro');
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (!session) throw new Error('Sessão expirada. Entre de novo.');
+                const resp = await fetch(`${API_URL}/pix/create`, { method: 'POST', headers: { 'Authorization': `Bearer ${session.access_token}` } });
+                const data = await resp.json().catch(() => null);
+                if (!resp.ok || !data || data.error) throw new Error((data && data.error) || 'erro ao gerar o Pix');
                 document.getElementById('pixQrImg').src = 'data:image/png;base64,' + data.qr_base64;
                 document.getElementById('pixCopyPaste').value = data.qr_code;
                 document.getElementById('pixLoading').classList.add('hidden');
