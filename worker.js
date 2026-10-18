@@ -53,7 +53,7 @@ export default {
         const rule = TYPES[type];
         if (!rule) return text("tipo não permitido", 415);
         if (type.startsWith("video/")) { // vídeo só se o admin liberou para este usuário
-          const lim = await (await sb(env, "rpc/user_limits", { method: "POST", body: JSON.stringify({ p_user: user.id }) })).json();
+          const lim = await (await sb(env, "rpc/user_limits", { method: "PUT", body: JSON.stringify({ p_user: user.id }) })).json();
           if (!lim || !(lim.videos > 0)) return text("envio de vídeo não liberado para sua conta", 403);
         }
         const size = Number(req.headers.get("Content-Length") ?? 0);
