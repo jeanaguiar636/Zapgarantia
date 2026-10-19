@@ -1,6 +1,6 @@
 // ZapGarantia API (Cloudflare Worker): fotos/vídeos no R2 + Pix (Mercado Pago)
 // Bindings: BUCKET (R2)
-// Variáveis: SUPABASE_URL, SUPABASE_ANON_KEY
+// Variáveis: SUPABASE_URL, SUPABASE_ANON_KEY, ALLOWED_ORIGIN (sites separados por vírgula)
 // Secrets: SUPABASE_SERVICE_ROLE_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET
 
 const TYPES = { "image/jpeg": ["jpg", 10], "image/png": ["png", 10], "image/webp": ["webp", 10], "video/mp4": ["mp4", 50], "video/webm": ["webm", 50] };
@@ -11,23 +11,14 @@ const KEY_RE = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp|mp4|webm)$/;
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    const origin = req.headers.get("Origin") || "";
-    
-    // Lista de origens permitidas (aceita o seu domínio zapgarantia.alibr.com.br ou qualquer um definido na variável)
-    const allowedOrigins = [
-      "https://zapgarantia.alibr.com.br",
-      ...(env.ALLOWED_ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean)
-    ];
-
-    const isAllowed = allowedOrigins.includes(origin) || allowedOrigins.includes("*");
-
+    const allowed = (env.ALLOWED_ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean);
+    const origin = req.headers.get("Origin");
     const cors = {
-      "Access-Control-Allow-Origin": isAllowed ? origin : "https://zapgarantia.alibr.com.br",
+      "Access-Control-Allow-Origin": allowed.includes(origin) ? origin : allowed[0] || "",
       "Vary": "Origin",
       "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
     };
-
     const text = (msg, status = 200) => new Response(msg, { status, headers: cors });
     const json = (obj, status = 200) =>
       new Response(JSON.stringify(obj), { status, headers: { ...cors, "Content-Type": "application/json" } });
@@ -62,7 +53,7 @@ export default {
         const rule = TYPES[type];
         if (!rule) return text("tipo não permitido", 415);
         if (type.startsWith("video/")) { // vídeo só se o admin liberou para este usuário
-          const lim = await (await sb(env, "rpc/user_limits", { method: "PUT", body: JSON.stringify({ p_user: user.id }) })).json();
+          const lim = await (await sb(env, "rpc/user_limits", { method: "POST", body: JSON.stringify({ p_user: user.id }) })).json();
           if (!lim || !(lim.videos > 0)) return text("envio de vídeo não liberado para sua conta", 403);
         }
         const size = Number(req.headers.get("Content-Length") ?? 0);
