@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ZapGarantia">
     <title>ZapGarantia - Sistema Completo com Cloudflare R2 e PDF</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -130,6 +136,10 @@
                 </div>
             </div>
 
+            <button id="btnInstallApp" onclick="installApp()" class="hidden w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow-md cursor-pointer">
+                <i class="fa-solid fa-download"></i> Baixar o app no celular
+            </button>
+
             <button id="btnCatalog" onclick="openCatalog()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm shadow-md transition cursor-pointer">
                 <i class="fa-solid fa-store"></i> Catálogo de Produtos
             </button>
@@ -194,7 +204,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 13 · catálogo e banner</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 14 · app instalável</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -481,7 +491,7 @@
             if (error) { alert('Erro no registo: ' + error.message); return; }
 
             if (data.user) {
-                alert('Conta criada com sucesso! Faça login.');
+                alert('Conta criada com sucesso! Faça login e toque em "Baixar o app no celular" para instalar.');
                 switchAuthTab('login');
             }
         }
@@ -910,6 +920,28 @@
         // ---------- catálogo ----------
         let adminCatalog = [], catEditing = null;
         function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+
+        // ---------- instalar o app (PWA) ----------
+        let deferredInstall = null;
+        window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+        window.addEventListener('appinstalled', () => { deferredInstall = null; hideInstall(); });
+        function isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+        function hideInstall() { const b = document.getElementById('btnInstallApp'); if (b) b.classList.add('hidden'); }
+        async function installApp() {
+            if (deferredInstall) {
+                deferredInstall.prompt();
+                const r = await deferredInstall.userChoice;
+                deferredInstall = null;
+                if (r.outcome === 'accepted') hideInstall();
+                return;
+            }
+            const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            alert(ios
+                ? 'No iPhone: toque em Compartilhar (quadrado com seta) e depois em "Adicionar à Tela de Início".'
+                : 'Abra o menu do navegador (três pontinhos) e toque em "Instalar app". Se só aparecer "Adicionar à tela inicial", feche e abra o site de novo e tente outra vez.');
+        }
+        if (!isStandalone()) document.getElementById('btnInstallApp').classList.remove('hidden');
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
         let catalogItems = [];
         function fmtPrice(n) { return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
