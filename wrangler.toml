@@ -1,0 +1,12 @@
+name = "zapgarantia"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "zapgarantia-media"
+
+[vars]
+SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo"
+ALLOWED_ORIGIN = "https://zapgarantia.alibr.com.br"
