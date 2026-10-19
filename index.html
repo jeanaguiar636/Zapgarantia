@@ -145,20 +145,20 @@
                 <h2 class="text-xs font-bold text-slate-600 uppercase tracking-wider px-1">Meus Registos</h2>
                 <div id="contractsListContainer" class="space-y-2.5"></div>
             </div>
+
+            <a id="featuredBannerDash" class="hidden block bg-white border border-blue-100 rounded-2xl shadow-sm" target="_blank" rel="noopener noreferrer sponsored"></a>
         </div>
 
         <!-- PAINEL ADMIN -->
-        <div id="view-catalog" class="hidden space-y-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                    <div>
-                        <h1 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-store text-amber-500"></i> Catálogo ZapGarantia</h1>
-                        <p class="text-xs text-slate-700">Produtos recomendados para você.</p>
-                    </div>
-                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-800 cursor-pointer">Voltar</button>
+        <div id="view-catalog" class="hidden space-y-3">
+            <div class="bg-gradient-to-r from-blue-800 to-blue-600 p-4 rounded-2xl shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-lg font-bold text-white"><i class="fa-solid fa-store text-amber-300"></i> Catálogo ZapGarantia</h1>
+                    <button onclick="goHome()" class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer">Voltar</button>
                 </div>
-                <div id="catalogList" class="space-y-3"></div>
+                <input id="catalogSearch" oninput="renderCatalogGrid()" placeholder="Buscar produtos" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white focus:outline-none">
             </div>
+            <div id="catalogList" class="grid grid-cols-2 gap-3"></div>
         </div>
 
         <div id="view-admin" class="hidden space-y-4">
@@ -194,7 +194,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 12 · funções e catálogo</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 13 · catálogo e banner</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -318,6 +318,8 @@
                     Voltar ao Início
                 </button>
             </div>
+
+            <a id="featuredBannerDoc" class="hidden block bg-white border border-blue-100 rounded-2xl shadow-sm no-print" target="_blank" rel="noopener noreferrer sponsored"></a>
         </div>
 
         <!-- AMPLIAR FOTO -->
@@ -774,6 +776,7 @@
             const { data: st } = await _supabase.from('app_settings').select('data').eq('id', 1).single();
             appSettings = (st && st.data) || {};
             applyFeatureFlags();
+            loadBanner();
         }
         function applyFeatureFlags() {
             const on = k => appSettings[k] !== false;
@@ -818,6 +821,7 @@
             }
             document.getElementById('view-document').classList.remove('hidden');
             renderDoc(data, data.prof_name, data.prof_whatsapp);
+            loadBanner();
         }
 
         async function signContract() {
@@ -907,22 +911,60 @@
         let adminCatalog = [], catEditing = null;
         function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
 
+        let catalogItems = [];
+        function fmtPrice(n) { return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+
         async function openCatalog() {
             ['view-dashboard', 'view-creator', 'view-document', 'view-admin'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById('view-catalog').classList.remove('hidden');
+            document.getElementById('catalogSearch').value = '';
             const list = document.getElementById('catalogList');
-            list.innerHTML = '<p class="text-xs text-slate-700">Carregando...</p>';
-            const { data, error } = await _supabase.from('catalog_items').select('*').eq('active', true)
+            list.innerHTML = '<p class="col-span-2 text-xs text-slate-700">Carregando...</p>';
+            const { data, error } = await _supabase.from('catalog_items').select('id,title,description,price,old_price,image_url,affiliate_url').eq('active', true)
                 .order('sort_order').order('created_at', { ascending: false });
-            if (error) { list.innerHTML = '<p class="text-xs text-red-600">Não foi possível carregar o catálogo.</p>'; return; }
-            if (!data.length) { list.innerHTML = '<p class="text-sm text-slate-700 text-center py-6">Em breve novos produtos por aqui.</p>'; return; }
-            list.innerHTML = data.map(i => `<div class="border border-slate-200 rounded-2xl overflow-hidden bg-white">
-                ${i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" class="w-full h-44 object-cover bg-slate-100">` : ''}
-                <div class="p-4 space-y-2">
-                    <h2 class="font-bold text-slate-900">${esc(i.title)}</h2>
-                    <p class="text-sm text-slate-800 whitespace-pre-line">${esc(i.description)}</p>
-                    <a href="${esc(safeUrl(i.affiliate_url))}" target="_blank" rel="noopener noreferrer sponsored" class="block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm">Ver oferta</a>
-                </div></div>`).join('');
+            if (error) { list.innerHTML = '<p class="col-span-2 text-xs text-red-600">Não foi possível carregar o catálogo.</p>'; return; }
+            catalogItems = data || [];
+            renderCatalogGrid();
+        }
+
+        function renderCatalogGrid() {
+            const q = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
+            const list = document.getElementById('catalogList');
+            const rows = catalogItems.filter(i => !q || (i.title + ' ' + i.description).toLowerCase().includes(q));
+            if (!rows.length) { list.innerHTML = '<p class="col-span-2 text-sm text-slate-700 text-center py-8">Nenhum produto encontrado.</p>'; return; }
+            list.innerHTML = rows.map(i => {
+                const off = i.old_price && i.price != null && Number(i.old_price) > Number(i.price) ? Math.round((1 - Number(i.price) / Number(i.old_price)) * 100) : 0;
+                return `<a href="${esc(safeUrl(i.affiliate_url))}" target="_blank" rel="noopener noreferrer sponsored" class="block bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 relative">
+                    ${off ? `<span class="absolute top-0 right-0 bg-emerald-600 text-white text-xs font-bold px-1.5 py-1 rounded-bl-lg">-${off}%</span>` : ''}
+                    ${i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" class="w-full aspect-square object-cover bg-slate-100">` : '<div class="w-full aspect-square bg-slate-100 flex items-center justify-center text-slate-400 text-3xl"><i class="fa-solid fa-image"></i></div>'}
+                    <div class="p-2.5 space-y-1">
+                        <h2 class="text-sm font-semibold text-slate-900 line-clamp-2">${esc(i.title)}</h2>
+                        ${i.description ? `<p class="text-xs text-slate-700 line-clamp-2">${esc(i.description)}</p>` : ''}
+                        ${i.price != null ? `<p class="text-base font-black text-blue-700">${esc(fmtPrice(i.price))}${off ? ` <span class="text-xs font-normal text-slate-500 line-through">${esc(fmtPrice(i.old_price))}</span>` : ''}</p>` : ''}
+                        <span class="block text-center bg-emerald-600 text-white text-xs font-bold py-1.5 rounded-lg">Ver oferta</span>
+                    </div></a>`;
+            }).join('');
+        }
+
+        // ---------- banner (produto em destaque) ----------
+        async function loadBanner() {
+            const { data } = await _supabase.rpc('get_featured_item');
+            renderFeatured(data || null);
+        }
+        function renderFeatured(item) {
+            ['featuredBannerDash', 'featuredBannerDoc'].forEach(id => {
+                const a = document.getElementById(id); if (!a) return;
+                if (!item) { a.classList.add('hidden'); a.innerHTML = ''; return; }
+                a.href = safeUrl(item.affiliate_url);
+                a.innerHTML = `<span class="text-xs uppercase font-bold text-blue-700 block px-3 pt-2">Oferta ZapGarantia</span>
+                    <div class="flex items-center gap-3 p-3 pt-1">
+                        ${item.image_url ? `<img src="${esc(item.image_url)}" alt="" loading="lazy" class="w-16 h-16 rounded-lg object-cover bg-slate-100 shrink-0">` : ''}
+                        <div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-900 line-clamp-2">${esc(item.title)}</p>
+                        ${item.price != null ? `<p class="text-base font-black text-blue-700">${esc(fmtPrice(item.price))}</p>` : ''}</div>
+                        <span class="text-xs font-bold text-white bg-emerald-600 px-3 py-2 rounded-lg shrink-0">Ver</span>
+                    </div>`;
+                a.classList.remove('hidden');
+            });
         }
 
         async function loadAdminCatalog() {
@@ -937,6 +979,10 @@
                 <p class="font-bold text-sm">${cur ? 'Editar produto' : 'Novo produto'}</p>
                 <input id="catTitle" maxlength="120" placeholder="Título" value="${esc(cur ? cur.title : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
                 <textarea id="catDesc" rows="3" maxlength="600" placeholder="Descrição" class="w-full p-2 border border-slate-200 rounded-lg text-sm">${esc(cur ? cur.description : '')}</textarea>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="font-semibold">Preço (R$)<input id="catPrice" inputmode="decimal" placeholder="49,90" value="${esc(cur && cur.price != null ? String(cur.price).replace('.', ',') : '')}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
+                    <label class="font-semibold">Preço antigo (opcional)<input id="catOldPrice" inputmode="decimal" placeholder="79,90" value="${esc(cur && cur.old_price != null ? String(cur.old_price).replace('.', ',') : '')}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
+                </div>
                 <input id="catUrl" inputmode="url" placeholder="Link de afiliado (https://...)" value="${esc(cur ? cur.affiliate_url : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
                 <label class="block font-semibold">Foto do produto (opcional)${cur && cur.image_url ? ' — já tem foto; escolha outra para trocar' : ''}<input id="catImage" type="file" accept="image/*" class="w-full mt-1 text-xs"></label>
                 <div class="grid grid-cols-2 gap-2">
@@ -948,12 +994,13 @@
                     <button id="btnSaveCat" onclick="saveCatalogItem()" class="py-2 rounded-lg bg-purple-700 text-white font-bold cursor-pointer">Salvar</button>
                 </div></div>` : `<button onclick="catEditing='new';renderAdminCatalog()" class="w-full py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-plus"></i> Novo produto</button>`;
             const rows = adminCatalog.map(i => `<div class="bg-slate-50 border ${i.active ? 'border-slate-200' : 'border-amber-300'} rounded-xl p-3 text-xs space-y-2">
-                <div class="flex justify-between"><span class="font-bold text-sm">${esc(i.title)}</span><span class="font-bold ${i.active ? 'text-emerald-700' : 'text-amber-700'}">${i.active ? 'Visível' : 'Oculto'}</span></div>
+                <div class="flex justify-between"><span class="font-bold text-sm">${esc(i.title)}${i.price != null ? ' · ' + esc(fmtPrice(i.price)) : ''}${i.featured ? ' <span class="text-blue-700">(banner)</span>' : ''}</span><span class="font-bold ${i.active ? 'text-emerald-700' : 'text-amber-700'}">${i.active ? 'Visível' : 'Oculto'}</span></div>
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="catEditing='${esc(i.id)}';renderAdminCatalog()" class="py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Editar</button>
                     <button onclick="toggleCatalogItem('${esc(i.id)}',${!i.active})" class="py-1.5 rounded-lg bg-amber-100 text-amber-900 font-semibold cursor-pointer">${i.active ? 'Ocultar' : 'Mostrar'}</button>
                     <button onclick="deleteCatalogItem('${esc(i.id)}')" class="py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold cursor-pointer">Excluir</button>
-                </div></div>`).join('');
+                </div>
+                <button onclick="setFeatured(${i.featured ? 'null' : `'${esc(i.id)}'`})" class="w-full py-1.5 rounded-lg ${i.featured ? 'bg-blue-100 text-blue-900' : 'bg-blue-700 text-white'} font-semibold cursor-pointer">${i.featured ? 'Tirar do banner' : 'Usar como banner'}</button></div>`).join('');
             pane.innerHTML = form + (rows || '<p class="text-xs text-slate-700 text-center py-3">Nenhum produto ainda.</p>');
         }
         async function saveCatalogItem() {
@@ -969,12 +1016,16 @@
                 let image_url = cur ? cur.image_url : null;
                 const f = g('catImage').files[0];
                 if (f) image_url = await uploadFileToR2(f);
-                const row = { title, description: desc, affiliate_url: url, image_url, active: g('catActive').checked, sort_order: parseInt(g('catSort').value, 10) || 0 };
+                const money = v => { let t = String(v || '').trim(); if (!t) return null; if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.'); const n = parseFloat(t); if (!(n >= 0)) throw new Error('Preço inválido: use números, por exemplo 49,90.'); return n; };
+                const row = { title, description: desc, affiliate_url: url, image_url, price: money(g('catPrice').value), old_price: money(g('catOldPrice').value), active: g('catActive').checked, sort_order: parseInt(g('catSort').value, 10) || 0 };
                 const q = cur ? _supabase.from('catalog_items').update(row).eq('id', cur.id) : _supabase.from('catalog_items').insert([row]);
                 const { error } = await q;
                 if (error) throw error;
                 catEditing = null; await loadAdminCatalog();
             } catch (e) { alert('Não foi possível salvar: ' + (e.message || e)); btn.disabled = false; btn.textContent = 'Salvar'; }
+        }
+        async function setFeatured(id) {
+            if (await adminRpc('admin_set_featured', { p_id: id })) { await loadAdminCatalog(); loadBanner(); }
         }
         async function toggleCatalogItem(id, active) {
             const { error } = await _supabase.from('catalog_items').update({ active }).eq('id', id);
