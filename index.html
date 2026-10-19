@@ -65,6 +65,7 @@
         </div>
 
         <div id="view-auth" class="space-y-5">
+            <p id="refBanner" class="hidden text-center text-sm font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5"></p>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
                 <div class="text-center space-y-1">
                     <h1 class="text-xl font-bold text-slate-900">Portal do Profissional</h1>
@@ -140,6 +141,10 @@
                 <i class="fa-solid fa-download"></i> Baixar o app no celular
             </button>
 
+            <button id="btnReferral" onclick="openReferral()" class="hidden w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm shadow-md transition cursor-pointer">
+                <i class="fa-solid fa-gift"></i> Indique e ganhe pontos
+            </button>
+
             <button id="btnCatalog" onclick="openCatalog()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm shadow-md transition cursor-pointer">
                 <i class="fa-solid fa-store"></i> Catálogo de Produtos
             </button>
@@ -160,6 +165,30 @@
         </div>
 
         <!-- PAINEL ADMIN -->
+        <div id="view-referral" class="hidden space-y-3">
+            <div class="bg-gradient-to-r from-emerald-700 to-emerald-500 p-4 rounded-2xl shadow-sm space-y-1">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-lg font-bold text-white"><i class="fa-solid fa-gift"></i> Indique e ganhe</h1>
+                    <button onclick="goHome()" class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer">Voltar</button>
+                </div>
+                <p class="text-xs text-white">Compartilhe seu link. Cada amigo que se cadastrar por ele rende pontos para você.</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                <p class="text-xs font-bold uppercase text-slate-800">Seu link de indicação</p>
+                <input id="refLink" readonly class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 select-all">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="copyRefLink()" class="bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer"><i class="fa-solid fa-copy"></i> Copiar link</button>
+                    <button onclick="shareRefLink()" class="bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
+                </div>
+            </div>
+            <div id="refCards" class="grid grid-cols-2 gap-2"></div>
+            <div id="refRules" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs text-slate-800 space-y-1"></div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                <p class="text-sm font-bold text-slate-900">Seus indicados</p>
+                <div id="refList" class="space-y-2"></div>
+            </div>
+        </div>
+
         <div id="view-catalog" class="hidden space-y-3">
             <div class="bg-gradient-to-r from-blue-800 to-blue-600 p-4 rounded-2xl shadow-sm space-y-3">
                 <div class="flex justify-between items-center">
@@ -183,11 +212,12 @@
 
                 <div class="grid grid-cols-3 gap-2 text-center" id="adminCards"></div>
 
-                <div class="flex space-x-1 text-xs font-bold">
+                <div class="grid grid-cols-3 gap-1 text-xs font-bold">
                     <button id="tabUsers" onclick="adminTab('users')" class="flex-1 py-2 rounded-lg cursor-pointer">Usuários</button>
                     <button id="tabPay" onclick="adminTab('pay')" class="flex-1 py-2 rounded-lg cursor-pointer">Pagos</button>
                     <button id="tabSet" onclick="adminTab('set')" class="flex-1 py-2 rounded-lg cursor-pointer">Funções</button>
                     <button id="tabCat" onclick="adminTab('cat')" class="flex-1 py-2 rounded-lg cursor-pointer">Catálogo</button>
+                    <button id="tabRef" onclick="adminTab('ref')" class="flex-1 py-2 rounded-lg cursor-pointer">Indicações</button>
                 </div>
 
                 <div id="adminPaneUsers" class="space-y-3">
@@ -197,6 +227,7 @@
                 <div id="adminPanePay" class="hidden space-y-2"></div>
                 <div id="adminPaneSettings" class="hidden space-y-3"></div>
                 <div id="adminPaneCatalog" class="hidden space-y-3"></div>
+                <div id="adminPaneRef" class="hidden space-y-3"></div>
             </div>
         </div>
 
@@ -204,7 +235,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 15 · câmera ao vivo</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 17 · indicação</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -303,8 +334,19 @@
                 </div>
 
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
-                    <span class="font-bold text-slate-800 block uppercase text-xs">Assinatura do Cliente</span>
+                    <span class="font-bold text-slate-800 block uppercase text-xs">Assinatura do orçamento (início do serviço)</span>
                     <p id="docSignatureText" class="text-slate-700">Aguardando assinatura</p>
+                </div>
+
+                <div id="finalSection" class="hidden space-y-3 border-t-2 border-emerald-200 pt-3">
+                    <h2 class="text-sm font-bold text-emerald-800 uppercase">Serviço pronto</h2>
+                    <p id="finalDraftTag" data-html2canvas-ignore="true" class="hidden text-xs font-semibold text-amber-700">Rascunho: ainda não enviado ao cliente.</p>
+                    <p id="finalNotes" class="text-sm text-slate-800 whitespace-pre-line"></p>
+                    <div id="finalGallery" class="grid grid-cols-2 gap-2"></div>
+                    <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 space-y-1 text-xs">
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Assinatura do serviço pronto</span>
+                        <p id="finalSignatureText" class="text-slate-700">Aguardando assinatura</p>
+                    </div>
                 </div>
 
                 <div class="text-xs text-slate-600 text-center pt-2 border-t border-slate-100">
@@ -326,6 +368,29 @@
                         <button onclick="copyShareLink()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-solid fa-copy"></i> Copiar link</button>
                         <button onclick="shareWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
                     </div>
+                </div>
+                <div id="finalSignArea" class="hidden bg-white p-4 rounded-2xl border border-emerald-300 space-y-3">
+                    <p class="text-sm font-bold text-slate-800">Assinar o serviço pronto</p>
+                    <p class="text-xs text-slate-700">Confira as fotos do serviço finalizado acima. Se estiver tudo certo, digite seu nome completo e assine.</p>
+                    <input id="finalSignName" type="text" placeholder="Seu nome completo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    <button id="btnFinalSign" onclick="signFinal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Assinar serviço pronto</button>
+                </div>
+                <div id="proFinalArea" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-3">
+                    <p class="text-sm font-bold text-emerald-900"><i class="fa-solid fa-circle-check"></i> Serviço pronto</p>
+                    <p id="proFinalInfo" class="text-xs text-slate-800">Adicione as fotos do serviço finalizado e envie ao cliente. Ele assina no mesmo link.</p>
+                    <textarea id="finalNotesInput" rows="2" maxlength="1000" placeholder="Observações do serviço pronto (opcional)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="text-center bg-white border border-blue-200 text-blue-800 font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-images"></i> Da galeria
+                            <input type="file" accept="image/*" multiple class="hidden" onchange="addPhotos(this, 'final')">
+                        </label>
+                        <button type="button" onclick="openCamera('final')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-camera"></i> Tirar foto agora</button>
+                    </div>
+                    <input type="file" id="finalCamFallback" accept="image/*" capture="environment" class="hidden" onchange="addPhotos(this, 'final')">
+                    <p id="finalCount" class="text-xs text-slate-700"></p>
+                    <div id="finalPreview" class="grid grid-cols-4 gap-2"></div>
+                    <button id="btnSendFinal" onclick="saveFinal(true)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">Marcar como pronto e enviar ao cliente</button>
+                    <button id="btnDraftFinal" onclick="saveFinal(false)" class="w-full bg-white border border-slate-200 text-slate-800 font-semibold py-2.5 rounded-xl text-xs cursor-pointer">Salvar sem enviar</button>
+                    <button id="btnNotifyFinal" onclick="notifyFinal()" class="hidden w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Avisar o cliente no WhatsApp</button>
                 </div>
                 <button id="btnPdf" onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-file-pdf text-lg"></i>
@@ -505,7 +570,7 @@
             const password = document.getElementById('regPassword').value;
 
             // O perfil é criado automaticamente no banco (trigger) a partir destes dados.
-            const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: name, whatsapp } } });
+            const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: name, whatsapp, ref_code: storedRef() } } });
             if (error) { alert('Erro no registo: ' + error.message); return; }
 
             if (data.user) {
@@ -743,7 +808,7 @@
                 const im = document.createElement('img');
                 im.src = u; im.alt = 'Foto ' + (i + 1);
                 im.className = 'w-full ' + (images.length === 1 ? 'h-56' : 'h-32') + ' object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100';
-                im.onclick = () => openLightbox(i);
+                im.onclick = () => { galleryImages = images; openLightbox(i); };
                 im.onerror = imgFailed;
                 box.appendChild(im); gal.appendChild(box);
             });
@@ -766,6 +831,7 @@
             }
             if (images.length || videos.length || hasLink) mediaContainer.classList.remove('hidden');
 
+            renderFinal(item);
             document.getElementById('clientSignArea').classList.toggle('hidden', !(clientMode && !signed));
             document.getElementById('proLinkArea').classList.toggle('hidden', clientMode || !item.public_token);
             document.getElementById('btnPdf').classList.toggle('hidden', clientMode && !signed);
@@ -811,6 +877,7 @@
         function applyFeatureFlags() {
             const on = k => appSettings[k] !== false;
             document.getElementById('btnCatalog').classList.toggle('hidden', !on('catalog_enabled'));
+            document.getElementById('btnReferral').classList.toggle('hidden', !on('referral_enabled'));
             if (!on('pix_enabled')) document.getElementById('planBanner').style.display = 'none';
             const l = mediaLimits();
             document.getElementById('mediaVideoWrap').classList.toggle('hidden', l.videos < 1);
@@ -873,7 +940,7 @@
         async function downloadPDF() {
             const element = document.getElementById('printableArea');
             const id = currentContract ? currentContract.id : 'documento';
-            const imgs = Array.from(document.querySelectorAll('#docGallery img'));
+            const imgs = Array.from(document.querySelectorAll('#docGallery img, #finalGallery img'));
             const originals = imgs.map(i => i.src);
             // embute as fotos no PDF (precisam estar em base64 para o gerador)
             for (const im of imgs) {
@@ -884,7 +951,7 @@
             }
             const opt = {
                 margin:       10,
-                filename:     `Orcamento-${id}.pdf`,
+                filename:     (currentContract && currentContract.final_signed_at ? `Servico-completo-${id}.pdf` : `Orcamento-${id}.pdf`),
                 image:        { type: 'jpeg', quality: 0.95 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -916,6 +983,7 @@
                 ${sw('setVideoLink', 'Link de vídeo', 'video_link_enabled')}
                 ${sw('setCatalog', 'Catálogo de produtos', 'catalog_enabled')}
                 ${sw('setPix', 'Assinatura PRO por Pix (botão de assinar)', 'pix_enabled')}
+                ${sw('setReferral', 'Programa de indicação', 'referral_enabled')}
                 <p class="font-bold text-xs uppercase text-slate-700 pt-1">Limites por orçamento</p>
                 <div class="grid grid-cols-2 gap-2">
                     ${nm('setFreePhotos', 'Gratuito: fotos', d.free_photos ?? 1, 50)}
@@ -923,13 +991,20 @@
                     ${nm('setProPhotos', 'PRO: fotos', d.pro_photos ?? 15, 50)}
                     ${nm('setProVideos', 'PRO: vídeos', d.pro_videos ?? 2, 20)}
                 </div>
+                <p class="font-bold text-xs uppercase text-slate-700 pt-1">Pontos por indicação</p>
+                <div class="grid grid-cols-3 gap-2">
+                    ${nm('setPtsSignup', 'Cadastro', d.ref_points_signup ?? 10, 100000)}
+                    ${nm('setPtsContract', '1º orçamento', d.ref_points_first_contract ?? 20, 100000)}
+                    ${nm('setPtsPro', 'Assinou PRO', d.ref_points_pro ?? 50, 100000)}
+                </div>
                 <button onclick="saveAdminSettings()" class="w-full py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer">Salvar funções</button>`;
         }
         async function saveAdminSettings() {
             const g = id => document.getElementById(id);
             const data = {
                 video_upload_enabled: g('setVideoUpload').checked, video_link_enabled: g('setVideoLink').checked,
-                catalog_enabled: g('setCatalog').checked, pix_enabled: g('setPix').checked,
+                catalog_enabled: g('setCatalog').checked, pix_enabled: g('setPix').checked, referral_enabled: g('setReferral').checked,
+                ref_points_signup: parseInt(g('setPtsSignup').value, 10), ref_points_first_contract: parseInt(g('setPtsContract').value, 10), ref_points_pro: parseInt(g('setPtsPro').value, 10),
                 free_photos: parseInt(g('setFreePhotos').value, 10), free_videos: parseInt(g('setFreeVideos').value, 10),
                 pro_photos: parseInt(g('setProPhotos').value, 10), pro_videos: parseInt(g('setProVideos').value, 10)
             };
@@ -941,14 +1016,24 @@
         let adminCatalog = [], catEditing = null;
         function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
 
-        // ---------- fotos: galeria + câmera ao vivo ----------
-        let photoFiles = [], camStream = null, camFacing = 'environment';
+        // ---------- fotos: galeria + câmera ao vivo (orçamento e serviço pronto) ----------
+        let photoFiles = [], finalFiles = [], camStream = null, camFacing = 'environment', camTarget = 'main';
+        const PH = {
+            main: { list: () => photoFiles, prev: 'photoPreview', cnt: 'photoCount', fb: 'camFallback' },
+            final: { list: () => finalFiles, prev: 'finalPreview', cnt: 'finalCount', fb: 'finalCamFallback' }
+        };
+        function finalExisting() { return (currentContract && Array.isArray(currentContract.final_images)) ? currentContract.final_images.length : 0; }
+        function photoUsed(t) { return PH[t].list().length + (t === 'final' ? finalExisting() : 0); }
 
-        function renderPhotoPreview() {
-            const l = mediaLimits();
-            document.getElementById('photoCount').textContent = `${photoFiles.length} de ${l.photos} foto(s)`;
-            const box = document.getElementById('photoPreview'); box.innerHTML = '';
-            photoFiles.forEach((f, i) => {
+        function renderPhotoPreview(t = 'main') {
+            const l = mediaLimits(), cfg = PH[t], list = cfg.list();
+            const cnt = document.getElementById(cfg.cnt);
+            if (cnt) cnt.textContent = t === 'final'
+                ? `${list.length} nova(s) · ${finalExisting()} já salva(s) · máximo ${l.photos}`
+                : `${list.length} de ${l.photos} foto(s)`;
+            const box = document.getElementById(cfg.prev); if (!box) return;
+            box.innerHTML = '';
+            list.forEach((f, i) => {
                 const wrap = document.createElement('div'); wrap.className = 'relative';
                 const im = document.createElement('img');
                 im.src = URL.createObjectURL(f); im.alt = 'Foto ' + (i + 1);
@@ -957,20 +1042,20 @@
                 const x = document.createElement('button');
                 x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Remover foto');
                 x.className = 'absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full w-6 h-6 text-base leading-none cursor-pointer';
-                x.onclick = () => { photoFiles.splice(i, 1); renderPhotoPreview(); };
+                x.onclick = () => { list.splice(i, 1); renderPhotoPreview(t); };
                 wrap.appendChild(im); wrap.appendChild(x); box.appendChild(wrap);
             });
         }
-        function resetPhotos() { photoFiles = []; renderPhotoPreview(); }
+        function resetPhotos() { photoFiles = []; renderPhotoPreview('main'); }
 
-        function addPhotos(input) {
-            const l = mediaLimits();
+        function addPhotos(input, t = 'main') {
+            const l = mediaLimits(), list = PH[t].list();
             for (const f of Array.from(input.files || [])) {
-                if (photoFiles.length >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); break; }
-                photoFiles.push(f);
+                if (photoUsed(t) >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); break; }
+                list.push(f);
             }
             input.value = '';
-            renderPhotoPreview();
+            renderPhotoPreview(t);
         }
 
         async function startCam() {
@@ -982,39 +1067,137 @@
             if (camStream) camStream.getTracks().forEach(t => t.stop());
             camStream = null;
         }
-        async function openCamera() {
+        async function openCamera(t = 'main') {
             const l = mediaLimits();
-            if (photoFiles.length >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); return; }
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { document.getElementById('camFallback').click(); return; }
+            camTarget = t;
+            if (photoUsed(t) >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); return; }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { document.getElementById(PH[t].fb).click(); return; }
             try {
                 await startCam();
-                document.getElementById('camCount').textContent = `${photoFiles.length} de ${l.photos} foto(s)`;
+                document.getElementById('camCount').textContent = `${photoUsed(t)} de ${l.photos} foto(s)`;
                 document.getElementById('cameraModal').classList.remove('hidden');
             } catch (e) {
                 alert('Não consegui abrir a câmera ao vivo. Vou abrir a câmera do celular.');
-                document.getElementById('camFallback').click();
+                document.getElementById(PH[t].fb).click();
             }
         }
-        function closeCamera() { stopCam(); document.getElementById('cameraModal').classList.add('hidden'); renderPhotoPreview(); }
+        function closeCamera() { stopCam(); document.getElementById('cameraModal').classList.add('hidden'); renderPhotoPreview(camTarget); }
         function flipCamera() {
             camFacing = camFacing === 'environment' ? 'user' : 'environment';
             startCam().catch(() => alert('Não foi possível trocar de câmera.'));
         }
         function snapPhoto() {
-            const v = document.getElementById('camVideo'), l = mediaLimits();
+            const v = document.getElementById('camVideo'), l = mediaLimits(), t = camTarget;
             if (!v.videoWidth) return;
-            if (photoFiles.length >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); return; }
+            if (photoUsed(t) >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); return; }
             const sc = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight));
             const c = document.createElement('canvas');
             c.width = Math.round(v.videoWidth * sc); c.height = Math.round(v.videoHeight * sc);
             c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
             c.toBlob(b => {
                 if (!b) return;
-                photoFiles.push(new File([b], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' }));
-                document.getElementById('camCount').textContent = `${photoFiles.length} de ${l.photos} foto(s)`;
+                PH[t].list().push(new File([b], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' }));
+                document.getElementById('camCount').textContent = `${photoUsed(t)} de ${l.photos} foto(s)`;
                 v.style.opacity = '0.3'; setTimeout(() => { v.style.opacity = '1'; }, 120);
                 if (navigator.vibrate) navigator.vibrate(30);
             }, 'image/jpeg', 0.88);
+        }
+
+        // ---------- serviço pronto (segunda etapa, mesmo link) ----------
+        function renderFinal(item) {
+            const imgs = Array.isArray(item.final_images) ? item.final_images : [];
+            const ready = !!item.final_ready_at, fsigned = !!item.final_signed_at;
+            const editable = !clientMode && !fsigned && (!item.professional_id || !currentUser || item.professional_id === currentUser.id);
+            document.getElementById('finalSection').classList.toggle('hidden', !(ready || (!clientMode && imgs.length)));
+            document.getElementById('finalDraftTag').classList.toggle('hidden', ready || clientMode);
+            document.getElementById('finalNotes').textContent = item.final_notes || '';
+            const gal = document.getElementById('finalGallery'); gal.innerHTML = '';
+            imgs.forEach((u, i) => {
+                const box = document.createElement('div'); box.className = 'relative';
+                const im = document.createElement('img');
+                im.src = u; im.alt = 'Serviço pronto ' + (i + 1);
+                im.className = 'w-full h-32 object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100';
+                im.onclick = () => { galleryImages = imgs; openLightbox(i); };
+                box.appendChild(im);
+                if (editable) {
+                    const x = document.createElement('button');
+                    x.type = 'button'; x.textContent = '×'; x.setAttribute('data-html2canvas-ignore', 'true');
+                    x.className = 'absolute top-1 right-1 bg-red-600 text-white rounded-full w-7 h-7 text-lg leading-none cursor-pointer';
+                    x.onclick = () => removeFinalImage(i);
+                    box.appendChild(x);
+                }
+                gal.appendChild(box);
+            });
+            document.getElementById('finalSignatureText').textContent = fsigned
+                ? `Assinado por ${item.final_signed_name} em ${new Date(item.final_signed_at).toLocaleString('pt-BR')}`
+                : 'Aguardando assinatura do cliente';
+            document.getElementById('finalSignArea').classList.toggle('hidden', !(clientMode && !!item.signed_at && ready && !fsigned));
+            document.getElementById('proFinalArea').classList.toggle('hidden', !editable);
+            if (editable) {
+                document.getElementById('finalNotesInput').value = item.final_notes || '';
+                document.getElementById('proFinalInfo').textContent = ready
+                    ? 'Serviço pronto enviado. O cliente assina no mesmo link. Você ainda pode ajustar as fotos até ele assinar.'
+                    : 'Adicione as fotos do serviço finalizado e envie ao cliente. Ele assina no mesmo link.';
+                document.getElementById('btnSendFinal').textContent = ready ? 'Salvar alterações do serviço pronto' : 'Marcar como pronto e enviar ao cliente';
+                document.getElementById('btnDraftFinal').classList.toggle('hidden', ready);
+                document.getElementById('btnNotifyFinal').classList.toggle('hidden', !ready);
+            }
+            finalFiles = []; renderPhotoPreview('final');
+            const pdfBtn = document.querySelector('#btnPdf span');
+            if (pdfBtn) pdfBtn.textContent = fsigned ? 'Baixar PDF completo (orçamento + serviço pronto)' : 'Baixar em PDF';
+        }
+
+        async function refreshContract(id) {
+            const { data, error } = await _supabase.from('contracts').select('*').eq('id', id).single();
+            if (error) throw error;
+            contractsCache[data.id] = data;
+            renderDoc(data, userProfile && userProfile.full_name, userProfile && userProfile.whatsapp);
+        }
+        async function saveFinal(ready) {
+            if (!currentContract) return;
+            const l = mediaLimits(), existing = Array.isArray(currentContract.final_images) ? currentContract.final_images : [];
+            if (existing.length + finalFiles.length > l.photos) { alert(`Seu plano permite até ${l.photos} foto(s) por orçamento.`); return; }
+            if (ready && existing.length + finalFiles.length < 1) { alert('Adicione pelo menos uma foto do serviço pronto.'); return; }
+            const btn = document.getElementById('btnSendFinal'), label = btn.textContent;
+            btn.disabled = true;
+            try {
+                const urls = [];
+                for (let i = 0; i < finalFiles.length; i++) {
+                    btn.textContent = `Enviando foto ${i + 1} de ${finalFiles.length}...`;
+                    urls.push(await uploadFileToR2(finalFiles[i]));
+                }
+                btn.textContent = 'Salvando...';
+                const { error } = await _supabase.rpc('pro_save_final', { p_id: currentContract.id, p_images: existing.concat(urls), p_notes: document.getElementById('finalNotesInput').value.trim(), p_ready: !!ready });
+                if (error) throw error;
+                await refreshContract(currentContract.id);
+                alert(ready ? 'Serviço pronto enviado! O cliente já pode assinar no mesmo link.' : 'Fotos salvas.');
+            } catch (e) { alert('Não foi possível salvar: ' + (e.message || e)); btn.textContent = label; }
+            btn.disabled = false;
+        }
+        async function removeFinalImage(i) {
+            if (!confirm('Remover esta foto do serviço pronto?')) return;
+            try {
+                const imgs = (currentContract.final_images || []).filter((_, k) => k !== i);
+                const { error } = await _supabase.rpc('pro_save_final', { p_id: currentContract.id, p_images: imgs, p_notes: document.getElementById('finalNotesInput').value.trim(), p_ready: false });
+                if (error) throw error;
+                await refreshContract(currentContract.id);
+            } catch (e) { alert('Não foi possível remover: ' + (e.message || e)); }
+        }
+        function notifyFinal() {
+            const msg = `Olá! Seu serviço está pronto. Veja as fotos e assine o serviço pronto neste link: ${document.getElementById('shareLink').value}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+        async function signFinal() {
+            const name = document.getElementById('finalSignName').value.trim();
+            if (name.length < 5) { alert('Digite seu nome completo para assinar.'); return; }
+            const btn = document.getElementById('btnFinalSign');
+            btn.disabled = true; btn.textContent = 'Assinando...';
+            const { error } = await _supabase.rpc('sign_public_final', { p_token: clientToken, p_name: name });
+            btn.disabled = false; btn.textContent = 'Assinar serviço pronto';
+            if (error) { alert('Não foi possível assinar: ' + error.message); return; }
+            const { data } = await _supabase.rpc('get_public_contract', { p_token: clientToken });
+            if (data) renderDoc(data, data.prof_name, data.prof_whatsapp);
+            alert('Serviço pronto assinado! Toque em "Baixar PDF completo" para guardar sua cópia.');
         }
 
         // ---------- instalar o app (PWA) ----------
@@ -1038,6 +1221,88 @@
         }
         if (!isStandalone()) document.getElementById('btnInstallApp').classList.remove('hidden');
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+        // ---------- indicação ----------
+        function captureRef() {
+            try {
+                const ref = new URLSearchParams(location.search).get('ref');
+                if (ref && /^[a-z0-9]{4,20}$/i.test(ref)) localStorage.setItem('zg_ref', ref.toLowerCase());
+            } catch (e) {}
+        }
+        function storedRef() { try { return localStorage.getItem('zg_ref') || ''; } catch (e) { return ''; } }
+        async function showRefBanner() {
+            const code = storedRef(); if (!code) return;
+            const { data } = await _supabase.rpc('get_ref_name', { p_code: code });
+            if (!data) return;
+            const b = document.getElementById('refBanner');
+            b.textContent = `${data} indicou o ZapGarantia para você. Crie sua conta!`;
+            b.classList.remove('hidden');
+            switchAuthTab('register');
+        }
+
+        let refCode = '';
+        async function openReferral() {
+            ['view-dashboard', 'view-creator', 'view-document', 'view-admin', 'view-catalog'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('view-referral').classList.remove('hidden');
+            const { data, error } = await _supabase.rpc('my_referrals');
+            if (error || !data) { alert('Não foi possível carregar suas indicações.'); return; }
+            refCode = data.code || '';
+            document.getElementById('refLink').value = `${location.origin}${location.pathname}?ref=${refCode}`;
+            const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-3 text-center"><span class="text-xs font-bold text-${c}-800 block uppercase">${label}</span><span class="text-2xl font-black text-${c}-900">${esc(val)}</span></div>`;
+            document.getElementById('refCards').innerHTML = card('Indicados', data.total, 'blue') + card('Pontos', data.points, 'amber') +
+                card('Criaram orçamento', data.with_contract, 'sky') + card('Assinaram PRO', data.pro, 'emerald');
+            const st = appSettings || {};
+            document.getElementById('refRules').innerHTML = `<p class="font-bold">Como ganhar pontos</p>
+                <p>+${esc(st.ref_points_signup ?? 10)} pontos quando seu amigo se cadastra</p>
+                <p>+${esc(st.ref_points_first_contract ?? 20)} pontos quando ele cria o primeiro orçamento</p>
+                <p>+${esc(st.ref_points_pro ?? 50)} pontos quando ele assina o plano PRO</p>
+                <p class="text-slate-700 pt-1">Os pontos poderão ser trocados por benefícios. Avisaremos por aqui.</p>`;
+            const list = document.getElementById('refList');
+            list.innerHTML = (data.list && data.list.length) ? data.list.map(i => `<div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+                    <div><span class="font-bold text-sm text-slate-900 block">${esc(i.name || 'Indicado')}</span>
+                    <span class="text-slate-700">${i.referred_at ? esc(new Date(i.referred_at).toLocaleDateString('pt-BR')) : ''} · Cadastrou${i.has_contract ? ' · Criou orçamento' : ''}${i.is_pro ? ' · PRO' : ''}</span></div>
+                    <span class="font-bold text-amber-700 shrink-0">+${esc(i.points)} pts</span></div>`).join('')
+                : '<p class="text-xs text-slate-700 text-center py-3">Ainda ninguém se cadastrou pelo seu link. Compartilhe e comece a ganhar pontos!</p>';
+        }
+        function copyRefLink() {
+            const el = document.getElementById('refLink');
+            if (navigator.clipboard) navigator.clipboard.writeText(el.value).catch(() => {});
+            el.select(); try { document.execCommand('copy'); } catch (e) {}
+            alert('Link copiado!');
+        }
+        function shareRefLink() {
+            const msg = `Conheça o ZapGarantia: orçamentos com assinatura do cliente, fotos do serviço e PDF. Cadastre-se pelo meu link: ${document.getElementById('refLink').value}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        let adminRefOpen = null;
+        async function loadAdminReferrals() {
+            const pane = document.getElementById('adminPaneRef');
+            pane.innerHTML = '<p class="text-xs text-slate-700">Carregando...</p>';
+            const d = await adminRpc('admin_referrals');
+            if (!d || d === true) { pane.innerHTML = ''; return; }
+            const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-2 text-center"><span class="text-xs font-bold text-${c}-800 block uppercase">${label}</span><span class="text-lg font-black text-${c}-900">${esc(val)}</span></div>`;
+            pane.innerHTML = `<div class="grid grid-cols-2 gap-2">${card('Quem indica', d.referrers, 'purple')}${card('Indicados', d.referred, 'blue')}${card('Viraram PRO', d.pro, 'emerald')}${card('Pontos dados', d.points, 'amber')}</div>
+                <p class="font-bold text-xs uppercase text-slate-700 pt-1">Ranking de quem indicou</p>
+                <div class="space-y-2">${(d.ranking || []).map(r => `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+                    <div class="flex justify-between"><span class="font-bold text-sm">${esc(r.name)}</span><span class="font-bold text-amber-700">${esc(r.points)} pts</span></div>
+                    <span class="text-slate-700 block break-all">${esc(r.email)} · código ${esc(r.code)}</span>
+                    <span class="text-slate-800 block">${esc(r.referred)} indicados · ${esc(r.with_contract)} com orçamento · ${esc(r.pro)} PRO</span>
+                    <button onclick="toggleRefOf('${esc(r.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">${adminRefOpen === r.id ? 'Esconder indicados' : 'Ver indicados'}</button>
+                    <div id="refOf-${esc(r.id)}" class="space-y-1"></div></div>`).join('') || '<p class="text-xs text-slate-700 text-center py-3">Ninguém indicou ainda.</p>'}</div>`;
+            if (adminRefOpen) fillRefOf(adminRefOpen);
+        }
+        async function toggleRefOf(id) {
+            adminRefOpen = adminRefOpen === id ? null : id;
+            await loadAdminReferrals();
+        }
+        async function fillRefOf(id) {
+            const el = document.getElementById('refOf-' + id); if (!el) return;
+            const rows = await adminRpc('admin_referred_of', { p_user: id });
+            el.innerHTML = (Array.isArray(rows) ? rows : []).map(i => `<div class="bg-white border border-slate-200 rounded-lg p-2">
+                <span class="font-semibold block">${esc(i.name)}</span><span class="text-slate-700 break-all block">${esc(i.email)}</span>
+                <span class="text-slate-700">${i.referred_at ? esc(new Date(i.referred_at).toLocaleDateString('pt-BR')) : ''}${i.has_contract ? ' · com orçamento' : ''}${i.is_pro ? ' · PRO' : ''} · +${esc(i.points)} pts</span></div>`).join('');
+        }
 
         let catalogItems = [];
         function fmtPrice(n) { return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
@@ -1182,13 +1447,14 @@
 
         function adminTab(t) {
             const on = 'flex-1 py-2 rounded-lg cursor-pointer bg-purple-700 text-white', off = 'flex-1 py-2 rounded-lg cursor-pointer bg-slate-100 text-slate-800';
-            [['users', 'tabUsers', 'adminPaneUsers'], ['pay', 'tabPay', 'adminPanePay'], ['set', 'tabSet', 'adminPaneSettings'], ['cat', 'tabCat', 'adminPaneCatalog']].forEach(([k, b, p]) => {
+            [['users', 'tabUsers', 'adminPaneUsers'], ['pay', 'tabPay', 'adminPanePay'], ['set', 'tabSet', 'adminPaneSettings'], ['cat', 'tabCat', 'adminPaneCatalog'], ['ref', 'tabRef', 'adminPaneRef']].forEach(([k, b, p]) => {
                 document.getElementById(b).className = t === k ? on : off;
                 document.getElementById(p).classList.toggle('hidden', t !== k);
             });
             if (t === 'pay') loadAdminPayments();
             if (t === 'set') renderAdminSettings();
             if (t === 'cat') loadAdminCatalog();
+            if (t === 'ref') loadAdminReferrals();
         }
 
         async function loadAdmin() {
@@ -1218,6 +1484,7 @@
                             <span class="font-bold text-slate-900 block">${esc(u.full_name)} ${u.is_admin ? '<span class="text-purple-700">(admin)</span>' : ''}</span>
                             <span class="text-slate-700 break-all">${esc(u.email)}</span>
                             <span class="text-slate-600 block">${esc(u.contracts)} termos &bull; ${esc(u.signed)} assinados</span>
+                            ${u.referred_by ? `<span class="block text-emerald-700 text-xs font-semibold">Indicado por ${esc((adminUsers.find(x => x.id === u.referred_by) || {}).full_name || '—')}</span>` : ''}
                         </div>
                         <div class="flex flex-col items-end space-y-1">
                             <span class="px-2 py-0.5 rounded font-bold ${pro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${pro ? (u.pro_until ? 'PRO até ' + esc(fmtDate(u.pro_until)) : 'PRO') : 'Gratuito'}</span>
@@ -1345,6 +1612,7 @@
             document.getElementById('view-creator').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('view-catalog').classList.add('hidden');
+            document.getElementById('view-referral').classList.add('hidden');
             document.getElementById('view-document').classList.add('hidden');
             initApp();
         }
@@ -1411,6 +1679,7 @@
         }
 
         window.onload = () => {
+            captureRef(); showRefBanner();
             const t = new URLSearchParams(location.search).get('c');
             if (t) { initClient(t); return; }
             if (location.hash.includes('error_code=otp_expired') || location.hash.includes('error=access_denied')) {
