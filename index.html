@@ -1,683 +1,1406 @@
 <!DOCTYPE html>
-<html lang="pt-BR" dir="ltr">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- SEO & GEO PRIMÁRIO (PLATAFORMA CHATSHOP) -->
-  <title>ChatShop | Plataforma & Gerador de Lojas Virtuais de Moda Feminina</title>
-  <meta name="description" content="ChatShop - A plataforma líder para criação de lojas virtuais de moda feminina com assistente de voz, chatbot de dúvidas por produto e integração com afiliados.">
-  <meta name="keywords" content="ChatShop, loja virtual, moda feminina, conjuntos moletinho, vestidos midi, gerador de e-commerce, afiliados moda">
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
-  <link rel="canonical" href="https://chatshop.com.br/">
-
-  <!-- VERIFICAÇÃO GOOGLE E ANALYTICS (CONFIGURÁVEL NO ADMIN) -->
-  <meta name="google-site-verification" content="SEU_CODIGO_GOOGLE_SEARCH_CONSOLE" />
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SEU_TRACKING_ID"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-SEU_TRACKING_ID');
-  </script>
-
-  <!-- OPEN GRAPH / PREVIEW SOCIAL -->
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="pt_BR">
-  <meta property="og:site_name" content="ChatShop Moda Feminina">
-  <meta property="og:title" content="ChatShop | Crie sua Loja Virtual de Moda Feminina">
-  <meta property="og:description" content="A e-commerce engine mais leve e completa para vendas de roupas e coleções femininas.">
-  <meta property="og:image" content="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200">
-
-  <!-- SCHEMA.ORG (DADOS ESTRUTURADOS GOOGLE SHOPPING) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://chatshop.com.br/#website",
-        "url": "https://chatshop.com.br/",
-        "name": "ChatShop - Criador de Loja Virtual",
-        "inLanguage": "pt-BR"
-      },
-      {
-        "@type": "Organization",
-        "@id": "https://chatshop.com.br/#organization",
-        "name": "ChatShop Tecnologia",
-        "url": "https://chatshop.com.br/",
-        "email": "jeanaguiar636@gmail.com"
-      }
-    ]
-  }
-  </script>
-
-  <!-- TAILWIND CSS & FONTAWESOME -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- ALPINE.JS (REQUISITO DA INTERFACE) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-  <style>
-    .font-grife { font-family: 'Playfair Display', Georgia, serif; }
-    .aspect-product { aspect-ratio: 3 / 4; }
-    [x-cloak] { display: none !important; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ZapGarantia">
+    <title>ZapGarantia - Sistema Completo com Cloudflare R2 e PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    // mostra na tela qualquer erro do site (ajuda a achar o problema pelo celular)
+    window.addEventListener('error', function (e) {
+        var msg = (e.target && (e.target.src || e.target.href)) ? 'Não carregou: ' + (e.target.src || e.target.href) : (e.message || 'erro desconhecido');
+        var b = document.getElementById('zgErr');
+        if (!b) {
+            b = document.createElement('div'); b.id = 'zgErr';
+            b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b91c1c;color:#fff;font:13px sans-serif;padding:8px 12px;word-break:break-all';
+            (document.body || document.documentElement).appendChild(b);
+        }
+        b.textContent = 'Erro no site: ' + msg;
+    }, true);
+    </script>
+    <script src="supabase.js"></script>
+    <script>if (!window.supabase) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        html { font-size: 17px; }
+        body { color: #0f172a; }
+        input, textarea, select { color: #0f172a !important; font-weight: 500; }
+        input::placeholder, textarea::placeholder { color: #475569 !important; opacity: 1; }
+        label { color: #1e293b !important; }
+        @media print { body { background: white !important; } .no-print { display: none !important; } }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased font-sans" x-data="plataformaChatShop()">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-  <!-- HEADER LIMPO E ELEGANTE -->
-  <header class="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      
-      <!-- Identificação da Loja Atual e Marca ChatShop -->
-      <div class="flex items-center space-x-3 cursor-pointer" @click="painelAberto = false">
-        <template x-if="lojaAtiva.logo">
-          <img :src="lojaAtiva.logo" :alt="lojaAtiva.nome" class="h-10 w-auto object-contain">
-        </template>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-gray-900 font-grife" x-text="lojaAtiva.nome"></h1>
-          <span class="text-[10px] text-rose-600 font-semibold uppercase tracking-widest block -mt-1" x-text="'Powered by ChatShop (' + lojaAtiva.id + ')'"></span>
-        </div>
-      </div>
-
-      <!-- Ações do Menu (Único Botão PAINEL) -->
-      <div class="flex items-center space-x-4">
-        <!-- BOTÃO ÚNICO: PAINEL -->
-        <button @click="abrirPainel()" class="flex items-center space-x-2 text-sm font-semibold text-gray-700 hover:text-black bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition duration-200">
-          <i class="fa-solid fa-user-circle text-lg text-rose-600"></i>
-          <span>Painel</span>
-        </button>
-
-        <!-- Carrinho de Compras -->
-        <button @click="carrinhoAberto = true" class="relative p-2 text-gray-700 hover:text-black transition" aria-label="Abrir Carrinho">
-          <i class="fa-solid fa-bag-shopping text-xl"></i>
-          <span x-show="carrinho.length > 0" class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full" x-text="carrinho.reduce((acc, item) => acc + item.qtd, 0)"></span>
-        </button>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- BANNER PRINCIPAL DA LOJA ATIVA -->
-  <section x-show="lojaAtiva.banner" class="relative w-full bg-gray-900 overflow-hidden">
-    <img :src="lojaAtiva.banner" :alt="'Banner - ' + lojaAtiva.nome" class="w-full h-48 md:h-80 object-cover opacity-85" loading="eager">
-  </section>
-
-  <!-- VITRINE DE PRODUTOS DA LOJA -->
-  <main class="max-w-7xl mx-auto px-4 py-8">
-    <div :class="lojaAtiva.layoutGrife ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8' : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4'">
-      <template x-for="prod in produtosFiltrados" :key="prod.id">
-        <article class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-lg transition duration-300">
-          
-          <!-- Imagem com Botão de Voz do Navegador -->
-          <div class="relative aspect-product bg-gray-100 overflow-hidden">
-            <img :src="prod.imagem" :alt="prod.nome" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
-            
-            <button @click="falarTexto(prod.nome + '. ' + prod.descricao)" class="absolute top-3 right-3 bg-black/60 hover:bg-black text-white p-2.5 rounded-full backdrop-blur-md transition shadow" title="Ouvir Descrição com Voz do Navegador">
-              <i class="fa-solid fa-volume-high text-xs"></i>
-            </button>
-          </div>
-
-          <!-- Informações do Produto -->
-          <div class="p-4 flex-1 flex flex-col justify-between">
-            <div>
-              <h2 class="font-bold text-gray-900 text-base line-clamp-1" x-text="prod.nome"></h2>
-              <p class="text-xs text-gray-500 mt-1 line-clamp-2" x-text="prod.descricao"></p>
+    <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40 no-print">
+        <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="goHome()">
+                <i class="fa-solid fa-file-shield text-2xl text-blue-100"></i>
+                <span class="text-lg font-bold tracking-tight">ZapGarantia</span>
             </div>
-
-            <div class="mt-4">
-              <span class="text-xl font-extrabold text-gray-900" x-text="'R$ ' + prod.preco.toFixed(2)"></span>
-
-              <div class="grid grid-cols-2 gap-2 mt-3">
-                <!-- Botão Dúvidas / Chatbot -->
-                <button @click="abrirChatbot(prod)" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1 transition">
-                  <i class="fa-solid fa-robot text-rose-600"></i>
-                  <span>Dúvidas</span>
+            <div id="headerUserArea" class="flex items-center space-x-2 hidden">
+                <span id="headerPlanBadge" class="text-xs bg-blue-700 px-2.5 py-1 rounded-full font-medium">Plano Gratuito</span>
+                <button onclick="logout()" class="text-xs bg-red-600 px-3 py-1.5 rounded-full font-medium hover:bg-red-700 transition cursor-pointer">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
                 </button>
+            </div>
+        </div>
+    </header>
 
-                <!-- Comprar -->
-                <button @click="adicionarCarrinho(prod)" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center space-x-1 shadow transition">
-                  <i class="fa-solid fa-cart-plus"></i>
-                  <span>Comprar</span>
+    <main class="max-w-xl mx-auto px-4 py-6 w-full flex-grow">
+
+        <!-- TELA DE AUTENTICAÇÃO -->
+        <div id="view-recovery" class="hidden space-y-5">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="text-center space-y-1">
+                    <h1 class="text-xl font-bold text-slate-900">Criar nova senha</h1>
+                    <p class="text-xs text-slate-700">Digite a nova senha da sua conta (mínimo 6 caracteres).</p>
+                </div>
+                <form class="space-y-3" onsubmit="saveNewPassword(event)">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1">Nova senha</label>
+                        <input type="password" id="newPass" minlength="6" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1">Repita a nova senha</label>
+                        <input type="password" id="newPass2" minlength="6" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button id="btnNewPass" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm cursor-pointer">Salvar nova senha</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-auth" class="space-y-5">
+            <p id="refBanner" class="hidden text-center text-sm font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5"></p>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="text-center space-y-1">
+                    <h1 class="text-xl font-bold text-slate-900">Portal do Profissional</h1>
+                    <p class="text-xs text-slate-700">Faça login ou crie sua conta para emitir termos de garantia.</p>
+                </div>
+
+                <div class="flex border-b border-slate-200">
+                    <button onclick="switchAuthTab('login')" id="tabLoginBtn" class="flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer">Entrar</button>
+                    <button onclick="switchAuthTab('register')" id="tabRegisterBtn" class="flex-1 py-2 text-xs font-bold text-slate-600 cursor-pointer">Criar Conta</button>
+                </div>
+
+                <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">E-mail</label>
+                        <input type="email" id="loginEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Senha</label>
+                        <input type="password" id="loginPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Entrar na Conta</button>
+                    <button type="button" onclick="forgotPassword()" class="w-full text-xs font-bold text-blue-700 underline pt-1 cursor-pointer">Esqueci minha senha</button>
+                </form>
+
+                <form id="registerForm" class="space-y-3 hidden" onsubmit="handleRegister(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Nome Completo</label>
+                        <input type="text" id="regName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">E-mail</label>
+                        <input type="email" id="regEmail" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">WhatsApp (com DDD)</label>
+                        <input type="text" id="regWhatsapp" required placeholder="11999999999" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Senha</label>
+                        <input type="password" id="regPassword" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Criar Conta Gratuita</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="view-dashboard" class="hidden space-y-5">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900" id="welcomeUser">Olá, Profissional</h1>
+                        <p class="text-xs text-slate-700">Painel de Atendimentos e Garantias.</p>
+                        <button onclick="openProfileModal()" class="text-xs font-bold text-blue-700 underline mt-1 cursor-pointer"><i class="fa-solid fa-pen"></i> Editar meu nome</button>
+                    </div>
+                    <button onclick="checkLimitAndOpenCreator()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center space-x-1.5 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Novo Serviço</span>
+                    </button>
+                </div>
+                
+                <div id="planBanner" class="bg-blue-50 border border-blue-100 p-3.5 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p id="planBannerText" class="text-xs font-bold text-blue-900">Plano Gratuito: 2 termos, 1 foto e 1 vídeo</p>
+                    </div>
+                    <button id="planBannerBtn" onclick="showUpgradeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shrink-0 cursor-pointer">
+                        Assinar PRO Pix R$ 18
+                    </button>
+                </div>
+            </div>
+
+            <button id="btnInstallApp" onclick="installApp()" class="hidden w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow-md cursor-pointer">
+                <i class="fa-solid fa-download"></i> Baixar o app no celular
+            </button>
+
+            <button id="btnReferral" onclick="openReferral()" class="hidden w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm shadow-md transition cursor-pointer">
+                <i class="fa-solid fa-gift"></i> Indique e ganhe pontos
+            </button>
+
+            <button id="btnCatalog" onclick="openCatalog()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm shadow-md transition cursor-pointer">
+                <i class="fa-solid fa-store"></i> Catálogo de Produtos
+            </button>
+
+            <div id="adminButtonWrapper" class="hidden">
+                <button onclick="openMasterAdmin()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-crown text-amber-300"></i>
+                    <span>Abrir Painel Master (Admin)</span>
                 </button>
-              </div>
-            </div>
-          </div>
-
-        </article>
-      </template>
-    </div>
-  </main>
-
-  <!-- BOTÕES FLUTUANTES DINÂMICOS (WhatsApp, Zap Leve, Instagram, etc.) -->
-  <div class="fixed bottom-6 right-6 z-40 flex flex-col space-y-3">
-    <template x-for="btn in lojaAtiva.botoesFlutuantes" :key="btn.id">
-      <a :href="btn.link" target="_blank" :title="btn.nome" class="w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white text-xl transition transform hover:scale-110" :style="'background-color: ' + btn.cor" aria-label="Atendimento Social ChatShop">
-        <i :class="btn.icone"></i>
-      </a>
-    </template>
-  </div>
-
-  <!-- CHATBOT FLUTUANTE DE DÚVIDAS DO PRODUTO -->
-  <div x-show="chatAberto" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" x-cloak>
-    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[80vh] sm:h-[550px]">
-      
-      <!-- Cabeçalho do Chat -->
-      <div class="p-4 bg-gray-900 text-white flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-          <template x-if="produtoChat">
-            <img :src="produtoChat.imagem" :alt="produtoChat.nome" class="w-10 h-10 rounded-full object-cover border border-rose-500">
-          </template>
-          <div>
-            <h3 class="font-bold text-sm" x-text="produtoChat ? produtoChat.nome : 'Assistente ChatShop'"></h3>
-            <p class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Chatbot da Loja Online</p>
-          </div>
-        </div>
-        <button @click="chatAberto = false" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
-      </div>
-
-      <!-- Mensagens da Conversa -->
-      <div class="p-4 flex-1 overflow-y-auto space-y-3 bg-gray-50 text-xs">
-        <div class="flex items-start space-x-2">
-          <div class="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-robot"></i></div>
-          <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-gray-800 max-w-[85%]">
-            <p class="font-bold text-rose-600 mb-1">Olá! Tenho respostas sobre este produto:</p>
-            <p x-text="'Como posso te ajudar com o ' + (produtoChat ? produtoChat.nome : 'item') + '?'"></p>
-          </div>
-        </div>
-
-        <template x-for="msg in mensagensChat" :key="msg.id">
-          <div :class="msg.tipo === 'user' ? 'flex justify-end' : 'flex items-start space-x-2'">
-            <template x-if="msg.tipo === 'bot'">
-              <div class="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-robot"></i></div>
-            </template>
-            <div :class="msg.tipo === 'user' ? 'bg-rose-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm'" class="p-3 max-w-[85%]">
-              <p x-text="msg.texto"></p>
-            </div>
-          </div>
-        </template>
-      </div>
-
-      <!-- Botões de Perguntas Frequentes -->
-      <div class="p-3 bg-white border-t space-y-2">
-        <template x-if="produtoChat && produtoChat.chatbotAtivo">
-          <div class="space-y-1.5">
-            <template x-for="faq in produtoChat.faqs" :key="faq.pergunta">
-              <button x-show="faq.pergunta" @click="perguntarChat(faq.pergunta, faq.resposta)" class="w-full text-left p-2.5 bg-gray-50 hover:bg-rose-50 hover:text-rose-700 text-gray-700 font-medium text-xs rounded-xl border transition flex justify-between items-center">
-                <span x-text="faq.pergunta"></span>
-                <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
-              </button>
-            </template>
-          </div>
-        </template>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- MODAL DO PAINEL UNIFICADO DA PLATAFORMA CHATSHOP -->
-  <div x-show="painelAberto" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
-    <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-      
-      <!-- Cabeçalho do Painel -->
-      <div class="p-5 bg-gray-900 text-white flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full bg-rose-600/20 flex items-center justify-center text-rose-400">
-            <i class="fa-solid fa-user-circle text-xl"></i>
-          </div>
-          <div>
-            <h2 class="font-bold text-lg">Painel da Plataforma ChatShop</h2>
-            <p class="text-xs text-gray-400" x-text="usuario.logado ? usuario.email : 'Acesse para gerenciar sua conta'"></p>
-          </div>
-        </div>
-        <button @click="painelAberto = false" class="text-gray-400 hover:text-white p-2 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
-      </div>
-
-      <!-- Navegação Interna -->
-      <template x-if="usuario.logado">
-        <div class="flex border-b border-gray-200 bg-gray-50 text-sm overflow-x-auto">
-          <button @click="abaPainel = 'compras'" :class="abaPainel === 'compras' ? 'border-b-2 border-rose-600 font-bold text-rose-600 bg-white' : 'text-gray-600 hover:text-gray-900'" class="px-6 py-4 whitespace-nowrap transition">
-            <i class="fa-solid fa-bag-shopping mr-2"></i>Minhas Compras
-          </button>
-          
-          <button @click="abaPainel = 'afiliado'" :class="abaPainel === 'afiliado' ? 'border-b-2 border-rose-600 font-bold text-rose-600 bg-white' : 'text-gray-600 hover:text-gray-900'" class="px-6 py-4 whitespace-nowrap transition">
-            <i class="fa-solid fa-handshake mr-2"></i>
-            <span x-text="usuario.isAfiliado ? 'Área do Afiliado' : 'Afiliar-se'"></span>
-          </button>
-
-          <!-- Painel Admin do Lojista -->
-          <template x-if="usuario.email === 'jeanaguiar636@gmail.com' || usuario.isAdminConvidado">
-            <button @click="abaPainel = 'admin'" :class="abaPainel === 'admin' ? 'border-b-2 border-rose-600 font-bold text-rose-600 bg-rose-50/50' : 'text-gray-600 hover:text-gray-900'" class="px-6 py-4 whitespace-nowrap transition">
-              <i class="fa-solid fa-sliders mr-2 text-rose-600"></i>Painel Admin (<span x-text="lojaAtiva.nome"></span>)
-            </button>
-          </template>
-
-          <!-- Super Admin Master (Exclusivo jeanaguiar636@gmail.com) -->
-          <template x-if="usuario.email === 'jeanaguiar636@gmail.com'">
-            <button @click="abaPainel = 'superadmin'" :class="abaPainel === 'superadmin' ? 'border-b-2 border-purple-600 font-bold text-purple-600 bg-purple-50/50' : 'text-gray-600 hover:text-gray-900'" class="px-6 py-4 whitespace-nowrap transition">
-              <i class="fa-solid fa-crown mr-2 text-purple-600"></i>Super Admin (ChatShop)
-            </button>
-          </template>
-        </div>
-      </template>
-
-      <!-- Conteúdo do Painel -->
-      <div class="p-6 overflow-y-auto flex-1">
-        
-        <!-- LOGIN SIMPLES -->
-        <div x-show="!usuario.logado" class="max-w-md mx-auto py-8">
-          <div class="text-center mb-6">
-            <i class="fa-solid fa-lock text-4xl text-rose-600 mb-2"></i>
-            <h3 class="text-xl font-bold text-gray-900">Entrar na Plataforma ChatShop</h3>
-          </div>
-          <form @submit.prevent="fazerLogin()" class="space-y-4">
-            <input type="email" x-model="usuario.email" required placeholder="seuemail@exemplo.com" class="w-full p-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none">
-            <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-lg transition">Acessar Painel</button>
-          </form>
-        </div>
-
-        <template x-if="usuario.logado">
-          <div>
-            <!-- ABA 1: MINHAS COMPRAS -->
-            <div x-show="abaPainel === 'compras'" class="space-y-4">
-              <h3 class="font-bold text-gray-900 text-lg">Histórico de Compras e Entregas</h3>
-              <div class="bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-8 text-center text-sm text-gray-500">
-                <i class="fa-solid fa-box-open text-4xl mb-3 text-gray-400"></i>
-                <p>Nenhuma compra registrada até o momento nesta loja.</p>
-              </div>
             </div>
 
-            <!-- ABA 2: PROGRAMA DE AFILIADOS -->
-            <div x-show="abaPainel === 'afiliado'" class="space-y-6">
-              <div x-show="!usuario.isAfiliado" class="bg-rose-50 border border-rose-200 rounded-3xl p-8 text-center">
-                <h3 class="text-2xl font-bold text-gray-900">Seja um Afiliado <span x-text="lojaAtiva.nome"></span></h3>
-                <p class="text-xs text-gray-600 mt-1">Divulgue os produtos e receba comissões automáticas.</p>
-                <button @click="afiliarSe()" class="mt-4 px-8 py-3 bg-rose-600 text-white font-bold rounded-2xl shadow">Quero Me Afiliar</button>
-              </div>
-              <div x-show="usuario.isAfiliado" class="space-y-4">
-                <div class="grid grid-cols-3 gap-4">
-                  <div class="bg-emerald-50 p-4 rounded-xl"><span class="text-xs text-emerald-800">Ganhos</span><p class="text-xl font-bold text-emerald-600">R$ 0,00</p></div>
-                  <div class="bg-blue-50 p-4 rounded-xl"><span class="text-xs text-blue-800">Vendas</span><p class="text-xl font-bold text-blue-600">0</p></div>
-                  <div class="bg-purple-50 p-4 rounded-xl"><span class="text-xs text-purple-800">Cliques</span><p class="text-xl font-bold text-purple-600">0</p></div>
+            <div class="space-y-3">
+                <h2 class="text-xs font-bold text-slate-600 uppercase tracking-wider px-1">Meus Registos</h2>
+                <div id="contractsListContainer" class="space-y-2.5"></div>
+            </div>
+
+            <a id="featuredBannerDash" class="hidden block bg-white border border-blue-100 rounded-2xl shadow-sm" target="_blank" rel="noopener noreferrer sponsored"></a>
+        </div>
+
+        <!-- PAINEL ADMIN -->
+        <div id="view-referral" class="hidden space-y-3">
+            <div class="bg-gradient-to-r from-emerald-700 to-emerald-500 p-4 rounded-2xl shadow-sm space-y-1">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-lg font-bold text-white"><i class="fa-solid fa-gift"></i> Indique e ganhe</h1>
+                    <button onclick="goHome()" class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer">Voltar</button>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-xl">
-                  <label class="block text-xs font-semibold text-gray-600 mb-1">Seu Link de Afiliado</label>
-                  <input type="text" readonly :value="window.location.origin + '?loja=' + lojaAtiva.id + '&ref=' + usuario.codigoAfiliado" class="w-full p-2 border rounded bg-white text-xs font-mono">
+                <p class="text-xs text-white">Compartilhe seu link. Cada amigo que se cadastrar por ele rende pontos para você.</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                <p class="text-xs font-bold uppercase text-slate-800">Seu link de indicação</p>
+                <input id="refLink" readonly class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 select-all">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="copyRefLink()" class="bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer"><i class="fa-solid fa-copy"></i> Copiar link</button>
+                    <button onclick="shareRefLink()" class="bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
                 </div>
-              </div>
+            </div>
+            <div id="refCards" class="grid grid-cols-2 gap-2"></div>
+            <div id="refRules" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs text-slate-800 space-y-1"></div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                <p class="text-sm font-bold text-slate-900">Seus indicados</p>
+                <div id="refList" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <div id="view-catalog" class="hidden space-y-3">
+            <div class="bg-gradient-to-r from-blue-800 to-blue-600 p-4 rounded-2xl shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-lg font-bold text-white"><i class="fa-solid fa-store text-amber-300"></i> Catálogo ZapGarantia</h1>
+                    <button onclick="goHome()" class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer">Voltar</button>
+                </div>
+                <input id="catalogSearch" oninput="renderCatalogGrid()" placeholder="Buscar produtos" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white focus:outline-none">
+            </div>
+            <div id="catalogList" class="grid grid-cols-2 gap-3"></div>
+        </div>
+
+        <div id="view-admin" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <div>
+                        <h1 class="text-lg font-bold text-purple-900"><i class="fa-solid fa-shield-halved mr-1"></i> Painel Admin</h1>
+                        <p class="text-xs text-slate-700">Controle de usuários, planos, termos e pagamentos.</p>
+                    </div>
+                    <button onclick="goHome()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-800 cursor-pointer">Voltar</button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-center" id="adminCards"></div>
+
+                <div class="grid grid-cols-3 gap-1 text-xs font-bold">
+                    <button id="tabUsers" onclick="adminTab('users')" class="flex-1 py-2 rounded-lg cursor-pointer">Usuários</button>
+                    <button id="tabPay" onclick="adminTab('pay')" class="flex-1 py-2 rounded-lg cursor-pointer">Pagos</button>
+                    <button id="tabSet" onclick="adminTab('set')" class="flex-1 py-2 rounded-lg cursor-pointer">Funções</button>
+                    <button id="tabCat" onclick="adminTab('cat')" class="flex-1 py-2 rounded-lg cursor-pointer">Catálogo</button>
+                    <button id="tabRef" onclick="adminTab('ref')" class="flex-1 py-2 rounded-lg cursor-pointer">Indicações</button>
+                </div>
+
+                <div id="adminPaneUsers" class="space-y-3">
+                    <input id="adminSearch" oninput="renderAdminUsers()" placeholder="Buscar por nome, e-mail ou WhatsApp" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    <div id="adminUsersList" class="space-y-2"></div>
+                </div>
+                <div id="adminPanePay" class="hidden space-y-2"></div>
+                <div id="adminPaneSettings" class="hidden space-y-3"></div>
+                <div id="adminPaneCatalog" class="hidden space-y-3"></div>
+                <div id="adminPaneRef" class="hidden space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- CRIADOR DE SERVIÇOS (COM UPLOAD DE MÍDIA R2) -->
+        <div id="view-creator" class="hidden space-y-5">
+            <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                <div class="flex justify-between items-center mb-5">
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 19 · login reforçado</p></div>
+                    <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
+                </div>
+                <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Nome do Cliente</label>
+                        <input type="text" id="clientName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Valor Total (R$)</label>
+                            <input type="text" id="serviceValue" required placeholder="350,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Garantia</label>
+                            <select id="warrantyPeriod" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                                <option value="30 dias">30 Dias</option>
+                                <option value="90 dias" selected>90 Dias</option>
+                                <option value="1 ano">1 Ano</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Descrição do Serviço / Aparelho</label>
+                        <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Ex: Troca de tela iPhone 13, cor preta..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-image"></i> Fotos</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="text-center bg-blue-50 border border-blue-200 text-blue-800 font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-images"></i> Da galeria
+                                <input type="file" id="mediaImage" accept="image/*" multiple class="hidden" onchange="addPhotos(this)">
+                            </label>
+                            <button type="button" onclick="openCamera()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-camera"></i> Tirar foto agora</button>
+                        </div>
+                        <input type="file" id="camFallback" accept="image/*" capture="environment" class="hidden" onchange="addPhotos(this)">
+                        <p id="photoCount" class="text-xs text-slate-700 mt-1"></p>
+                        <div id="photoPreview" class="grid grid-cols-4 gap-2 mt-2"></div>
+                    </div>
+                    <div id="mediaVideoWrap">
+                            <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-video"></i> Vídeos (arquivo)</label>
+                            <input type="file" id="mediaVideo" accept="video/*" multiple class="w-full text-xs text-slate-700 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                        </div>
+                    </div>
+                    <p id="mediaLimitHint" class="text-xs font-semibold text-blue-800"></p>
+                    <div id="mediaVideoLinkWrap">
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-link"></i> Link do vídeo (opcional)</label>
+                        <input type="text" id="mediaVideoLink" inputmode="url" placeholder="Cole aqui o link (YouTube, Google Drive...)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                    </div>
+                    <button type="submit" id="btnSubmitContract" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer">Gerar e Salvar Termo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- TELA DE VISUALIZAÇÃO DO TERMO E GERADOR DE PDF -->
+        <div id="view-document" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5" id="printableArea">
+                <div class="text-center border-b border-slate-100 pb-4 space-y-1">
+                    <i class="fa-solid fa-file-shield text-3xl text-blue-600"></i>
+                    <h2 class="text-lg font-bold text-slate-900">Orçamento e Termo de Serviço</h2>
+                    <p class="text-[13px] text-slate-600" id="docIdCode">Código: #ZG-0000</p>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Profissional Emitente</span>
+                        <p id="docProfName" class="font-semibold text-slate-900">-</p>
+                        <p id="docProfWhatsapp" class="text-slate-700">-</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Dados do Cliente</span>
+                        <p><strong class="text-slate-700">Cliente:</strong> <span id="docClientName">-</span></p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Detalhes do Atendimento</span>
+                        <p><strong class="text-slate-700">Serviço:</strong> <span id="docServiceDesc">-</span></p>
+                        <p><strong class="text-slate-700">Valor:</strong> R$ <span id="docServiceValue">-</span></p>
+                        <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
+                    </div>
+
+                    <div id="docMediaContainer" class="space-y-3 hidden">
+                        <div id="docGalleryWrap" class="hidden">
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Fotos (toque para ampliar)</span>
+                            <div id="docGallery" class="grid grid-cols-2 gap-2"></div>
+                            <p id="docImageError" data-html2canvas-ignore="true" class="hidden text-[13px] text-red-600 mt-1">Algumas fotos não carregaram. Tente abrir de novo.</p>
+                        </div>
+                        <div id="docVideosWrap" class="hidden" data-html2canvas-ignore="true">
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Vídeos</span>
+                            <div id="docVideos" class="space-y-2"></div>
+                        </div>
+                        <div id="docVideoLinkWrapper" class="hidden">
+                            <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Link do vídeo</span>
+                            <a id="docVideoLink" href="#" target="_blank" rel="noopener noreferrer" class="block break-all text-blue-700 underline text-xs font-semibold"></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
+                    <span class="font-bold text-slate-800 block uppercase text-xs">Assinatura do orçamento (início do serviço)</span>
+                    <p id="docSignatureText" class="text-slate-700">Aguardando assinatura</p>
+                </div>
+
+                <div id="finalSection" class="hidden space-y-3 border-t-2 border-emerald-200 pt-3">
+                    <h2 class="text-sm font-bold text-emerald-800 uppercase">Serviço pronto</h2>
+                    <p id="finalDraftTag" data-html2canvas-ignore="true" class="hidden text-xs font-semibold text-amber-700">Rascunho: ainda não enviado ao cliente.</p>
+                    <p id="finalNotes" class="text-sm text-slate-800 whitespace-pre-line"></p>
+                    <div id="finalGallery" class="grid grid-cols-2 gap-2"></div>
+                    <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 space-y-1 text-xs">
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Assinatura do serviço pronto</span>
+                        <p id="finalSignatureText" class="text-slate-700">Aguardando assinatura</p>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-600 text-center pt-2 border-t border-slate-100">
+                    Documento emitido via ZapGarantia. A assinatura eletrônica registra o nome digitado, a data e a hora do aceite.
+                </div>
             </div>
 
-            <!-- ABA 3: GERENCIADOR COMPLETO DA LOJA (ADMINISTRAÇÃO) -->
-            <div x-show="abaPainel === 'admin'" class="space-y-6">
-              <div class="border-b pb-3 flex justify-between items-center">
-                <h3 class="font-bold text-gray-900 text-lg">Painel de Administração ChatShop</h3>
-                <span class="bg-rose-100 text-rose-800 text-xs px-3 py-1 rounded-full font-bold" x-text="'Loja Ativa: ' + lojaAtiva.nome"></span>
-              </div>
-              
-              <!-- DADOS BÁSICOS E VISUAIS -->
-              <div class="bg-gray-50 p-4 rounded-2xl border space-y-3">
-                <h4 class="font-bold text-sm text-gray-900"><i class="fa-solid fa-paintbrush text-rose-600 mr-2"></i>Identidade Visual & Capa</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nome da Loja</label>
-                    <input type="text" x-model="lojaAtiva.nome" class="w-full p-2.5 border rounded-xl text-xs bg-white">
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">URL da Logo</label>
-                    <input type="text" x-model="lojaAtiva.logo" placeholder="https://..." class="w-full p-2.5 border rounded-xl text-xs bg-white">
-                  </div>
+            <div class="space-y-2 no-print">
+                <div id="clientSignArea" class="hidden bg-white p-4 rounded-2xl border border-blue-200 space-y-3">
+                    <p class="text-sm font-bold text-slate-800">Assinar documento</p>
+                    <p class="text-[13px] text-slate-700">Confira os dados acima. Para aceitar o orçamento, digite seu nome completo e toque em assinar.</p>
+                    <input id="signName" type="text" placeholder="Seu nome completo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    <button id="btnSign" onclick="signContract()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Assinar e aceitar</button>
+                </div>
+                <div id="proLinkArea" class="hidden bg-blue-50 border border-blue-100 p-3.5 rounded-xl space-y-2">
+                    <p class="text-xs font-bold text-blue-900">Link para o cliente assinar</p>
+                    <input id="shareLink" readonly class="w-full text-[13px] p-2 bg-white border border-slate-200 rounded-lg text-slate-800 select-all">
+                    <div class="flex space-x-2">
+                        <button onclick="copyShareLink()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-solid fa-copy"></i> Copiar link</button>
+                        <button onclick="shareWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Enviar no WhatsApp</button>
+                    </div>
+                </div>
+                <div id="finalSignArea" class="hidden bg-white p-4 rounded-2xl border border-emerald-300 space-y-3">
+                    <p class="text-sm font-bold text-slate-800">Assinar o serviço pronto</p>
+                    <p class="text-xs text-slate-700">Confira as fotos do serviço finalizado acima. Se estiver tudo certo, digite seu nome completo e assine.</p>
+                    <input id="finalSignName" type="text" placeholder="Seu nome completo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none">
+                    <button id="btnFinalSign" onclick="signFinal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Assinar serviço pronto</button>
+                </div>
+                <div id="proFinalArea" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-3">
+                    <p class="text-sm font-bold text-emerald-900"><i class="fa-solid fa-circle-check"></i> Serviço pronto</p>
+                    <p id="proFinalInfo" class="text-xs text-slate-800">Adicione as fotos do serviço finalizado e envie ao cliente. Ele assina no mesmo link.</p>
+                    <textarea id="finalNotesInput" rows="2" maxlength="1000" placeholder="Observações do serviço pronto (opcional)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="text-center bg-white border border-blue-200 text-blue-800 font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-images"></i> Da galeria
+                            <input type="file" accept="image/*" multiple class="hidden" onchange="addPhotos(this, 'final')">
+                        </label>
+                        <button type="button" onclick="openCamera('final')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-camera"></i> Tirar foto agora</button>
+                    </div>
+                    <input type="file" id="finalCamFallback" accept="image/*" capture="environment" class="hidden" onchange="addPhotos(this, 'final')">
+                    <p id="finalCount" class="text-xs text-slate-700"></p>
+                    <div id="finalPreview" class="grid grid-cols-4 gap-2"></div>
+                    <button id="btnSendFinal" onclick="saveFinal(true)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm cursor-pointer">Marcar como pronto e enviar ao cliente</button>
+                    <button id="btnDraftFinal" onclick="saveFinal(false)" class="w-full bg-white border border-slate-200 text-slate-800 font-semibold py-2.5 rounded-xl text-xs cursor-pointer">Salvar sem enviar</button>
+                    <button id="btnNotifyFinal" onclick="notifyFinal()" class="hidden w-full bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer"><i class="fa-brands fa-whatsapp"></i> Avisar o cliente no WhatsApp</button>
+                </div>
+                <button id="btnPdf" onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-file-pdf text-lg"></i>
+                    <span>Baixar em PDF</span>
+                </button>
+                <button id="btnBackHome" onclick="goHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer">
+                    Voltar ao Início
+                </button>
+            </div>
+
+            <a id="featuredBannerDoc" class="hidden block bg-white border border-blue-100 rounded-2xl shadow-sm no-print" target="_blank" rel="noopener noreferrer sponsored"></a>
+        </div>
+
+        <!-- CÂMERA AO VIVO -->
+        <div id="cameraModal" class="hidden fixed inset-0 bg-black z-[70] flex flex-col">
+            <video id="camVideo" autoplay playsinline muted class="flex-1 min-h-0 w-full object-cover bg-black"></video>
+            <p id="camCount" class="text-center text-white text-sm py-2"></p>
+            <div class="px-4 pb-6 flex items-center justify-between">
+                <button type="button" onclick="closeCamera()" class="px-4 py-3 rounded-xl bg-white/20 text-white text-sm font-bold cursor-pointer">Concluir</button>
+                <button type="button" onclick="snapPhoto()" class="w-[72px] h-[72px] rounded-full bg-white border-4 border-blue-500 cursor-pointer" aria-label="Tirar foto"></button>
+                <button type="button" onclick="flipCamera()" class="px-4 py-3 rounded-xl bg-white/20 text-white text-sm font-bold cursor-pointer">Virar</button>
+            </div>
+        </div>
+
+        <!-- AMPLIAR FOTO -->
+        <div id="lightbox" class="hidden fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-3" onclick="closeLightbox()">
+            <button class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Fechar">&times;</button>
+            <button id="lbPrev" onclick="event.stopPropagation(); lbStep(-1)" class="absolute left-1 top-1/2 text-white text-5xl px-3" aria-label="Anterior">&#8249;</button>
+            <button id="lbNext" onclick="event.stopPropagation(); lbStep(1)" class="absolute right-1 top-1/2 text-white text-5xl px-3" aria-label="Próxima">&#8250;</button>
+            <span id="lbCount" class="absolute bottom-4 left-0 right-0 text-center text-white text-sm"></span>
+            <img id="lightboxImg" src="" alt="Foto ampliada" class="max-w-full max-h-full object-contain" style="touch-action: pinch-zoom;">
+        </div>
+
+        <!-- MODAL PIX MERCADO PAGO -->
+        <!-- EDITAR PERFIL -->
+        <div id="profileModal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-3">
+                <h2 class="text-lg font-bold text-slate-900">Editar meu perfil</h2>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1">Nome</label>
+                    <input id="profName" type="text" maxlength="80" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-gray-600 mb-1">URL do Banner Principal</label>
-                  <input type="text" x-model="lojaAtiva.banner" placeholder="https://..." class="w-full p-2.5 border rounded-xl text-xs bg-white">
+                    <label class="block text-xs font-semibold uppercase mb-1">WhatsApp (com DDD)</label>
+                    <input id="profWhats" type="tel" inputmode="numeric" maxlength="20" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none">
                 </div>
-
-                <!-- Alternar Estilo da Loja -->
-                <div class="flex items-center justify-between bg-white p-3 rounded-xl border mt-2">
-                  <div>
-                    <h5 class="text-xs font-bold text-gray-900">Layout Loja de Grife</h5>
-                    <p class="text-[10px] text-gray-500">Ative para visual espaçado (3 colunas) ou desative para grade de 2 produtos no celular.</p>
-                  </div>
-                  <input type="checkbox" x-model="lojaAtiva.layoutGrife" class="w-5 h-5 text-rose-600 rounded">
+                <p class="text-xs text-slate-700">O nome aparece nos seus orçamentos, inclusive nos que você já enviou.</p>
+                <div class="flex space-x-2">
+                    <button onclick="closeProfileModal()" class="flex-1 bg-slate-200 text-slate-800 font-semibold py-2.5 rounded-xl text-sm cursor-pointer">Cancelar</button>
+                    <button id="btnSaveProfile" onclick="saveProfile()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm cursor-pointer">Salvar</button>
                 </div>
-              </div>
+            </div>
+        </div>
 
-              <!-- BOTÕES FLUTUANTES (WhatsApp, Zap Leve, Instagram) -->
-              <div class="bg-gray-50 p-4 rounded-2xl border space-y-3">
-                <h4 class="font-bold text-sm text-gray-900"><i class="fa-solid fa-comments text-emerald-600 mr-2"></i>Botões Flutuantes (Zap Leve, WhatsApp, etc.)</h4>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <input type="text" x-model="novoBtn.nome" placeholder="Nome (ex: Zap Leve)" class="p-2 border rounded text-xs bg-white">
-                  <input type="text" x-model="novoBtn.icone" placeholder="Ícone (fa-solid fa-bolt)" class="p-2 border rounded text-xs bg-white">
-                  <input type="text" x-model="novoBtn.link" placeholder="Link (https://...)" class="p-2 border rounded text-xs bg-white">
-                  <input type="color" x-model="novoBtn.cor" class="h-9 w-full rounded border cursor-pointer">
+        <div id="upgradeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-qrcode"></i>
                 </div>
-                <button @click="adicionarBotaoFlutuante()" class="w-full bg-emerald-600 text-white text-xs font-bold rounded-xl py-2">Adicionar Botão Flutuante</button>
-
-                <!-- Lista de Botões Cadastrados -->
-                <div class="space-y-1.5 mt-2">
-                  <template x-for="(btn, index) in lojaAtiva.botoesFlutuantes" :key="btn.id">
-                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border text-xs">
-                      <div class="flex items-center space-x-2">
-                        <span class="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px]" :style="'background-color:' + btn.cor"><i :class="btn.icone"></i></span>
-                        <span class="font-bold" x-text="btn.nome"></span>
-                      </div>
-                      <button @click="lojaAtiva.botoesFlutuantes.splice(index, 1); salvarConfiguracoes()" class="text-red-500 hover:text-red-700 font-bold"><i class="fa-solid fa-trash text-xs"></i></button>
-                    </div>
-                  </template>
-                </div>
-              </div>
-
-              <!-- DOMÍNIO PRÓPRIO E SEO -->
-              <div class="bg-gray-50 p-4 rounded-2xl border space-y-3">
-                <h4 class="font-bold text-sm text-gray-900"><i class="fa-solid fa-globe text-blue-600 mr-2"></i>Domínio Próprio & SEO Google</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input type="text" x-model="lojaAtiva.dominioProprio" placeholder="www.minhaloja.com.br" class="p-2.5 border rounded-xl text-xs bg-white">
-                  <input type="text" x-model="lojaAtiva.googleConsole" placeholder="Código Google Search Console" class="p-2.5 border rounded-xl text-xs bg-white">
-                </div>
-              </div>
-
-              <!-- CADASTRO DE PRODUTO COM CHATBOT E VOZ -->
-              <div class="bg-gray-50 p-5 rounded-2xl border space-y-4">
-                <h4 class="font-bold text-sm text-gray-900"><i class="fa-solid fa-plus-circle text-rose-600 mr-2"></i>Cadastrar Novo Produto com Chatbot</h4>
+                <h3 class="text-lg font-bold text-slate-900">Ativação Instantânea via Pix</h3>
+                <p class="text-xs text-slate-700">Escaneie o QR Code abaixo ou copie o código Pix para liberar o Plano PRO por 30 dias (R$ 18,00): termos ilimitados e até 15 fotos e 2 vídeos por orçamento.</p>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <input type="text" x-model="novoProd.nome" placeholder="Nome do Produto" class="p-2.5 border rounded-xl text-xs bg-white">
-                  <input type="number" x-model.number="novoProd.preco" placeholder="Preço (R$)" class="p-2.5 border rounded-xl text-xs bg-white">
-                  <input type="text" x-model="novoProd.imagem" placeholder="URL da Imagem" class="p-2.5 border rounded-xl text-xs bg-white">
-                </div>
-                <textarea x-model="novoProd.descricao" placeholder="Descrição do produto para o leitor de voz e SEO..." class="w-full p-2.5 border rounded-xl text-xs h-20 bg-white"></textarea>
-
-                <!-- CONFIGURAÇÃO CHATBOT DO PRODUTO -->
-                <div class="bg-white p-3 rounded-xl border space-y-2">
-                  <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="chatAtivoProd" x-model="novoProd.chatbotAtivo" class="w-4 h-4 text-rose-600 rounded">
-                    <label for="chatAtivoProd" class="text-xs font-bold text-gray-800">Ativar Chatbot de Dúvidas para este produto</label>
-                  </div>
-
-                  <div x-show="novoProd.chatbotAtivo" class="space-y-2 pt-2 border-t">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input type="text" x-model="novoProd.faqs[0].pergunta" placeholder="Pergunta 1 (ex: Tecido?)" class="p-2 border rounded text-xs bg-gray-50">
-                      <input type="text" x-model="novoProd.faqs[0].resposta" placeholder="Resposta 1 (ex: Moletinho Premium)" class="p-2 border rounded text-xs bg-gray-50">
+                <div id="pixLoading" class="py-6 text-xs text-slate-600">Gerando QR Code Pix seguro...</div>
+                <div id="pixContent" class="hidden space-y-3">
+                    <div id="pixQrContainer" class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-center">
+                        <img id="pixQrImg" src="" alt="QR Code Pix" class="w-40 h-40 object-contain mx-auto">
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input type="text" x-model="novoProd.faqs[1].pergunta" placeholder="Pergunta 2 (ex: Tamanho?)" class="p-2 border rounded text-xs bg-gray-50">
-                      <input type="text" x-model="novoProd.faqs[1].resposta" placeholder="Resposta 2 (ex: Veste 38 ao 42)" class="p-2 border rounded text-xs bg-gray-50">
+                    <div>
+                        <textarea id="pixCopyPaste" readonly class="w-full h-16 text-xs p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-800 select-all"></textarea>
                     </div>
-                  </div>
+                    <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
+                        <i class="fa-solid fa-copy"></i> Copiar Código Pix
+                    </button>
                 </div>
 
-                <button @click="adicionarProduto()" class="w-full py-3 bg-gray-900 text-white text-xs font-bold rounded-xl shadow">Salvar Produto na Loja</button>
-              </div>
-
-              <button @click="salvarConfiguracoes()" class="w-full py-3.5 bg-emerald-600 text-white font-bold rounded-xl shadow hover:bg-emerald-700 transition">Salvar Todas as Alterações da Loja</button>
+                <div class="pt-2 border-t border-slate-100 flex space-x-2">
+                    <button onclick="manualCheckPayment()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer">
+                        Já paguei / Verificar
+                    </button>
+                    <button onclick="closeUpgradeModal()" class="px-4 text-xs text-slate-600 py-1 cursor-pointer">Fechar</button>
+                </div>
             </div>
+        </div>
 
-            <!-- ABA 4: SUPER ADMIN MASTER (PLATAFORMA CHATSHOP) -->
-            <div x-show="abaPainel === 'superadmin'" class="space-y-6">
-              <div class="bg-purple-50 border border-purple-200 p-5 rounded-2xl">
-                <h3 class="font-bold text-purple-900 text-lg mb-1"><i class="fa-solid fa-crown mr-2"></i>Painel Master Plataforma ChatShop</h3>
-                <p class="text-xs text-purple-700">Bem-vindo, Jean! Aqui você cria e gerencia todas as lojas virtuais ativas na plataforma ChatShop.</p>
-              </div>
+    </main>
 
-              <!-- CRIAR NOVA LOJA -->
-              <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-sm text-gray-900">Criar Nova Loja na ChatShop</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <input type="text" x-model="novaLoja.id" placeholder="ID da Loja (ex: favo)" class="p-2.5 border rounded-xl text-xs bg-white">
-                  <input type="text" x-model="novaLoja.nome" placeholder="Nome Exibição (ex: Favo Moda)" class="p-2.5 border rounded-xl text-xs bg-white">
-                </div>
-                <button @click="criarNovaLoja()" class="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-3 rounded-xl transition">Criar Loja na ChatShop</button>
-              </div>
-
-              <!-- LISTA DE LOJAS CADASTRADAS -->
-              <div>
-                <h4 class="font-bold text-sm text-gray-900 mb-2">Lojas Virtuais Criadas</h4>
-                <div class="space-y-2">
-                  <template x-for="l in listaLojas" :key="l.id">
-                    <div class="flex justify-between items-center bg-white p-3 rounded-xl border text-xs">
-                      <div>
-                        <span class="font-bold text-gray-900" x-text="l.nome"></span>
-                        <span class="text-gray-400 text-[10px] ml-2" x-text="'(?loja=' + l.id + ')'"></span>
-                      </div>
-                      <a :href="'?loja=' + l.id" class="bg-rose-100 text-rose-700 font-bold px-3 py-1 rounded-lg">Acessar Loja</a>
-                    </div>
-                  </template>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </template>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- RODAPÉ DA PLATAFORMA CHATSHOP -->
-  <footer class="bg-white border-t border-gray-200 py-8 mt-16 text-center text-xs text-gray-500">
-    <div class="max-w-7xl mx-auto px-4">
-      <p class="font-bold text-gray-800" x-text="lojaAtiva.nome + ' © 2026'"></p>
-      <p class="mt-1 text-[11px] text-gray-400">Plataforma ChatShop - Gerador de Lojas Virtuais & Moda Feminina</p>
-    </div>
-  </footer>
-
-  <!-- SCRIPT CENTRAL CHATSHOP -->
-  <script>
-    function plataformaChatShop() {
-      return {
-        painelAberto: false,
-        carrinhoAberto: false,
-        chatAberto: false,
-        abaPainel: 'compras',
+    <script>
+        // CONFIGURAÇÕES SUPABASE
+        const SUPABASE_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
         
-        usuario: {
-          logado: false,
-          email: '',
-          isAfiliado: false,
-          codigoAfiliado: '',
-          isAdminConvidado: false
-        },
+        // CONFIGURAÇÃO DO SEU CLOUDFLARE R2
+        // Subdomínio Público configurado no R2 ou Cloudflare Worker para upload/visualização
+        const API_URL = "https://zapgarantia.bmlimp8.workers.dev"; // Worker da Cloudflare (fotos, vídeos e Pix)
 
-        // Lista Geral de Lojas na ChatShop
-        listaLojas: [
-          {
-            id: 'dridalia',
-            nome: 'Dridalia Moda Feminina',
-            logo: '',
-            banner: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200',
-            layoutGrife: true,
-            dominioProprio: '',
-            googleConsole: '',
-            botoesFlutuantes: [
-              { id: 1, nome: 'WhatsApp', icone: 'fa-brands fa-whatsapp', link: 'https://wa.me/5500000000000', cor: '#25D366' },
-              { id: 2, nome: 'Zap Leve', icone: 'fa-solid fa-bolt', link: 'https://zapleve.com', cor: '#4F46E5' },
-              { id: 3, nome: 'Instagram', icone: 'fa-brands fa-instagram', link: 'https://instagram.com', cor: '#E1306C' }
-            ]
-          },
-          {
-            id: 'favo',
-            nome: 'Favo Moda & Acessórios',
-            logo: '',
-            banner: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=1200',
-            layoutGrife: false,
-            dominioProprio: '',
-            googleConsole: '',
-            botoesFlutuantes: [
-              { id: 1, nome: 'WhatsApp', icone: 'fa-brands fa-whatsapp', link: 'https://wa.me/5500000000000', cor: '#25D366' }
-            ]
-          }
-        ],
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        _supabase.auth.onAuthStateChange((event) => { if (event === 'PASSWORD_RECOVERY') showRecovery(); });
 
-        lojaAtiva: {},
-        novaLoja: { id: '', nome: '' },
+        let currentUser = null;
+        let userProfile = null;
+        // Admin vem do banco (profiles.is_admin), não do navegador.
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        const contractsCache = {};
+        // PRO vale enquanto não vencer (sem data = sem vencimento)
+        function proActive(p) { return !!p && p.plan === 'pro' && (!p.pro_until || new Date(p.pro_until) > new Date()); }
+        function fmtDate(d) { return new Date(d).toLocaleDateString('pt-BR'); }
+        let pixPoll = null;
 
-        novoBtn: { nome: '', icone: 'fa-solid fa-comments', link: '', cor: '#10B981' },
+        async function initApp() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('view-auth').classList.add('hidden');
+                document.getElementById('headerUserArea').classList.remove('hidden');
+                loadDashboard();
+            } else {
+                document.getElementById('view-auth').classList.remove('hidden');
+                document.getElementById('headerUserArea').classList.add('hidden');
+            }
+        }
 
-        produtoChat: null,
-        mensagensChat: [],
+        async function forgotPassword() {
+            let email = (document.getElementById('loginEmail').value || '').trim();
+            if (!email) email = (prompt('Digite o e-mail da sua conta:') || '').trim();
+            if (!email) return;
+            const { error } = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+            if (error) { alert('Não foi possível enviar o e-mail: ' + error.message); return; }
+            alert('Se esse e-mail tiver conta, enviamos um link para criar uma nova senha. Confira também a caixa de spam.');
+        }
 
-        novoProd: {
-          nome: '',
-          preco: null,
-          imagem: '',
-          descricao: '',
-          chatbotAtivo: true,
-          faqs: [
-            { pergunta: 'Qual a composição do tecido?', resposta: 'Moletinho Premium de alta qualidade com toque suave.' },
-            { pergunta: 'Prazo de entrega?', resposta: 'Envio imediato em até 24 horas úteis.' }
-          ]
-        },
+        function showRecovery() {
+            ['view-auth', 'view-dashboard', 'view-creator', 'view-document', 'view-admin'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.classList.add('hidden');
+            });
+            document.getElementById('headerUserArea').classList.add('hidden');
+            document.getElementById('view-recovery').classList.remove('hidden');
+        }
 
-        // Produtos Cadastrados
-        produtos: [
-          {
-            id: 1,
-            loja_id: 'dridalia',
-            nome: 'Conjunto Tati Moletinho Premium',
-            preco: 189.90,
-            descricao: 'Conjunto de moletinho super macio e elegante para o dia a dia.',
-            imagem: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600',
-            chatbotAtivo: true,
-            faqs: [
-              { pergunta: 'Qual a composição do tecido?', resposta: 'Moletinho Premium com elastano toque suave.' },
-              { pergunta: 'Quais tamanhos veste?', resposta: 'Veste perfeitamente do tamanho 38 ao 42.' }
-            ]
-          },
-          {
-            id: 2,
-            loja_id: 'dridalia',
-            nome: 'Vestido Midi Elegance Alfaiataria',
-            preco: 239.90,
-            descricao: 'Vestido midi fluido de alfaiataria com corte impecável.',
-            imagem: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=600',
-            chatbotAtivo: true,
-            faqs: [
-              { pergunta: 'Tem forro interno?', resposta: 'Sim, possui forro total sem transparência.' }
-            ]
-          }
-        ],
+        async function saveNewPassword(e) {
+            e.preventDefault();
+            const p1 = document.getElementById('newPass').value, p2 = document.getElementById('newPass2').value;
+            if (p1.length < 6) { alert('A senha precisa ter pelo menos 6 caracteres.'); return; }
+            if (p1 !== p2) { alert('As senhas não são iguais.'); return; }
+            const btn = document.getElementById('btnNewPass');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+            const { error } = await _supabase.auth.updateUser({ password: p1 });
+            btn.disabled = false; btn.textContent = 'Salvar nova senha';
+            if (error) { alert('Não foi possível trocar a senha: ' + error.message + ' (o link pode ter expirado; peça outro).'); return; }
+            alert('Senha alterada! Entre com a nova senha.');
+            history.replaceState(null, '', location.pathname);
+            await _supabase.auth.signOut();
+            location.reload();
+        }
 
-        carrinho: [],
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-slate-600 cursor-pointer";
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('tabRegisterBtn').className = "flex-1 py-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600 cursor-pointer";
+                document.getElementById('tabLoginBtn').className = "flex-1 py-2 text-xs font-bold text-slate-600 cursor-pointer";
+            }
+        }
 
-        init() {
-          // Detecta a loja na URL ex: ?loja=favo ou usa a padrão 'dridalia'
-          const urlParams = new URLSearchParams(window.location.search);
-          const lojaParam = urlParams.get('loja') || 'dridalia';
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const whatsapp = document.getElementById('regWhatsapp').value;
+            const password = document.getElementById('regPassword').value;
 
-          const lojasSalvas = localStorage.getItem('chatshop_lojas');
-          if (lojasSalvas) this.listaLojas = JSON.parse(lojasSalvas);
+            // O perfil é criado automaticamente no banco (trigger) a partir destes dados.
+            const { data, error } = await _supabase.auth.signUp({ email, password, options: { data: { full_name: name, whatsapp, ref_code: storedRef() } } });
+            if (error) { alert('Erro no registo: ' + error.message); return; }
 
-          const encontrada = this.listaLojas.find(l => l.id === lojaParam);
-          this.lojaAtiva = encontrada || this.listaLojas[0];
+            if (data.user) {
+                alert('Conta criada com sucesso! Faça login e toque em "Baixar o app no celular" para instalar.');
+                switchAuthTab('login');
+            }
+        }
 
-          const prodsSalvos = localStorage.getItem('chatshop_produtos');
-          if (prodsSalvos) this.produtos = JSON.parse(prodsSalvos);
-        },
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
 
-        get produtosFiltrados() {
-          return this.produtos.filter(p => p.loja_id === this.lojaAtiva.id);
-        },
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) { alert('Credenciais inválidas: ' + error.message); return; }
+            initApp();
+        }
 
-        abrirPainel() { this.painelAberto = true; },
-        abrirChatbot(prod) { this.produtoChat = prod; this.mensagensChat = []; this.chatAberto = true; },
+        async function logout() {
+            await _supabase.auth.signOut();
+            location.reload();
+        }
 
-        perguntarChat(pergunta, resposta) {
-          this.mensagensChat.push({ id: Date.now(), tipo: 'user', texto: pergunta });
-          setTimeout(() => {
-            this.mensagensChat.push({ id: Date.now() + 1, tipo: 'bot', texto: resposta });
-          }, 300);
-        },
+        async function loadDashboard() {
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (profile) {
+                userProfile = profile;
+                await loadLimits();
+                if (profile.blocked) { alert('Sua conta está bloqueada. Fale com o suporte.'); await _supabase.auth.signOut(); location.reload(); return; }
+                if (profile.is_admin) document.getElementById('adminButtonWrapper').classList.remove('hidden');
+                document.getElementById('welcomeUser').textContent = `Olá, ${profile.full_name}`;
+                if (proActive(profile)) {
+                    document.getElementById('headerPlanBadge').textContent = profile.pro_until ? `PRO até ${fmtDate(profile.pro_until)}` : 'Plano PRO';
+                    if (profile.pro_until) {
+                        document.getElementById('planBannerText').textContent = `PRO ativo até ${fmtDate(profile.pro_until)}: 15 fotos e 2 vídeos por termo`;
+                        document.getElementById('planBannerBtn').textContent = 'Renovar Pix R$ 18';
+                    } else {
+                        document.getElementById('planBanner').style.display = 'none';
+                    }
+                } else if (profile.plan === 'pro') {
+                    document.getElementById('planBannerText').textContent = 'Seu PRO venceu. Renove para voltar a usar 15 fotos e 2 vídeos';
+                    document.getElementById('planBannerBtn').textContent = 'Renovar Pix R$ 18';
+                }
+            }
 
-        fazerLogin() {
-          if (!this.usuario.email) return;
-          this.usuario.logado = true;
-        },
+            const { data: contracts } = await _supabase.from('contracts').select('*').eq('professional_id', currentUser.id);
+            const container = document.getElementById('contractsListContainer');
+            container.innerHTML = '';
 
-        afiliarSe() {
-          const codigo = 'AF-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-          this.usuario.isAfiliado = true;
-          this.usuario.codigoAfiliado = codigo;
-          alert('Conta de afiliado ativada na loja ' + this.lojaAtiva.nome + '!');
-        },
+            if (!contracts || contracts.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-600 text-center py-4">Nenhum serviço registado.</p>`;
+                return;
+            }
 
-        adicionarBotaoFlutuante() {
-          if (!this.novoBtn.nome || !this.novoBtn.link) {
-            alert('Preencha nome e link do botão flutuante.');
-            return;
-          }
-          this.lojaAtiva.botoesFlutuantes.push({
-            id: Date.now(),
-            nome: this.novoBtn.nome,
-            icone: this.novoBtn.icone || 'fa-solid fa-comments',
-            link: this.novoBtn.link,
-            cor: this.novoBtn.cor
-          });
-          this.salvarConfiguracoes();
-          this.novoBtn = { nome: '', icone: 'fa-solid fa-comments', link: '', cor: '#10B981' };
-          alert('Botão flutuante adicionado!');
-        },
+            contracts.forEach(item => {
+                contractsCache[item.id] = item;
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center cursor-pointer hover:border-blue-300 transition" onclick="viewContract(contractsCache['${esc(item.id)}'])">
+                        <div>
+                            <span class="font-bold text-sm">${esc(item.client_name)}</span>
+                            <p class="text-xs text-slate-700">R$ ${esc(item.service_value)} - ${esc(item.warranty_period)}</p>
+                        </div>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold">${esc(item.status)}</span>
+                    </div>`;
+            });
+        }
 
-        adicionarProduto() {
-          if (!this.novoProd.nome || !this.novoProd.preco || !this.novoProd.imagem) {
-            alert('Preencha nome, preço e imagem do produto.');
-            return;
-          }
-          this.produtos.push({
-            id: Date.now(),
-            loja_id: this.lojaAtiva.id,
-            nome: this.novoProd.nome,
-            preco: Number(this.novoProd.preco),
-            imagem: this.novoProd.imagem,
-            descricao: this.novoProd.descricao,
-            chatbotAtivo: this.novoProd.chatbotAtivo,
-            faqs: JSON.parse(JSON.stringify(this.novoProd.faqs))
-          });
-          localStorage.setItem('chatshop_produtos', JSON.stringify(this.produtos));
-          alert('Produto cadastrado com sucesso!');
-        },
+        async function checkLimitAndOpenCreator() {
+            try {
+                if (!currentUser) {
+                    alert('Sessão expirada. Faça login novamente.');
+                    goHome();
+                    return;
+                }
 
-        criarNovaLoja() {
-          if (!this.novaLoja.id || !this.novaLoja.nome) {
-            alert('Preencha ID e Nome da nova loja.');
-            return;
-          }
-          const idLimpo = this.novaLoja.id.toLowerCase().replace(/\s+/g, '');
-          this.listaLojas.push({
-            id: idLimpo,
-            nome: this.novaLoja.nome,
-            logo: '',
-            banner: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=1200',
-            layoutGrife: true,
-            dominioProprio: '',
-            googleConsole: '',
-            botoesFlutuantes: [
-              { id: 1, nome: 'WhatsApp', icone: 'fa-brands fa-whatsapp', link: 'https://wa.me/5500000000000', cor: '#25D366' }
-            ]
-          });
-          localStorage.setItem('chatshop_lojas', JSON.stringify(this.listaLojas));
-          alert('Loja ' + this.novaLoja.nome + ' criada no ChatShop!');
-          this.novaLoja = { id: '', nome: '' };
-        },
+                const { data: profile, error: profileError } = await _supabase
+                    .from('profiles')
+                    .select('plan, pro_until')
+                    .eq('id', currentUser.id)
+                    .single();
 
-        salvarConfiguracoes() {
-          localStorage.setItem('chatshop_lojas', JSON.stringify(this.listaLojas));
-          alert('Configurações salvas!');
-        },
+                if (!profileError && profile && !proActive(profile)) {
+                    const { count, error: countError } = await _supabase
+                        .from('contracts')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('professional_id', currentUser.id);
 
-        falarTexto(texto) {
-          if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(texto);
-            msg.lang = 'pt-BR';
-            window.speechSynthesis.speak(msg);
-          }
-        },
+                    if (!countError && count >= 2) {
+                        showUpgradeModal();
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao checar plano/limite:', err);
+                alert('Não foi possível verificar seu plano. Tente novamente.');
+                return;
+            }
 
-        adicionarCarrinho(prod) { this.carrinho.push({ ...prod, qtd: 1 }); alert('Produto adicionado ao carrinho!'); }
-      }
-    }
-  </script>
-</body>
-</html>
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-creator').classList.remove('hidden');
+            resetPhotos();
+        }
+
+        // Função de Upload para o Cloudflare R2
+        async function compressImage(file) {
+            if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+            try {
+                const bmp = await createImageBitmap(file);
+                const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(bmp.width * scale);
+                c.height = Math.round(bmp.height * scale);
+                c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+                const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
+                return blob || file;
+            } catch (e) { return file; }
+        }
+
+        async function uploadFileToR2(file) {
+            file = await compressImage(file);
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) throw new Error('Sessão expirada. Faça login novamente.');
+            let res;
+            try {
+                res = await fetch(`${API_URL}/upload`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${session.access_token}` },
+                    body: file
+                });
+            } catch (e) {
+                throw new Error('Não consegui enviar o arquivo (conexão com o servidor de mídia).');
+            }
+            if (!res.ok) throw new Error('Falha no upload: ' + (await res.text()));
+            const { key } = await res.json();
+            return `${API_URL}/media/${key}`;
+        }
+
+        async function saveContract(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitContract');
+            btn.disabled = true;
+            btn.textContent = "A fazer upload e guardar...";
+
+            try {
+                const lim = mediaLimits();
+                const imgFiles = photoFiles.slice();
+                const vidFiles = Array.from(document.getElementById('mediaVideo').files);
+                if (imgFiles.length > lim.photos) throw new Error(`Seu plano permite até ${lim.photos} foto(s). Você escolheu ${imgFiles.length}.`);
+                if (vidFiles.length > lim.videos) throw new Error(`Seu plano permite até ${lim.videos} vídeo(s). Você escolheu ${vidFiles.length}.`);
+                let videoLink = (document.getElementById('mediaVideoLink').value || '').trim();
+                if (videoLink) {
+                    if (!/^https?:\/\//i.test(videoLink)) videoLink = 'https://' + videoLink;
+                    try { new URL(videoLink); } catch (e) { throw new Error('O link do vídeo não parece válido.'); }
+                } else { videoLink = null; }
+
+                const images = [], videos = [];
+                for (let i = 0; i < imgFiles.length; i++) {
+                    btn.textContent = `Enviando foto ${i + 1} de ${imgFiles.length}...`;
+                    images.push(await uploadFileToR2(imgFiles[i]));
+                }
+                for (let i = 0; i < vidFiles.length; i++) {
+                    btn.textContent = `Enviando vídeo ${i + 1} de ${vidFiles.length}...`;
+                    videos.push(await uploadFileToR2(vidFiles[i]));
+                }
+                btn.textContent = 'Salvando...';
+
+                const payload = {
+                    id: 'zg-' + Math.random().toString(36).substring(2, 8),
+                    client_name: document.getElementById('clientName').value,
+                    service_value: document.getElementById('serviceValue').value,
+                    warranty_period: document.getElementById('warrantyPeriod').value,
+                    service_desc: document.getElementById('serviceDesc').value,
+                    image_url: images[0] || '',
+                    video_url: videos[0] || '',
+                    images: images,
+                    videos: videos,
+                    video_link: videoLink,
+                    professional_id: currentUser.id,
+                    status: 'Pendente'
+                };
+
+                const { data: saved, error: insertErr } = await _supabase.from('contracts').insert([payload]).select().single();
+                if (insertErr) throw insertErr;
+
+                alert('Orçamento criado! Copie o link abaixo para enviar ao cliente.');
+                document.getElementById('contractForm').reset();
+                resetPhotos();
+                viewContract(saved);
+            } catch (err) {
+                if ((err.message || '').includes('LIMITE_GRATUITO')) { showUpgradeModal(); } else { alert('Erro ao salvar contrato: ' + err.message); }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Gerar e Salvar Termo";
+            }
+        }
+
+        let clientMode = false, clientToken = null, currentContract = null;
+
+        function shareUrl(item) { return `${location.origin}${location.pathname}?c=${item.public_token}`; }
+
+        function viewContract(item) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-creator').classList.add('hidden');
+            document.getElementById('view-document').classList.remove('hidden');
+            renderDoc(item, userProfile && userProfile.full_name, userProfile && userProfile.whatsapp);
+        }
+
+        function renderDoc(item, profName, profWhats) {
+            currentContract = item;
+            const signed = !!item.signed_at;
+            document.getElementById('docIdCode').textContent = `Código: #${String(item.id).toUpperCase()}`;
+            document.getElementById('docClientName').textContent = item.client_name;
+            document.getElementById('docServiceDesc').textContent = item.service_desc;
+            document.getElementById('docServiceValue').textContent = item.service_value;
+            document.getElementById('docWarrantyPeriod').textContent = item.warranty_period;
+            document.getElementById('docProfName').textContent = profName || '-';
+            document.getElementById('docProfWhatsapp').textContent = profWhats ? `WhatsApp: ${profWhats}` : '';
+
+            document.getElementById('docSignatureText').textContent = signed
+                ? `Assinado por ${item.signed_name} em ${new Date(item.signed_at).toLocaleString('pt-BR')}`
+                : 'Aguardando assinatura do cliente';
+
+            const mediaContainer = document.getElementById('docMediaContainer');
+            mediaContainer.classList.add('hidden');
+            const images = (Array.isArray(item.images) && item.images.length) ? item.images : (item.image_url ? [item.image_url] : []);
+            const videos = (Array.isArray(item.videos) && item.videos.length) ? item.videos : (item.video_url ? [item.video_url] : []);
+            galleryImages = images;
+            document.getElementById('docImageError').classList.add('hidden');
+            const gal = document.getElementById('docGallery'); gal.innerHTML = '';
+            images.forEach((u, i) => {
+                const box = document.createElement('div');
+                if (images.length === 1) box.className = 'col-span-2';
+                const im = document.createElement('img');
+                im.src = u; im.alt = 'Foto ' + (i + 1);
+                im.className = 'w-full ' + (images.length === 1 ? 'h-56' : 'h-32') + ' object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100';
+                im.onclick = () => { galleryImages = images; openLightbox(i); };
+                im.onerror = imgFailed;
+                box.appendChild(im); gal.appendChild(box);
+            });
+            const vids = document.getElementById('docVideos'); vids.innerHTML = '';
+            videos.forEach(u => {
+                const v = document.createElement('video');
+                v.src = u; v.controls = true; v.playsInline = true; v.preload = 'metadata';
+                v.className = 'w-full max-h-64 rounded-xl border border-slate-200 bg-black';
+                vids.appendChild(v);
+            });
+            document.getElementById('docGalleryWrap').classList.toggle('hidden', !images.length);
+            document.getElementById('docVideosWrap').classList.toggle('hidden', !videos.length);
+            const linkWrap = document.getElementById('docVideoLinkWrapper');
+            linkWrap.classList.add('hidden');
+            const hasLink = !!item.video_link && /^https?:\/\//i.test(item.video_link);
+            if (hasLink) {
+                const a = document.getElementById('docVideoLink');
+                a.href = item.video_link; a.textContent = item.video_link;
+                linkWrap.classList.remove('hidden');
+            }
+            if (images.length || videos.length || hasLink) mediaContainer.classList.remove('hidden');
+
+            renderFinal(item);
+            document.getElementById('clientSignArea').classList.toggle('hidden', !(clientMode && !signed));
+            document.getElementById('proLinkArea').classList.toggle('hidden', clientMode || !item.public_token);
+            document.getElementById('btnPdf').classList.toggle('hidden', clientMode && !signed);
+            document.getElementById('btnBackHome').classList.toggle('hidden', clientMode);
+            if (!clientMode && item.public_token) document.getElementById('shareLink').value = shareUrl(item);
+        }
+
+        let galleryImages = [], lbIndex = 0;
+        function imgFailed() { document.getElementById('docImageError').classList.remove('hidden'); }
+        function showLb() {
+            const n = galleryImages.length;
+            document.getElementById('lightboxImg').src = galleryImages[lbIndex];
+            document.getElementById('lbCount').textContent = n > 1 ? `${lbIndex + 1} / ${n}` : '';
+            document.getElementById('lbPrev').classList.toggle('hidden', n < 2);
+            document.getElementById('lbNext').classList.toggle('hidden', n < 2);
+        }
+        function openLightbox(i) {
+            if (typeof i !== 'number' || !galleryImages[i]) return;
+            lbIndex = i; showLb();
+            document.getElementById('lightbox').classList.remove('hidden');
+        }
+        function lbStep(d) { const n = galleryImages.length; lbIndex = (lbIndex + d + n) % n; showLb(); }
+        function closeLightbox() { document.getElementById('lightbox').classList.add('hidden'); }
+        (function () {
+            const lb = document.getElementById('lightbox'); let x0 = null;
+            lb.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+            lb.addEventListener('touchend', e => {
+                if (x0 === null) return;
+                const dx = e.changedTouches[0].clientX - x0; x0 = null;
+                if (Math.abs(dx) > 60 && galleryImages.length > 1) lbStep(dx < 0 ? 1 : -1);
+            }, { passive: true });
+        })();
+
+        let appSettings = {}, userLimits = null;
+        async function loadLimits() {
+            const { data: lim } = await _supabase.rpc('my_limits');
+            userLimits = lim || null;
+            const { data: st } = await _supabase.from('app_settings').select('data').eq('id', 1).single();
+            appSettings = (st && st.data) || {};
+            applyFeatureFlags();
+            loadBanner();
+        }
+        function applyFeatureFlags() {
+            const on = k => appSettings[k] !== false;
+            document.getElementById('btnCatalog').classList.toggle('hidden', !on('catalog_enabled'));
+            document.getElementById('btnReferral').classList.toggle('hidden', !on('referral_enabled'));
+            if (!on('pix_enabled')) document.getElementById('planBanner').style.display = 'none';
+            const l = mediaLimits();
+            document.getElementById('mediaVideoWrap').classList.toggle('hidden', l.videos < 1);
+            document.getElementById('mediaVideoLinkWrap').classList.toggle('hidden', userLimits ? !userLimits.video_link : !on('video_link_enabled'));
+            updateMediaHint();
+        }
+
+        function mediaLimits() {
+            if (userLimits) return { photos: userLimits.photos, videos: userLimits.videos, pro: !!userLimits.pro };
+            return proActive(userProfile) ? { photos: 15, videos: 2, pro: true } : { photos: 1, videos: 1, pro: false };
+        }
+        function updateMediaHint() {
+            const l = mediaLimits();
+            let t = `Limite por orçamento: ${l.photos} foto(s)` + (l.videos > 0 ? ` e ${l.videos} vídeo(s).` : '.');
+            if (!l.pro && appSettings.pix_enabled !== false) t += ' Assine o PRO para ter mais.';
+            document.getElementById('mediaLimitHint').textContent = t;
+        }
+
+        function copyShareLink() {
+            const el = document.getElementById('shareLink');
+            if (navigator.clipboard) navigator.clipboard.writeText(el.value).catch(() => {});
+            el.select(); try { document.execCommand('copy'); } catch (e) {}
+            alert('Link copiado! Envie para o cliente.');
+        }
+        function shareWhatsApp() {
+            const msg = `Olá! Segue o orçamento do serviço para você conferir e assinar: ${document.getElementById('shareLink').value}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        async function initClient(token) {
+            clientMode = true;
+            clientToken = token;
+            document.getElementById('view-auth').classList.add('hidden');
+            const { data, error } = await _supabase.rpc('get_public_contract', { p_token: token });
+            if (error || !data) {
+                document.querySelector('main').innerHTML = '<p class="text-center text-sm text-slate-700 py-10">Link inválido ou documento não encontrado.</p>';
+                return;
+            }
+            document.getElementById('view-document').classList.remove('hidden');
+            renderDoc(data, data.prof_name, data.prof_whatsapp);
+            loadBanner();
+        }
+
+        async function signContract() {
+            const name = document.getElementById('signName').value.trim();
+            if (name.length < 5) { alert('Digite seu nome completo para assinar.'); return; }
+            const btn = document.getElementById('btnSign');
+            btn.disabled = true; btn.textContent = 'Assinando...';
+            const { error } = await _supabase.rpc('sign_public_contract', { p_token: clientToken, p_name: name });
+            if (error) {
+                btn.disabled = false; btn.textContent = 'Assinar e aceitar';
+                alert((error.message || '').includes('JA_ASSINADO') ? 'Este documento já foi assinado.' : 'Não foi possível assinar: ' + error.message);
+                return;
+            }
+            const { data } = await _supabase.rpc('get_public_contract', { p_token: clientToken });
+            if (data) renderDoc(data, data.prof_name, data.prof_whatsapp);
+            alert('Documento assinado! Toque em "Baixar em PDF" para guardar sua cópia.');
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('printableArea');
+            const id = currentContract ? currentContract.id : 'documento';
+            const imgs = Array.from(document.querySelectorAll('#docGallery img, #finalGallery img'));
+            const originals = imgs.map(i => i.src);
+            // embute as fotos no PDF (precisam estar em base64 para o gerador)
+            for (const im of imgs) {
+                try {
+                    const blob = await (await fetch(im.src)).blob();
+                    im.src = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+                } catch (e) { /* segue sem esta foto */ }
+            }
+            const opt = {
+                margin:       10,
+                filename:     (currentContract && currentContract.final_signed_at ? `Servico-completo-${id}.pdf` : `Orcamento-${id}.pdf`),
+                image:        { type: 'jpeg', quality: 0.95 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'], avoid: ['img'] }
+            };
+            try { await html2pdf().from(element).set(opt).save(); } finally { imgs.forEach((im, i) => { im.src = originals[i]; }); }
+        }
+
+        // ---------- limites por usuário ----------
+        async function adminSaveUserLimits(id) {
+            const num = v => (v === '' || v === null) ? null : parseInt(v, 10);
+            const ph = num(document.getElementById('uLimPhotos').value), vd = num(document.getElementById('uLimVideos').value);
+            if (await adminRpc('admin_set_user_limits', { p_user: id, p_photos: ph, p_videos: vd })) {
+                const u = adminUsers.find(x => x.id === id); if (u) { u.limit_photos = ph; u.limit_videos = vd; }
+                alert('Limites salvos para este usuário.');
+            }
+        }
+
+        // ---------- funções liberadas (global) ----------
+        async function renderAdminSettings() {
+            const pane = document.getElementById('adminPaneSettings');
+            const { data: st } = await _supabase.from('app_settings').select('data').eq('id', 1).single();
+            const d = (st && st.data) || {};
+            const on = k => d[k] !== false;
+            const sw = (id, label, k) => `<label class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold"><span>${label}</span><input id="${id}" type="checkbox" ${on(k) ? 'checked' : ''} class="w-5 h-5"></label>`;
+            const nm = (id, label, v, max) => `<label class="text-xs font-semibold block">${label}<input id="${id}" type="number" min="0" max="${max}" value="${esc(v)}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>`;
+            pane.innerHTML = `<p class="text-xs text-slate-700">Ligue ou desligue funções para todos os usuários. Desligada, a função some do app.</p>
+                ${sw('setVideoUpload', 'Envio de vídeo (arquivo)', 'video_upload_enabled')}
+                ${sw('setVideoLink', 'Link de vídeo', 'video_link_enabled')}
+                ${sw('setCatalog', 'Catálogo de produtos', 'catalog_enabled')}
+                ${sw('setPix', 'Assinatura PRO por Pix (botão de assinar)', 'pix_enabled')}
+                ${sw('setReferral', 'Programa de indicação', 'referral_enabled')}
+                <p class="font-bold text-xs uppercase text-slate-700 pt-1">Limites por orçamento</p>
+                <div class="grid grid-cols-2 gap-2">
+                    ${nm('setFreePhotos', 'Gratuito: fotos', d.free_photos ?? 1, 50)}
+                    ${nm('setFreeVideos', 'Gratuito: vídeos', d.free_videos ?? 1, 20)}
+                    ${nm('setProPhotos', 'PRO: fotos', d.pro_photos ?? 15, 50)}
+                    ${nm('setProVideos', 'PRO: vídeos', d.pro_videos ?? 2, 20)}
+                </div>
+                <p class="font-bold text-xs uppercase text-slate-700 pt-1">Pontos por indicação</p>
+                <div class="grid grid-cols-3 gap-2">
+                    ${nm('setPtsSignup', 'Cadastro', d.ref_points_signup ?? 10, 100000)}
+                    ${nm('setPtsContract', '1º orçamento', d.ref_points_first_contract ?? 20, 100000)}
+                    ${nm('setPtsPro', 'Assinou PRO', d.ref_points_pro ?? 50, 100000)}
+                </div>
+                <button onclick="saveAdminSettings()" class="w-full py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer">Salvar funções</button>`;
+        }
+        async function saveAdminSettings() {
+            const g = id => document.getElementById(id);
+            const data = {
+                video_upload_enabled: g('setVideoUpload').checked, video_link_enabled: g('setVideoLink').checked,
+                catalog_enabled: g('setCatalog').checked, pix_enabled: g('setPix').checked, referral_enabled: g('setReferral').checked,
+                ref_points_signup: parseInt(g('setPtsSignup').value, 10), ref_points_first_contract: parseInt(g('setPtsContract').value, 10), ref_points_pro: parseInt(g('setPtsPro').value, 10),
+                free_photos: parseInt(g('setFreePhotos').value, 10), free_videos: parseInt(g('setFreeVideos').value, 10),
+                pro_photos: parseInt(g('setProPhotos').value, 10), pro_videos: parseInt(g('setProVideos').value, 10)
+            };
+            if (Object.values(data).some(v => v !== v)) { alert('Confira os números dos limites.'); return; }
+            if (await adminRpc('admin_save_settings', { p_data: data })) { await loadLimits(); alert('Funções salvas.'); }
+        }
+
+        // ---------- catálogo ----------
+        let adminCatalog = [], catEditing = null, catImport = false, csvParsed = null;
+        function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+
+        // ---------- fotos: galeria + câmera ao vivo (orçamento e serviço pronto) ----------
+        let photoFiles = [], finalFiles = [], camStream = null, camFacing = 'environment', camTarget = 'main';
+        const PH = {
+            main: { list: () => photoFiles, prev: 'photoPreview', cnt: 'photoCount', fb: 'camFallback' },
+            final: { list: () => finalFiles, prev: 'finalPreview', cnt: 'finalCount', fb: 'finalCamFallback' }
+        };
+        function finalExisting() { return (currentContract && Array.isArray(currentContract.final_images)) ? currentContract.final_images.length : 0; }
+        function photoUsed(t) { return PH[t].list().length + (t === 'final' ? finalExisting() : 0); }
+
+        function renderPhotoPreview(t = 'main') {
+            const l = mediaLimits(), cfg = PH[t], list = cfg.list();
+            const cnt = document.getElementById(cfg.cnt);
+            if (cnt) cnt.textContent = t === 'final'
+                ? `${list.length} nova(s) · ${finalExisting()} já salva(s) · máximo ${l.photos}`
+                : `${list.length} de ${l.photos} foto(s)`;
+            const box = document.getElementById(cfg.prev); if (!box) return;
+            box.innerHTML = '';
+            list.forEach((f, i) => {
+                const wrap = document.createElement('div'); wrap.className = 'relative';
+                const im = document.createElement('img');
+                im.src = URL.createObjectURL(f); im.alt = 'Foto ' + (i + 1);
+                im.className = 'w-full h-20 object-cover rounded-lg border border-slate-200 bg-slate-100';
+                im.onload = () => URL.revokeObjectURL(im.src);
+                const x = document.createElement('button');
+                x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Remover foto');
+                x.className = 'absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full w-6 h-6 text-base leading-none cursor-pointer';
+                x.onclick = () => { list.splice(i, 1); renderPhotoPreview(t); };
+                wrap.appendChild(im); wrap.appendChild(x); box.appendChild(wrap);
+            });
+        }
+        function resetPhotos() { photoFiles = []; renderPhotoPreview('main'); }
+
+        function addPhotos(input, t = 'main') {
+            const l = mediaLimits(), list = PH[t].list();
+            for (const f of Array.from(input.files || [])) {
+                if (photoUsed(t) >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); break; }
+                list.push(f);
+            }
+            input.value = '';
+            renderPhotoPreview(t);
+        }
+
+        async function startCam() {
+            stopCam();
+            camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: camFacing, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+            document.getElementById('camVideo').srcObject = camStream;
+        }
+        function stopCam() {
+            if (camStream) camStream.getTracks().forEach(t => t.stop());
+            camStream = null;
+        }
+        async function openCamera(t = 'main') {
+            const l = mediaLimits();
+            camTarget = t;
+            if (photoUsed(t) >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); return; }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { document.getElementById(PH[t].fb).click(); return; }
+            try {
+                await startCam();
+                document.getElementById('camCount').textContent = `${photoUsed(t)} de ${l.photos} foto(s)`;
+                document.getElementById('cameraModal').classList.remove('hidden');
+            } catch (e) {
+                alert('Não consegui abrir a câmera ao vivo. Vou abrir a câmera do celular.');
+                document.getElementById(PH[t].fb).click();
+            }
+        }
+        function closeCamera() { stopCam(); document.getElementById('cameraModal').classList.add('hidden'); renderPhotoPreview(camTarget); }
+        function flipCamera() {
+            camFacing = camFacing === 'environment' ? 'user' : 'environment';
+            startCam().catch(() => alert('Não foi possível trocar de câmera.'));
+        }
+        function snapPhoto() {
+            const v = document.getElementById('camVideo'), l = mediaLimits(), t = camTarget;
+            if (!v.videoWidth) return;
+            if (photoUsed(t) >= l.photos) { alert(`Limite de ${l.photos} foto(s) no seu plano.`); return; }
+            const sc = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight));
+            const c = document.createElement('canvas');
+            c.width = Math.round(v.videoWidth * sc); c.height = Math.round(v.videoHeight * sc);
+            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+            c.toBlob(b => {
+                if (!b) return;
+                PH[t].list().push(new File([b], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' }));
+                document.getElementById('camCount').textContent = `${photoUsed(t)} de ${l.photos} foto(s)`;
+                v.style.opacity = '0.3'; setTimeout(() => { v.style.opacity = '1'; }, 120);
+                if (navigator.vibrate) navigator.vibrate(30);
+            }, 'image/jpeg', 0.88);
+        }
+
+        // ---------- serviço pronto (segunda etapa, mesmo link) ----------
+        function renderFinal(item) {
+            const imgs = Array.isArray(item.final_images) ? item.final_images : [];
+            const ready = !!item.final_ready_at, fsigned = !!item.final_signed_at;
+            const editable = !clientMode && !fsigned && (!item.professional_id || !currentUser || item.professional_id === currentUser.id);
+            document.getElementById('finalSection').classList.toggle('hidden', !(ready || (!clientMode && imgs.length)));
+            document.getElementById('finalDraftTag').classList.toggle('hidden', ready || clientMode);
+            document.getElementById('finalNotes').textContent = item.final_notes || '';
+            const gal = document.getElementById('finalGallery'); gal.innerHTML = '';
+            imgs.forEach((u, i) => {
+                const box = document.createElement('div'); box.className = 'relative';
+                const im = document.createElement('img');
+                im.src = u; im.alt = 'Serviço pronto ' + (i + 1);
+                im.className = 'w-full h-32 object-cover rounded-xl border border-slate-200 cursor-zoom-in bg-slate-100';
+                im.onclick = () => { galleryImages = imgs; openLightbox(i); };
+                box.appendChild(im);
+                if (editable) {
+                    const x = document.createElement('button');
+                    x.type = 'button'; x.textContent = '×'; x.setAttribute('data-html2canvas-ignore', 'true');
+                    x.className = 'absolute top-1 right-1 bg-red-600 text-white rounded-full w-7 h-7 text-lg leading-none cursor-pointer';
+                    x.onclick = () => removeFinalImage(i);
+                    box.appendChild(x);
+                }
+                gal.appendChild(box);
+            });
+            document.getElementById('finalSignatureText').textContent = fsigned
+                ? `Assinado por ${item.final_signed_name} em ${new Date(item.final_signed_at).toLocaleString('pt-BR')}`
+                : 'Aguardando assinatura do cliente';
+            document.getElementById('finalSignArea').classList.toggle('hidden', !(clientMode && !!item.signed_at && ready && !fsigned));
+            document.getElementById('proFinalArea').classList.toggle('hidden', !editable);
+            if (editable) {
+                document.getElementById('finalNotesInput').value = item.final_notes || '';
+                document.getElementById('proFinalInfo').textContent = ready
+                    ? 'Serviço pronto enviado. O cliente assina no mesmo link. Você ainda pode ajustar as fotos até ele assinar.'
+                    : 'Adicione as fotos do serviço finalizado e envie ao cliente. Ele assina no mesmo link.';
+                document.getElementById('btnSendFinal').textContent = ready ? 'Salvar alterações do serviço pronto' : 'Marcar como pronto e enviar ao cliente';
+                document.getElementById('btnDraftFinal').classList.toggle('hidden', ready);
+                document.getElementById('btnNotifyFinal').classList.toggle('hidden', !ready);
+            }
+            finalFiles = []; renderPhotoPreview('final');
+            const pdfBtn = document.querySelector('#btnPdf span');
+            if (pdfBtn) pdfBtn.textContent = fsigned ? 'Baixar PDF completo (orçamento + serviço pronto)' : 'Baixar em PDF';
+        }
+
+        async function refreshContract(id) {
+            const { data, error } = await _supabase.from('contracts').select('*').eq('id', id).single();
+            if (error) throw error;
+            contractsCache[data.id] = data;
+            renderDoc(data, userProfile && userProfile.full_name, userProfile && userProfile.whatsapp);
+        }
+        async function saveFinal(ready) {
+            if (!currentContract) return;
+            const l = mediaLimits(), existing = Array.isArray(currentContract.final_images) ? currentContract.final_images : [];
+            if (existing.length + finalFiles.length > l.photos) { alert(`Seu plano permite até ${l.photos} foto(s) por orçamento.`); return; }
+            if (ready && existing.length + finalFiles.length < 1) { alert('Adicione pelo menos uma foto do serviço pronto.'); return; }
+            const btn = document.getElementById('btnSendFinal'), label = btn.textContent;
+            btn.disabled = true;
+            try {
+                const urls = [];
+                for (let i = 0; i < finalFiles.length; i++) {
+                    btn.textContent = `Enviando foto ${i + 1} de ${finalFiles.length}...`;
+                    urls.push(await uploadFileToR2(finalFiles[i]));
+                }
+                btn.textContent = 'Salvando...';
+                const { error } = await _supabase.rpc('pro_save_final', { p_id: currentContract.id, p_images: existing.concat(urls), p_notes: document.getElementById('finalNotesInput').value.trim(), p_ready: !!ready });
+                if (error) throw error;
+                await refreshContract(currentContract.id);
+                alert(ready ? 'Serviço pronto enviado! O cliente já pode assinar no mesmo link.' : 'Fotos salvas.');
+            } catch (e) { alert('Não foi possível salvar: ' + (e.message || e)); btn.textContent = label; }
+            btn.disabled = false;
+        }
+        async function removeFinalImage(i) {
+            if (!confirm('Remover esta foto do serviço pronto?')) return;
+            try {
+                const imgs = (currentContract.final_images || []).filter((_, k) => k !== i);
+                const { error } = await _supabase.rpc('pro_save_final', { p_id: currentContract.id, p_images: imgs, p_notes: document.getElementById('finalNotesInput').value.trim(), p_ready: false });
+                if (error) throw error;
+                await refreshContract(currentContract.id);
+            } catch (e) { alert('Não foi possível remover: ' + (e.message || e)); }
+        }
+        function notifyFinal() {
+            const msg = `Olá! Seu serviço está pronto. Veja as fotos e assine o serviço pronto neste link: ${document.getElementById('shareLink').value}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+        async function signFinal() {
+            const name = document.getElementById('finalSignName').value.trim();
+            if (name.length < 5) { alert('Digite seu nome completo para assinar.'); return; }
+            const btn = document.getElementById('btnFinalSign');
+            btn.disabled = true; btn.textContent = 'Assinando...';
+            const { error } = await _supabase.rpc('sign_public_final', { p_token: clientToken, p_name: name });
+            btn.disabled = false; btn.textContent = 'Assinar serviço pronto';
+            if (error) { alert('Não foi possível assinar: ' + error.message); return; }
+            const { data } = await _supabase.rpc('get_public_contract', { p_token: clientToken });
+            if (data) renderDoc(data, data.prof_name, data.prof_whatsapp);
+            alert('Serviço pronto assinado! Toque em "Baixar PDF completo" para guardar sua cópia.');
+        }
+
+        // ---------- instalar o app (PWA) ----------
+        let deferredInstall = null;
+        window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+        window.addEventListener('appinstalled', () => { deferredInstall = null; hideInstall(); });
+        function isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+        function hideInstall() { const b = document.getElementById('btnInstallApp'); if (b) b.classList.add('hidden'); }
+        async function installApp() {
+            if (deferredInstall) {
+                deferredInstall.prompt();
+                const r = await deferredInstall.userChoice;
+                deferredInstall = null;
+                if (r.outcome === 'accepted') hideInstall();
+                return;
+            }
+            const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            alert(ios
+                ? 'No iPhone: toque em Compartilhar (quadrado com seta) e depois em "Adicionar à Tela de Início".'
+                : 'Abra o menu do navegador (três pontinhos) e toque em "Instalar app". Se só aparecer "Adicionar à tela inicial", feche e abra o site de novo e tente outra vez.');
+        }
+        if (!isStandalone()) document.getElementById('btnInstallApp').classList.remove('hidden');
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+        // ---------- indicação ----------
+        function captureRef() {
+            try {
+                const ref = new URLSearchParams(location.search).get('ref');
+                if (ref && /^[a-z0-9]{4,20}$/i.test(ref)) localStorage.setItem('zg_ref', ref.toLowerCase());
+            } catch (e) {}
+        }
+        function storedRef() { try { return localStorage.getItem('zg_ref') || ''; } catch (e) { return ''; } }
+        async function showRefBanner() {
+            const code = storedRef(); if (!code) return;
+            const { data } = await _supabase.rpc('get_ref_name', { p_code: code });
+            if (!data) return;
+            const b = document.getElementById('refBanner');
+            b.textContent = `${data} indicou o ZapGarantia para você. Crie sua conta!`;
+            b.classList.remove('hidden');
+            switchAuthTab('register');
+        }
+
+        let refCode = '';
+        async function openReferral() {
+            ['view-dashboard', 'view-creator', 'view-document', 'view-admin', 'view-catalog'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('view-referral').classList.remove('hidden');
+            const { data, error } = await _supabase.rpc('my_referrals');
+            if (error || !data) { alert('Não foi possível carregar suas indicações.'); return; }
+            refCode = data.code || '';
+            document.getElementById('refLink').value = `${location.origin}${location.pathname}?ref=${refCode}`;
+            const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-3 text-center"><span class="text-xs font-bold text-${c}-800 block uppercase">${label}</span><span class="text-2xl font-black text-${c}-900">${esc(val)}</span></div>`;
+            document.getElementById('refCards').innerHTML = card('Indicados', data.total, 'blue') + card('Pontos', data.points, 'amber') +
+                card('Criaram orçamento', data.with_contract, 'sky') + card('Assinaram PRO', data.pro, 'emerald');
+            const st = appSettings || {};
+            document.getElementById('refRules').innerHTML = `<p class="font-bold">Como ganhar pontos</p>
+                <p>+${esc(st.ref_points_signup ?? 10)} pontos quando seu amigo se cadastra</p>
+                <p>+${esc(st.ref_points_first_contract ?? 20)} pontos quando ele cria o primeiro orçamento</p>
+                <p>+${esc(st.ref_points_pro ?? 50)} pontos quando ele assina o plano PRO</p>
+                <p class="text-slate-700 pt-1">Os pontos poderão ser trocados por benefícios. Avisaremos por aqui.</p>`;
+            const list = document.getElementById('refList');
+            list.innerHTML = (data.list && data.list.length) ? data.list.map(i => `<div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+                    <div><span class="font-bold text-sm text-slate-900 block">${esc(i.name || 'Indicado')}</span>
+                    <span class="text-slate-700">${i.referred_at ? esc(new Date(i.referred_at).toLocaleDateString('pt-BR')) : ''} · Cadastrou${i.has_contract ? ' · Criou orçamento' : ''}${i.is_pro ? ' · PRO' : ''}</span></div>
+                    <span class="font-bold text-amber-700 shrink-0">+${esc(i.points)} pts</span></div>`).join('')
+                : '<p class="text-xs text-slate-700 text-center py-3">Ainda ninguém se cadastrou pelo seu link. Compartilhe e comece a ganhar pontos!</p>';
+        }
+        function copyRefLink() {
+            const el = document.getElementById('refLink');
+            if (navigator.clipboard) navigator.clipboard.writeText(el.value).catch(() => {});
+            el.select(); try { document.execCommand('copy'); } catch (e) {}
+            alert('Link copiado!');
+        }
+        function shareRefLink() {
+            const msg = `Conheça o ZapGarantia: orçamentos com assinatura do cliente, fotos do serviço e PDF. Cadastre-se pelo meu link: ${document.getElementById('refLink').value}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        let adminRefOpen = null;
+        async function loadAdminReferrals() {
+            const pane = document.getElementById('adminPaneRef');
+            pane.innerHTML = '<p class="text-xs text-slate-700">Carregando...</p>';
+            const d = await adminRpc('admin_referrals');
+            if (!d || d === true) { pane.innerHTML = ''; return; }
+            const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-2 text-center"><span class="text-xs font-bold text-${c}-800 block uppercase">${label}</span><span class="text-lg font-black text-${c}-900">${esc(val)}</span></div>`;
+            pane.innerHTML = `<div class="grid grid-cols-2 gap-2">${card('Quem indica', d.referrers, 'purple')}${card('Indicados', d.referred, 'blue')}${card('Viraram PRO', d.pro, 'emerald')}${card('Pontos dados', d.points, 'amber')}</div>
+                <p class="font-bold text-xs uppercase text-slate-700 pt-1">Ranking de quem indicou</p>
+                <div class="space-y-2">${(d.ranking || []).map(r => `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+                    <div class="flex justify-between"><span class="font-bold text-sm">${esc(r.name)}</span><span class="font-bold text-amber-700">${esc(r.points)} pts</span></div>
+                    <span class="text-slate-700 block break-all">${esc(r.email)} · código ${esc(r.code)}</span>
+                    <span class="text-slate-800 block">${esc(r.referred)} indicados · ${esc(r.with_contract)} com orçamento · ${esc(r.pro)} PRO</span>
+                    <button onclick="toggleRefOf('${esc(r.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">${adminRefOpen === r.id ? 'Esconder indicados' : 'Ver indicados'}</button>
+                    <div id="refOf-${esc(r.id)}" class="space-y-1"></div></div>`).join('') || '<p class="text-xs text-slate-700 text-center py-3">Ninguém indicou ainda.</p>'}</div>`;
+            if (adminRefOpen) fillRefOf(adminRefOpen);
+        }
+        async function toggleRefOf(id) {
+            adminRefOpen = adminRefOpen === id ? null : id;
+            await loadAdminReferrals();
+        }
+        async function fillRefOf(id) {
+            const el = document.getElementById('refOf-' + id); if (!el) return;
+            const rows = await adminRpc('admin_referred_of', { p_user: id });
+            el.innerHTML = (Array.isArray(rows) ? rows : []).map(i => `<div class="bg-white border border-slate-200 rounded-lg p-2">
+                <span class="font-semibold block">${esc(i.name)}</span><span class="text-slate-700 break-all block">${esc(i.email)}</span>
+                <span class="text-slate-700">${i.referred_at ? esc(new Date(i.referred_at).toLocaleDateString('pt-BR')) : ''}${i.has_contract ? ' · com orçamento' : ''}${i.is_pro ? ' · PRO' : ''} · +${esc(i.points)} pts</span></div>`).join('');
+        }
+
+        let catalogItems = [];
+        function fmtPrice(n) { return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+
+        async function openCatalog() {
+            ['view-dashboard', 'view-creator', 'view-document', 'view-admin'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('view-catalog').classList.remove('hidden');
+            document.getElementById('catalogSearch').value = '';
+            const list = document.getElementById('catalogList');
+            list.innerHTML = '<p class="col-span-2 text-xs text-slate-700">Carregando...</p>';
+            const { data, error } = await _supabase.from('catalog_items').select('id,title,description,price,old_price,image_url,affiliate_url').eq('active', true)
+                .order('sort_order').order('created_at', { ascending: false });
+            if (error) { list.innerHTML = '<p class="col-span-2 text-xs text-red-600">Não foi possível carregar o catálogo.</p>'; return; }
+            catalogItems = data || [];
+            renderCatalogGrid();
+        }
+
+        function renderCatalogGrid() {
+            const q = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
+            const list = document.getElementById('catalogList');
+            const rows = catalogItems.filter(i => !q || (i.title + ' ' + i.description).toLowerCase().includes(q));
+            if (!rows.length) { list.innerHTML = '<p class="col-span-2 text-sm text-slate-700 text-center py-8">Nenhum produto encontrado.</p>'; return; }
+            list.innerHTML = rows.map(i => {
+                const off = i.old_price && i.price != null && Number(i.old_price) > Number(i.price) ? Math.round((1 - Number(i.price) / Number(i.old_price)) * 100) : 0;
+                return `<a href="${esc(safeUrl(i.affiliate_url))}" target="_blank" rel="noopener noreferrer sponsored" class="block bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 relative">
+                    ${off ? `<span class="absolute top-0 right-0 bg-emerald-600 text-white text-xs font-bold px-1.5 py-1 rounded-bl-lg">-${off}%</span>` : ''}
+                    ${i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" class="w-full aspect-square object-cover bg-slate-100">` : '<div class="w-full aspect-square bg-slate-100 flex items-center justify-center text-slate-400 text-3xl"><i class="fa-solid fa-image"></i></div>'}
+                    <div class="p-2.5 space-y-1">
+                        <h2 class="text-sm font-semibold text-slate-900 line-clamp-2">${esc(i.title)}</h2>
+                        ${i.description ? `<p class="text-xs text-slate-700 line-clamp-2">${esc(i.description)}</p>` : ''}
+                        ${i.price != null ? `<p class="text-base font-black text-blue-700">${esc(fmtPrice(i.price))}${off ? ` <span class="text-xs font-normal text-slate-500 line-through">${esc(fmtPrice(i.old_price))}</span>` : ''}</p>` : ''}
+                        <span class="block text-center bg-emerald-600 text-white text-xs font-bold py-1.5 rounded-lg">Ver oferta</span>
+                    </div></a>`;
+            }).join('');
+        }
+
+        // ---------- banner (produto em destaque) ----------
+        async function loadBanner() {
+            const { data } = await _supabase.rpc('get_featured_item');
+            renderFeatured(data || null);
+        }
+        function renderFeatured(item) {
+            ['featuredBannerDash', 'featuredBannerDoc'].forEach(id => {
+                const a = document.getElementById(id); if (!a) return;
+                if (!item) { a.classList.add('hidden'); a.innerHTML = ''; return; }
+                a.href = safeUrl(item.affiliate_url);
+                a.innerHTML = `<span class="text-xs uppercase font-bold text-blue-700 block px-3 pt-2">Oferta ZapGarantia</span>
+                    <div class="flex items-center gap-3 p-3 pt-1">
+                        ${item.image_url ? `<img src="${esc(item.image_url)}" alt="" loading="lazy" class="w-16 h-16 rounded-lg object-cover bg-slate-100 shrink-0">` : ''}
+                        <div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-900 line-clamp-2">${esc(item.title)}</p>
+                        ${item.price != null ? `<p class="text-base font-black text-blue-700">${esc(fmtPrice(item.price))}</p>` : ''}</div>
+                        <span class="text-xs font-bold text-white bg-emerald-600 px-3 py-2 rounded-lg shrink-0">Ver</span>
+                    </div>`;
+                a.classList.remove('hidden');
+            });
+        }
+
+        async function loadAdminCatalog() {
+            const { data } = await _supabase.from('catalog_items').select('*').order('sort_order').order('created_at', { ascending: false });
+            adminCatalog = data || [];
+            renderAdminCatalog();
+        }
+        function renderAdminCatalog() {
+            const pane = document.getElementById('adminPaneCatalog');
+            const cur = catEditing && catEditing !== 'new' ? adminCatalog.find(x => x.id === catEditing) : null;
+            const form = catEditing ? `<div class="bg-white border border-purple-200 rounded-xl p-3 space-y-2 text-xs">
+                <p class="font-bold text-sm">${cur ? 'Editar produto' : 'Novo produto'}</p>
+                <input id="catTitle" maxlength="120" placeholder="Título" value="${esc(cur ? cur.title : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
+                <textarea id="catDesc" rows="3" maxlength="600" placeholder="Descrição" class="w-full p-2 border border-slate-200 rounded-lg text-sm">${esc(cur ? cur.description : '')}</textarea>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="font-semibold">Preço (R$)<input id="catPrice" inputmode="decimal" placeholder="49,90" value="${esc(cur && cur.price != null ? String(cur.price).replace('.', ',') : '')}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
+                    <label class="font-semibold">Preço antigo (opcional)<input id="catOldPrice" inputmode="decimal" placeholder="79,90" value="${esc(cur && cur.old_price != null ? String(cur.old_price).replace('.', ',') : '')}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
+                </div>
+                <input id="catUrl" inputmode="url" placeholder="Link de afiliado (https://...)" value="${esc(cur ? cur.affiliate_url : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
+                <label class="block font-semibold">Foto do produto (opcional)${cur && cur.image_url ? ' — já tem foto; escolha outra para trocar' : ''}<input id="catImage" type="file" accept="image/*" class="w-full mt-1 text-xs"></label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="font-semibold">Ordem<input id="catSort" type="number" value="${esc(cur ? cur.sort_order : 0)}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
+                    <label class="flex items-center space-x-2 font-semibold pt-5"><input id="catActive" type="checkbox" ${!cur || cur.active ? 'checked' : ''} class="w-5 h-5"><span>Visível</span></label>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="catEditing=null;renderAdminCatalog()" class="py-2 rounded-lg bg-slate-200 font-semibold cursor-pointer">Cancelar</button>
+                    <button id="btnSaveCat" onclick="saveCatalogItem()" class="py-2 rounded-lg bg-purple-700 text-white font-bold cursor-pointer">Salvar</button>
+                </div></div>` : (catImport ? csvPanel() : `<div class="grid grid-cols-2 gap-2">
+                <button onclick="catEditing='new';catImport=false;renderAdminCatalog()" class="py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-plus"></i> Novo produto</button>
+                <button onclick="catImport=true;csvParsed=null;renderAdminCatalog()" class="py-3 rounded-xl bg-slate-800 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-file-csv"></i> Importar CSV</button>
+            </div>`);
+            const rows = adminCat
