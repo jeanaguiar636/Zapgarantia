@@ -226,6 +226,7 @@
                     <button onclick="goHome()" class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer">Voltar</button>
                 </div>
                 <input id="catalogSearch" oninput="renderCatalogGrid()" placeholder="Buscar produtos" class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white focus:outline-none">
+                <div id="catalogChips" class="flex gap-2 overflow-x-auto pb-1"></div>
             </div>
             <div id="catalogList" class="grid grid-cols-2 gap-3"></div>
         </div>
@@ -265,7 +266,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 21 · login ok</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 22 · materiais e categorias</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -290,6 +291,15 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Descrição do Serviço / Aparelho</label>
                         <textarea id="serviceDesc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Ex: Troca de tela iPhone 13, cor preta..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Categoria do serviço (opcional)</label>
+                        <select id="matCategory" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none"><option value="">Sem categoria</option></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 uppercase mb-1">Materiais necessários (opcional)</label>
+                        <textarea id="matText" rows="3" maxlength="1500" placeholder="Ex.: lixa, fita crepe, pincel, rolo, bandeja de tinta, massa corrida" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
+                        <p class="text-xs text-slate-700 mt-1">Separe por vírgula ou um item por linha. O cliente vê a lista e produtos do catálogo para esses materiais.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-800 uppercase mb-1"><i class="fa-solid fa-image"></i> Fotos</label>
@@ -346,6 +356,10 @@
                         <p><strong class="text-slate-700">Garantia:</strong> <span id="docWarrantyPeriod">-</span></p>
                     </div>
 
+                    <div id="docMaterialsWrap" class="hidden bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                        <span class="font-bold text-slate-800 block uppercase text-xs">Materiais necessários <span id="docMaterialsCat" class="text-blue-700"></span></span>
+                        <ul id="docMaterialsList" class="list-disc pl-5 text-sm text-slate-800"></ul>
+                    </div>
                     <div id="docMediaContainer" class="space-y-3 hidden">
                         <div id="docGalleryWrap" class="hidden">
                             <span class="font-bold text-xs text-slate-700 uppercase block mb-1">Fotos (toque para ampliar)</span>
@@ -429,6 +443,11 @@
                 <button id="btnBackHome" onclick="goHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer">
                     Voltar ao Início
                 </button>
+            </div>
+
+            <div id="matSuggest" class="hidden no-print bg-white border border-blue-100 rounded-2xl shadow-sm p-3 space-y-2">
+                <p class="text-xs uppercase font-bold text-blue-700">Materiais para este serviço</p>
+                <div id="matSuggestList" class="flex gap-3 overflow-x-auto pb-1"></div>
             </div>
 
             <a id="featuredBannerDoc" class="hidden block bg-white border border-blue-100 rounded-2xl shadow-sm no-print" target="_blank" rel="noopener noreferrer sponsored"></a>
@@ -775,6 +794,8 @@
                     service_value: document.getElementById('serviceValue').value,
                     warranty_period: document.getElementById('warrantyPeriod').value,
                     service_desc: document.getElementById('serviceDesc').value,
+                    materials: (document.getElementById('matText').value || '').trim() || null,
+                    materials_category: document.getElementById('matCategory').value || null,
                     image_url: images[0] || '',
                     video_url: videos[0] || '',
                     images: images,
@@ -862,6 +883,7 @@
             if (images.length || videos.length || hasLink) mediaContainer.classList.remove('hidden');
 
             renderFinal(item);
+            renderMaterials(item);
             document.getElementById('clientSignArea').classList.toggle('hidden', !(clientMode && !signed));
             document.getElementById('proLinkArea').classList.toggle('hidden', clientMode || !item.public_token);
             document.getElementById('btnPdf').classList.toggle('hidden', clientMode && !signed);
@@ -903,6 +925,7 @@
             appSettings = (st && st.data) || {};
             applyFeatureFlags();
             loadBanner();
+            loadCategories();
         }
         function applyFeatureFlags() {
             const on = k => appSettings[k] !== false;
@@ -1334,523 +1357,60 @@
                 <span class="text-slate-700">${i.referred_at ? esc(new Date(i.referred_at).toLocaleDateString('pt-BR')) : ''}${i.has_contract ? ' · com orçamento' : ''}${i.is_pro ? ' · PRO' : ''} · +${esc(i.points)} pts</span></div>`).join('');
         }
 
-        let catalogItems = [];
-        function fmtPrice(n) { return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-
-        async function openCatalog() {
-            ['view-dashboard', 'view-creator', 'view-document', 'view-admin'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            document.getElementById('view-catalog').classList.remove('hidden');
-            document.getElementById('catalogSearch').value = '';
-            const list = document.getElementById('catalogList');
-            list.innerHTML = '<p class="col-span-2 text-xs text-slate-700">Carregando...</p>';
-            const { data, error } = await _supabase.from('catalog_items').select('id,title,description,price,old_price,image_url,affiliate_url').eq('active', true)
-                .order('sort_order').order('created_at', { ascending: false });
-            if (error) { list.innerHTML = '<p class="col-span-2 text-xs text-red-600">Não foi possível carregar o catálogo.</p>'; return; }
-            catalogItems = data || [];
-            renderCatalogGrid();
-        }
-
-        function renderCatalogGrid() {
-            const q = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
-            const list = document.getElementById('catalogList');
-            const rows = catalogItems.filter(i => !q || (i.title + ' ' + i.description).toLowerCase().includes(q));
-            if (!rows.length) { list.innerHTML = '<p class="col-span-2 text-sm text-slate-700 text-center py-8">Nenhum produto encontrado.</p>'; return; }
-            list.innerHTML = rows.map(i => {
-                const off = i.old_price && i.price != null && Number(i.old_price) > Number(i.price) ? Math.round((1 - Number(i.price) / Number(i.old_price)) * 100) : 0;
-                return `<a href="${esc(safeUrl(i.affiliate_url))}" target="_blank" rel="noopener noreferrer sponsored" class="block bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 relative">
-                    ${off ? `<span class="absolute top-0 right-0 bg-emerald-600 text-white text-xs font-bold px-1.5 py-1 rounded-bl-lg">-${off}%</span>` : ''}
-                    ${i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" class="w-full aspect-square object-cover bg-slate-100">` : '<div class="w-full aspect-square bg-slate-100 flex items-center justify-center text-slate-400 text-3xl"><i class="fa-solid fa-image"></i></div>'}
-                    <div class="p-2.5 space-y-1">
-                        <h2 class="text-sm font-semibold text-slate-900 line-clamp-2">${esc(i.title)}</h2>
-                        ${i.description ? `<p class="text-xs text-slate-700 line-clamp-2">${esc(i.description)}</p>` : ''}
-                        ${i.price != null ? `<p class="text-base font-black text-blue-700">${esc(fmtPrice(i.price))}${off ? ` <span class="text-xs font-normal text-slate-500 line-through">${esc(fmtPrice(i.old_price))}</span>` : ''}</p>` : ''}
-                        <span class="block text-center bg-emerald-600 text-white text-xs font-bold py-1.5 rounded-lg">Ver oferta</span>
-                    </div></a>`;
-            }).join('');
-        }
-
-        // ---------- banner (produto em destaque) ----------
-        async function loadBanner() {
-            const { data } = await _supabase.rpc('get_featured_item');
-            renderFeatured(data || null);
-        }
-        function renderFeatured(item) {
-            ['featuredBannerDash', 'featuredBannerDoc'].forEach(id => {
-                const a = document.getElementById(id); if (!a) return;
-                if (!item) { a.classList.add('hidden'); a.innerHTML = ''; return; }
-                a.href = safeUrl(item.affiliate_url);
-                a.innerHTML = `<span class="text-xs uppercase font-bold text-blue-700 block px-3 pt-2">Oferta ZapGarantia</span>
-                    <div class="flex items-center gap-3 p-3 pt-1">
-                        ${item.image_url ? `<img src="${esc(item.image_url)}" alt="" loading="lazy" class="w-16 h-16 rounded-lg object-cover bg-slate-100 shrink-0">` : ''}
-                        <div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-900 line-clamp-2">${esc(item.title)}</p>
-                        ${item.price != null ? `<p class="text-base font-black text-blue-700">${esc(fmtPrice(item.price))}</p>` : ''}</div>
-                        <span class="text-xs font-bold text-white bg-emerald-600 px-3 py-2 rounded-lg shrink-0">Ver</span>
-                    </div>`;
-                a.classList.remove('hidden');
-            });
-        }
-
-        async function loadAdminCatalog() {
-            const { data } = await _supabase.from('catalog_items').select('*').order('sort_order').order('created_at', { ascending: false });
-            adminCatalog = data || [];
-            renderAdminCatalog();
-        }
-        function renderAdminCatalog() {
-            const pane = document.getElementById('adminPaneCatalog');
-            const cur = catEditing && catEditing !== 'new' ? adminCatalog.find(x => x.id === catEditing) : null;
-            const form = catEditing ? `<div class="bg-white border border-purple-200 rounded-xl p-3 space-y-2 text-xs">
-                <p class="font-bold text-sm">${cur ? 'Editar produto' : 'Novo produto'}</p>
-                <input id="catTitle" maxlength="120" placeholder="Título" value="${esc(cur ? cur.title : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
-                <textarea id="catDesc" rows="3" maxlength="600" placeholder="Descrição" class="w-full p-2 border border-slate-200 rounded-lg text-sm">${esc(cur ? cur.description : '')}</textarea>
-                <div class="grid grid-cols-2 gap-2">
-                    <label class="font-semibold">Preço (R$)<input id="catPrice" inputmode="decimal" placeholder="49,90" value="${esc(cur && cur.price != null ? String(cur.price).replace('.', ',') : '')}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
-                    <label class="font-semibold">Preço antigo (opcional)<input id="catOldPrice" inputmode="decimal" placeholder="79,90" value="${esc(cur && cur.old_price != null ? String(cur.old_price).replace('.', ',') : '')}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
-                </div>
-                <input id="catUrl" inputmode="url" placeholder="Link de afiliado (https://...)" value="${esc(cur ? cur.affiliate_url : '')}" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
-                <label class="block font-semibold">Foto do produto (opcional)${cur && cur.image_url ? ' — já tem foto; escolha outra para trocar' : ''}<input id="catImage" type="file" accept="image/*" class="w-full mt-1 text-xs"></label>
-                <div class="grid grid-cols-2 gap-2">
-                    <label class="font-semibold">Ordem<input id="catSort" type="number" value="${esc(cur ? cur.sort_order : 0)}" class="w-full mt-1 p-2 border border-slate-200 rounded-lg text-sm"></label>
-                    <label class="flex items-center space-x-2 font-semibold pt-5"><input id="catActive" type="checkbox" ${!cur || cur.active ? 'checked' : ''} class="w-5 h-5"><span>Visível</span></label>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="catEditing=null;renderAdminCatalog()" class="py-2 rounded-lg bg-slate-200 font-semibold cursor-pointer">Cancelar</button>
-                    <button id="btnSaveCat" onclick="saveCatalogItem()" class="py-2 rounded-lg bg-purple-700 text-white font-bold cursor-pointer">Salvar</button>
-                </div></div>` : (catImport ? csvPanel() : `<div class="grid grid-cols-2 gap-2">
-                <button onclick="catEditing='new';catImport=false;renderAdminCatalog()" class="py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-plus"></i> Novo produto</button>
-                <button onclick="catImport=true;csvParsed=null;renderAdminCatalog()" class="py-3 rounded-xl bg-slate-800 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-file-csv"></i> Importar CSV</button>
-            </div>`);
-            const rows = adminCatalog.map(i => `<div class="bg-slate-50 border ${i.active ? 'border-slate-200' : 'border-amber-300'} rounded-xl p-3 text-xs space-y-2">
-                <div class="flex justify-between"><span class="font-bold text-sm">${esc(i.title)}${i.price != null ? ' · ' + esc(fmtPrice(i.price)) : ''}${i.featured ? ' <span class="text-blue-700">(banner)</span>' : ''}</span><span class="font-bold ${i.active ? 'text-emerald-700' : 'text-amber-700'}">${i.active ? 'Visível' : 'Oculto'}</span></div>
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="catEditing='${esc(i.id)}';renderAdminCatalog()" class="py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Editar</button>
-                    <button onclick="toggleCatalogItem('${esc(i.id)}',${!i.active})" class="py-1.5 rounded-lg bg-amber-100 text-amber-900 font-semibold cursor-pointer">${i.active ? 'Ocultar' : 'Mostrar'}</button>
-                    <button onclick="deleteCatalogItem('${esc(i.id)}')" class="py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold cursor-pointer">Excluir</button>
-                </div>
-                <button onclick="setFeatured(${i.featured ? 'null' : `'${esc(i.id)}'`})" class="w-full py-1.5 rounded-lg ${i.featured ? 'bg-blue-100 text-blue-900' : 'bg-blue-700 text-white'} font-semibold cursor-pointer">${i.featured ? 'Tirar do banner' : 'Usar como banner'}</button></div>`).join('');
-            pane.innerHTML = form + (rows || '<p class="text-xs text-slate-700 text-center py-3">Nenhum produto ainda.</p>');
-        }
-        // ---------- importar catálogo por CSV (em massa) ----------
-        function csvPanel() {
-            return `<div class="bg-white border border-purple-200 rounded-xl p-3 space-y-2 text-xs">
-                <p class="font-bold text-sm">Importar produtos por CSV</p>
-                <p class="text-slate-800">Colunas: <b>titulo; descricao; link; preco; preco_antigo; imagem; ordem; visivel</b>. Só <b>titulo</b> e <b>link</b> são obrigatórios. Aceita separador ; ou , (planilha do Excel/Google). A <b>imagem</b> é o endereço (link) da foto.</p>
-                <button onclick="downloadCsvModel()" class="w-full py-2 rounded-lg bg-slate-200 font-semibold cursor-pointer"><i class="fa-solid fa-download"></i> Baixar modelo de CSV</button>
-                <input id="csvFile" type="file" accept=".csv,.txt,text/csv,text/plain" onchange="loadCsvFile(this)" class="w-full text-xs">
-                <textarea id="csvText" rows="5" placeholder="Ou cole aqui o conteúdo do CSV" oninput="previewCsv()" class="w-full p-2 border border-slate-200 rounded-lg text-xs font-mono"></textarea>
-                <div id="csvPreview" class="space-y-1"></div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="catImport=false;csvParsed=null;renderAdminCatalog()" class="py-2 rounded-lg bg-slate-200 font-semibold cursor-pointer">Cancelar</button>
-                    <button id="btnImportCsv" onclick="runCsvImport()" class="py-2 rounded-lg bg-purple-700 text-white font-bold cursor-pointer">Importar</button>
-                </div></div>`;
-        }
-        function downloadCsvModel() {
-            const csv = '\ufefftitulo;descricao;link;preco;preco_antigo;imagem;ordem;visivel\n' +
-                '"Fone Bluetooth";"Som de qualidade e bateria longa";"https://s.shopee.com.br/exemplo1";49,90;79,90;"https://exemplo.com/foto1.jpg";1;sim\n' +
-                '"Suporte de celular";"Ajustável para mesa";"https://s.shopee.com.br/exemplo2";19,90;;;2;sim\n';
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-            a.download = 'modelo-catalogo.csv';
-            document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-        }
-        async function loadCsvFile(input) {
-            const f = input.files && input.files[0]; if (!f) return;
-            const buf = await f.arrayBuffer();
-            let text;
-            try { text = new TextDecoder('utf-8', { fatal: true }).decode(buf); }
-            catch (e) { text = new TextDecoder('windows-1252').decode(buf); } // planilha salva em ANSI
-            document.getElementById('csvText').value = text;
-            previewCsv();
-        }
-        function parseCsv(text) {
-            text = text.replace(/^\ufeff/, '');
-            const first = text.split(/\r?\n/, 1)[0] || '';
-            const delim = (first.split(';').length >= first.split(',').length) ? ';' : ',';
-            const rows = []; let row = [], cell = '', q = false;
-            for (let i = 0; i < text.length; i++) {
-                const c = text[i];
-                if (q) {
-                    if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
-                    else cell += c;
-                } else if (c === '"') q = true;
-                else if (c === delim) { row.push(cell); cell = ''; }
-                else if (c === '\n' || c === '\r') {
-                    if (c === '\r' && text[i + 1] === '\n') i++;
-                    row.push(cell); cell = '';
-                    if (row.some(x => x.trim() !== '')) rows.push(row);
-                    row = [];
-                } else cell += c;
-            }
-            row.push(cell);
-            if (row.some(x => x.trim() !== '')) rows.push(row);
-            return rows;
-        }
-        function parseMoneyBR(v) {
-            let t = String(v == null ? '' : v).trim().replace(/^R\$\s*/i, '');
-            if (!t) return null;
-            if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
-            const n = parseFloat(t);
-            return n >= 0 ? n : NaN;
-        }
-        function previewCsv() {
-            const box = document.getElementById('csvPreview');
-            const text = document.getElementById('csvText').value;
-            if (!text.trim()) { csvParsed = null; box.innerHTML = ''; return; }
-            const table = parseCsv(text);
-            const norm = h => h.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-            const alias = { titulo: 'title', title: 'title', nome: 'title', produto: 'title',
-                descricao: 'description', description: 'description',
-                link: 'url', url: 'url', link_de_afiliado: 'url', link_afiliado: 'url', affiliate_url: 'url',
-                preco: 'price', price: 'price', preco_antigo: 'old_price', preco_de: 'old_price', old_price: 'old_price',
-                imagem: 'image', foto: 'image', image: 'image', image_url: 'image',
-                ordem: 'sort', sort_order: 'sort', visivel: 'active', ativo: 'active', active: 'active' };
-            const cols = table[0].map(h => alias[norm(h)] || null);
-            if (!cols.includes('title') || !cols.includes('url')) {
-                csvParsed = null;
-                box.innerHTML = '<p class="text-red-600 font-semibold">A primeira linha precisa ter as colunas "titulo" e "link". Baixe o modelo para ver o formato.</p>';
-                return;
-            }
-            const existing = new Set(adminCatalog.map(x => String(x.affiliate_url).trim().toLowerCase()));
-            const seen = new Set(), ok = [], errors = []; let dups = 0;
-            if (table.length - 1 > 500) errors.push('O arquivo tem mais de 500 linhas: só as 500 primeiras serão lidas.');
-            table.slice(1, 501).forEach((cells, idx) => {
-                const line = idx + 2, g = k => { const i = cols.indexOf(k); return i >= 0 ? (cells[i] || '').trim() : ''; };
-                const title = g('title'); let url = g('url');
-                if (title.length < 2 || title.length > 120) { errors.push(`Linha ${line}: título precisa ter de 2 a 120 letras.`); return; }
-                if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-                try { new URL(url); } catch (e) { errors.push(`Linha ${line}: link inválido.`); return; }
-                const desc = g('description');
-                if (desc.length > 600) { errors.push(`Linha ${line}: descrição passa de 600 letras.`); return; }
-                const price = parseMoneyBR(g('price')), old = parseMoneyBR(g('old_price'));
-                if (Number.isNaN(price) || Number.isNaN(old)) { errors.push(`Linha ${line}: preço inválido.`); return; }
-                let img = g('image'); if (img && !/^https?:\/\//i.test(img)) img = '';
-                const act = g('active').toLowerCase();
-                const key = url.toLowerCase();
-                if (existing.has(key) || seen.has(key)) { dups++; return; }
-                seen.add(key);
-                ok.push({ title, description: desc, affiliate_url: url, image_url: img || null, price, old_price: old,
-                    sort_order: parseInt(g('sort'), 10) || 0, active: !['nao', 'não', 'n', '0', 'false', 'oculto'].includes(act) });
-            });
-            csvParsed = { rows: ok, errors, dups };
-            box.innerHTML = `<p class="font-bold text-emerald-800">${ok.length} produto(s) prontos para importar</p>` +
-                (dups ? `<p class="text-amber-800">${dups} repetido(s) (mesmo link) serão ignorados.</p>` : '') +
-                (errors.length ? `<p class="text-red-600 font-semibold">${errors.length} aviso(s):</p>` + errors.slice(0, 8).map(e => `<p class="text-red-600">${esc(e)}</p>`).join('') + (errors.length > 8 ? '<p class="text-red-600">...</p>' : '') : '') +
-                ok.slice(0, 4).map(x => `<p class="text-slate-800">• ${esc(x.title)}${x.price != null ? ' · ' + esc(fmtPrice(x.price)) : ''}</p>`).join('') + (ok.length > 4 ? `<p class="text-slate-700">e mais ${ok.length - 4}...</p>` : '');
-        }
-        async function runCsvImport() {
-            if (!csvParsed) previewCsv();
-            if (!csvParsed || !csvParsed.rows.length) { alert('Não há produtos válidos para importar.'); return; }
-            if (!confirm(`Importar ${csvParsed.rows.length} produto(s) para o catálogo?`)) return;
-            const btn = document.getElementById('btnImportCsv'); btn.disabled = true;
-            let done = 0;
-            try {
-                for (let i = 0; i < csvParsed.rows.length; i += 100) {
-                    btn.textContent = `Importando ${Math.min(i + 100, csvParsed.rows.length)} de ${csvParsed.rows.length}...`;
-                    const { error } = await _supabase.from('catalog_items').insert(csvParsed.rows.slice(i, i + 100));
-                    if (error) throw error;
-                    done = Math.min(i + 100, csvParsed.rows.length);
-                }
-                alert(`${done} produto(s) importados!`);
-                catImport = false; csvParsed = null;
-                await loadAdminCatalog();
-            } catch (e) {
-                alert(`Importação parou: ${e.message || e}. ${done} produto(s) já tinham sido importados antes do erro.`);
-                btn.disabled = false; btn.textContent = 'Importar';
+        // ---------- categorias, materiais e sugestão de produtos ----------
+        let catalogCategories = [], catalogCatFilter = '', hasSuggest = false;
+        async function loadCategories() {
+            const { data } = await _supabase.from('catalog_categories').select('id,name,sort_order').order('sort_order').order('name');
+            catalogCategories = data || [];
+            const sel = document.getElementById('matCategory');
+            if (sel) {
+                const cur = sel.value;
+                sel.innerHTML = '<option value="">Sem categoria</option>' + catalogCategories.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+                sel.value = cur;
             }
         }
+        function renderCatalogChips() {
+            const box = document.getElementById('catalogChips'); if (!box) return;
+            const chip = (id, name) => `<button onclick="setCatFilter('${esc(id)}')" class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer ${catalogCatFilter === id ? 'bg-white text-blue-800' : 'bg-white/20 text-white'}">${esc(name)}</button>`;
+            box.innerHTML = chip('', 'Todas') + catalogCategories.map(c => chip(c.id, c.name)).join('');
+        }
+        function setCatFilter(id) { catalogCatFilter = id; renderCatalogChips(); renderCatalogGrid(); }
 
-        async function saveCatalogItem() {
-            const g = id => document.getElementById(id);
-            const title = g('catTitle').value.trim(), desc = g('catDesc').value.trim();
-            let url = g('catUrl').value.trim();
-            if (title.length < 2) { alert('Digite o título do produto.'); return; }
-            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-            try { new URL(url); } catch (e) { alert('O link de afiliado não parece válido.'); return; }
-            const btn = g('btnSaveCat'); btn.disabled = true; btn.textContent = 'Salvando...';
-            try {
-                const cur = catEditing !== 'new' ? adminCatalog.find(x => x.id === catEditing) : null;
-                let image_url = cur ? cur.image_url : null;
-                const f = g('catImage').files[0];
-                if (f) image_url = await uploadFileToR2(f);
-                const money = v => { let t = String(v || '').trim(); if (!t) return null; if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.'); const n = parseFloat(t); if (!(n >= 0)) throw new Error('Preço inválido: use números, por exemplo 49,90.'); return n; };
-                const row = { title, description: desc, affiliate_url: url, image_url, price: money(g('catPrice').value), old_price: money(g('catOldPrice').value), active: g('catActive').checked, sort_order: parseInt(g('catSort').value, 10) || 0 };
-                const q = cur ? _supabase.from('catalog_items').update(row).eq('id', cur.id) : _supabase.from('catalog_items').insert([row]);
-                const { error } = await q;
-                if (error) throw error;
-                catEditing = null; await loadAdminCatalog();
-            } catch (e) { alert('Não foi possível salvar: ' + (e.message || e)); btn.disabled = false; btn.textContent = 'Salvar'; }
+        function catManager() {
+            return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2"><p class="font-bold text-sm">Categorias</p>
+                <div class="flex gap-2"><input id="newCat" maxlength="40" placeholder="Nova categoria (ex.: Pintura)" class="flex-1 p-2 border border-slate-200 rounded-lg text-sm"><button onclick="addCategory()" class="px-3 rounded-lg bg-purple-700 text-white font-bold cursor-pointer">Adicionar</button></div>
+                <div class="flex flex-wrap gap-2">${catalogCategories.map(c => `<span class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-full px-2.5 py-1 font-semibold">${esc(c.name)}<button onclick="deleteCategory('${esc(c.id)}')" class="text-red-600 font-bold cursor-pointer" aria-label="Excluir categoria">×</button></span>`).join('') || '<span class="text-slate-700">Nenhuma ainda.</span>'}</div></div>`;
         }
-        async function setFeatured(id) {
-            if (await adminRpc('admin_set_featured', { p_id: id })) { await loadAdminCatalog(); loadBanner(); }
+        async function addCategory() {
+            const name = (document.getElementById('newCat').value || '').trim();
+            if (name.length < 2) { alert('Digite o nome da categoria.'); return; }
+            const { error } = await _supabase.from('catalog_categories').insert({ name, sort_order: catalogCategories.length + 1 });
+            if (error) { alert(error.message.includes('duplicate') ? 'Essa categoria já existe.' : 'Erro: ' + error.message); return; }
+            await loadCategories(); renderAdminCatalog();
         }
-        async function toggleCatalogItem(id, active) {
-            const { error } = await _supabase.from('catalog_items').update({ active }).eq('id', id);
-            if (error) alert('Erro: ' + error.message); else loadAdminCatalog();
-        }
-        async function deleteCatalogItem(id) {
-            if (!confirm('Excluir este produto do catálogo?')) return;
-            const { error } = await _supabase.from('catalog_items').delete().eq('id', id);
-            if (error) alert('Erro: ' + error.message); else loadAdminCatalog();
+        async function deleteCategory(id) {
+            if (!confirm('Excluir esta categoria? Os produtos dela ficam sem categoria.')) return;
+            const { error } = await _supabase.from('catalog_categories').delete().eq('id', id);
+            if (error) { alert('Erro: ' + error.message); return; }
+            await loadAdminCatalog();
         }
 
-        let adminUsers = [], adminOpenUser = null, adminContracts = [];
-
-        async function adminRpc(name, args) {
-            const { data, error } = await _supabase.rpc(name, args || {});
-            if (error) { alert('Erro: ' + error.message); return null; }
-            return data === null ? true : data;
+        function renderMaterials(item) {
+            const lines = String(item.materials || '').split(/[\n,;]+/).map(x => x.trim()).filter(Boolean).slice(0, 60);
+            document.getElementById('docMaterialsWrap').classList.toggle('hidden', !lines.length);
+            const ul = document.getElementById('docMaterialsList'); ul.innerHTML = '';
+            lines.forEach(l => { const li = document.createElement('li'); li.textContent = l; ul.appendChild(li); });
+            const cname = item.materials_category_name || (catalogCategories.find(c => c.id === item.materials_category) || {}).name || '';
+            document.getElementById('docMaterialsCat').textContent = cname ? '(' + cname + ')' : '';
+            loadMaterialSuggestions(item);
         }
-
-        async function openMasterAdmin() {
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-admin').classList.remove('hidden');
-            adminTab('users');
-            await loadAdmin();
-        }
-
-        function adminTab(t) {
-            const on = 'flex-1 py-2 rounded-lg cursor-pointer bg-purple-700 text-white', off = 'flex-1 py-2 rounded-lg cursor-pointer bg-slate-100 text-slate-800';
-            [['users', 'tabUsers', 'adminPaneUsers'], ['pay', 'tabPay', 'adminPanePay'], ['set', 'tabSet', 'adminPaneSettings'], ['cat', 'tabCat', 'adminPaneCatalog'], ['ref', 'tabRef', 'adminPaneRef']].forEach(([k, b, p]) => {
-                document.getElementById(b).className = t === k ? on : off;
-                document.getElementById(p).classList.toggle('hidden', t !== k);
-            });
-            if (t === 'pay') loadAdminPayments();
-            if (t === 'set') renderAdminSettings();
-            if (t === 'cat') loadAdminCatalog();
-            if (t === 'ref') loadAdminReferrals();
-        }
-
-        async function loadAdmin() {
-            const ov = await adminRpc('admin_overview');
-            if (ov && ov !== true) {
-                const card = (label, val, c) => `<div class="bg-${c}-50 border border-${c}-100 rounded-xl p-2"><span class="text-xs font-bold text-${c}-700 block uppercase">${label}</span><span class="text-lg font-black text-${c}-900">${esc(val)}</span></div>`;
-                document.getElementById('adminCards').innerHTML =
-                    card('Usuários', ov.users, 'purple') + card('PRO', ov.pro, 'emerald') + card('Bloqueados', ov.blocked, 'red') +
-                    card('Termos', ov.contracts, 'blue') + card('Assinados', ov.signed, 'sky') + card('Receita', 'R$ ' + Number(ov.revenue).toFixed(2).replace('.', ','), 'amber');
-            }
-            const users = await adminRpc('admin_list_users');
-            adminUsers = Array.isArray(users) ? users : [];
-            renderAdminUsers();
-        }
-
-        function renderAdminUsers() {
-            const q = (document.getElementById('adminSearch').value || '').toLowerCase().trim();
-            const list = document.getElementById('adminUsersList');
-            const rows = adminUsers.filter(u => !q || [u.full_name, u.email, u.whatsapp].some(v => String(v || '').toLowerCase().includes(q)));
-            if (!rows.length) { list.innerHTML = '<p class="text-xs text-slate-600 text-center py-4">Nenhum usuário encontrado.</p>'; return; }
-            list.innerHTML = rows.map(u => {
-                const open = adminOpenUser === u.id, pro = proActive(u);
-                const wa = encodeURIComponent(String(u.whatsapp || '').replace(/\D/g, ''));
-                return `<div class="bg-slate-50 rounded-xl border ${u.blocked ? 'border-red-300' : 'border-slate-200'} p-3 text-xs space-y-2">
-                    <div class="flex justify-between items-start" onclick="adminToggleUser('${esc(u.id)}')">
-                        <div class="cursor-pointer">
-                            <span class="font-bold text-slate-900 block">${esc(u.full_name)} ${u.is_admin ? '<span class="text-purple-700">(admin)</span>' : ''}</span>
-                            <span class="text-slate-700 break-all">${esc(u.email)}</span>
-                            <span class="text-slate-600 block">${esc(u.contracts)} termos &bull; ${esc(u.signed)} assinados</span>
-                            ${u.referred_by ? `<span class="block text-emerald-700 text-xs font-semibold">Indicado por ${esc((adminUsers.find(x => x.id === u.referred_by) || {}).full_name || '—')}</span>` : ''}
-                        </div>
-                        <div class="flex flex-col items-end space-y-1">
-                            <span class="px-2 py-0.5 rounded font-bold ${pro ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${pro ? (u.pro_until ? 'PRO até ' + esc(fmtDate(u.pro_until)) : 'PRO') : 'Gratuito'}</span>
-                            ${u.blocked ? '<span class="px-2 py-0.5 rounded font-bold bg-red-100 text-red-800">Bloqueado</span>' : ''}
-                        </div>
-                    </div>
-                    ${open ? `<div class="space-y-2 pt-2 border-t border-slate-200">
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="adminSetPlan('${esc(u.id)}','${pro ? 'free' : 'pro'}')" class="py-2 rounded-lg font-bold text-white ${pro ? 'bg-amber-600' : 'bg-emerald-600'} cursor-pointer">${pro ? 'Voltar p/ Gratuito' : 'Liberar PRO'}</button>
-                            <button onclick="adminSetBlocked('${esc(u.id)}',${!u.blocked})" class="py-2 rounded-lg font-bold text-white ${u.blocked ? 'bg-slate-700' : 'bg-red-600'} cursor-pointer">${u.blocked ? 'Desbloquear' : 'Bloquear'}</button>
-                            <a href="https://wa.me/55${wa}" target="_blank" class="py-2 rounded-lg font-bold text-white bg-emerald-700 text-center">WhatsApp</a>
-                            <button onclick="adminDeleteUser('${esc(u.id)}')" class="py-2 rounded-lg font-bold text-red-700 bg-red-50 border border-red-200 cursor-pointer">Excluir usuário</button>
-                        </div>
-                        <textarea id="adminNotes" rows="2" placeholder="Anotações internas (só você vê)" class="w-full p-2 border border-slate-200 rounded-lg text-xs">${esc(u.admin_notes || '')}</textarea>
-                        <button onclick="adminSaveNotes('${esc(u.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Salvar anotação</button>
-                        <p class="font-bold text-slate-700 uppercase text-xs">Limites só deste usuário (vazio = padrão do plano)</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input id="uLimPhotos" type="number" min="0" max="50" placeholder="Fotos" value="${u.limit_photos ?? ''}" class="p-2 border border-slate-200 rounded-lg text-xs">
-                            <input id="uLimVideos" type="number" min="0" max="20" placeholder="Vídeos" value="${u.limit_videos ?? ''}" class="p-2 border border-slate-200 rounded-lg text-xs">
-                        </div>
-                        <button onclick="adminSaveUserLimits('${esc(u.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Salvar limites</button>
-                        <p class="font-bold text-slate-700 uppercase text-xs">Termos deste usuário</p>
-                        <div id="adminContracts" class="space-y-1">Carregando...</div>
-                    </div>` : ''}
-                </div>`;
-            }).join('');
-            if (adminOpenUser) renderAdminContracts();
-        }
-
-        async function adminToggleUser(id) {
-            adminOpenUser = adminOpenUser === id ? null : id;
-            renderAdminUsers();
-            if (adminOpenUser) {
-                const c = await adminRpc('admin_user_contracts', { p_user: id });
-                adminContracts = Array.isArray(c) ? c : [];
-                renderAdminContracts();
-            }
-        }
-
-        function renderAdminContracts() {
-            const el = document.getElementById('adminContracts');
-            if (!el) return;
-            if (!adminContracts.length) { el.innerHTML = '<span class="text-slate-600">Nenhum termo.</span>'; return; }
-            el.innerHTML = adminContracts.map((c, i) => `<div class="flex justify-between items-center bg-white border border-slate-200 rounded-lg p-2">
-                <div><span class="font-semibold block">${esc(c.client_name)}</span><span class="text-slate-600">R$ ${esc(c.service_value)} &bull; ${esc(c.status)}</span></div>
-                <div class="space-x-1">
-                    <button onclick="adminViewContract(${i})" class="px-2 py-1 rounded bg-blue-600 text-white cursor-pointer">Ver</button>
-                    <button onclick="adminDeleteContract('${esc(c.id)}')" class="px-2 py-1 rounded bg-red-100 text-red-700 cursor-pointer">Apagar</button>
-                </div></div>`).join('');
-        }
-
-        function adminViewContract(i) {
-            const c = adminContracts[i];
-            const u = adminUsers.find(x => x.id === c.professional_id) || {};
-            document.getElementById('view-admin').classList.add('hidden');
-            document.getElementById('view-document').classList.remove('hidden');
-            renderDoc(c, u.full_name, u.whatsapp);
-        }
-
-        async function adminSetPlan(id, plan) {
-            if (!confirm(plan === 'pro' ? 'Liberar PRO para este usuário?' : 'Voltar este usuário para o plano Gratuito?')) return;
-            if (await adminRpc('admin_set_plan', { p_user: id, p_plan: plan })) loadAdmin();
-        }
-        async function adminSetBlocked(id, blocked) {
-            if (!confirm(blocked ? 'Bloquear este usuário? Ele não poderá criar novos termos.' : 'Desbloquear este usuário?')) return;
-            if (await adminRpc('admin_set_blocked', { p_user: id, p_blocked: blocked })) loadAdmin();
-        }
-        async function adminSaveNotes(id) {
-            if (await adminRpc('admin_set_notes', { p_user: id, p_notes: document.getElementById('adminNotes').value })) {
-                const u = adminUsers.find(x => x.id === id); if (u) u.admin_notes = document.getElementById('adminNotes').value;
-                alert('Anotação salva.');
-            }
-        }
-        async function adminDeleteContract(id) {
-            if (!confirm('Apagar este termo definitivamente?')) return;
-            const uid = adminOpenUser;
-            if (await adminRpc('admin_delete_contract', { p_id: id })) {
-                const c = await adminRpc('admin_user_contracts', { p_user: uid });
-                adminContracts = Array.isArray(c) ? c : [];
-                loadAdmin();
-            }
-        }
-        async function adminDeleteUser(id) {
-            if (!confirm('EXCLUIR este usuário e todos os termos dele? Não dá para desfazer.')) return;
-            if (!confirm('Tem certeza? Confirme de novo para excluir.')) return;
-            if (await adminRpc('admin_delete_user', { p_user: id })) { adminOpenUser = null; loadAdmin(); }
-        }
-
-        async function loadAdminPayments() {
-            const el = document.getElementById('adminPanePay');
-            el.innerHTML = '<p class="text-xs text-slate-600">Carregando...</p>';
-            const rows = await adminRpc('admin_payments');
-            if (!Array.isArray(rows) || !rows.length) { el.innerHTML = '<p class="text-xs text-slate-600 text-center py-4">Nenhum pagamento ainda.</p>'; return; }
-            el.innerHTML = rows.map(r => `<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex justify-between">
-                <div><span class="font-bold block">${esc(r.name || '-')}</span><span class="text-slate-700">${esc(r.email || '')}</span><span class="text-slate-600 block">${esc(new Date(r.created_at).toLocaleString('pt-BR'))}</span></div>
-                <div class="text-right"><span class="font-bold block">R$ ${esc(Number(r.amount).toFixed(2).replace('.', ','))}</span>
-                <span class="px-2 py-0.5 rounded font-bold ${r.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status === 'approved' ? 'Pago' : esc(r.status)}</span></div></div>`).join('');
-        }
-
-        function openProfileModal() {
-            document.getElementById('profName').value = (userProfile && userProfile.full_name) || '';
-            document.getElementById('profWhats').value = (userProfile && userProfile.whatsapp) || '';
-            document.getElementById('profileModal').classList.remove('hidden');
-        }
-        function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
-
-        async function saveProfile() {
-            const name = document.getElementById('profName').value.trim().replace(/\s+/g, ' ');
-            const whats = document.getElementById('profWhats').value.replace(/\D/g, '');
-            if (name.length < 2) { alert('Digite um nome com pelo menos 2 letras.'); return; }
-            if (whats && (whats.length < 10 || whats.length > 13)) { alert('WhatsApp inválido. Use DDD + número.'); return; }
-            const btn = document.getElementById('btnSaveProfile');
-            btn.disabled = true; btn.textContent = 'Salvando...';
-            const { error } = await _supabase.from('profiles').update({ full_name: name, whatsapp: whats }).eq('id', currentUser.id);
-            btn.disabled = false; btn.textContent = 'Salvar';
-            if (error) { alert('Não foi possível salvar: ' + error.message); return; }
-            userProfile.full_name = name; userProfile.whatsapp = whats;
-            document.getElementById('welcomeUser').textContent = `Olá, ${name}`;
-            closeProfileModal();
-            alert('Perfil atualizado!');
-        }
-
-        function goHome() {
-            if (clientMode) return;
-            document.getElementById('view-creator').classList.add('hidden');
-            document.getElementById('view-admin').classList.add('hidden');
-            document.getElementById('view-catalog').classList.add('hidden');
-            document.getElementById('view-referral').classList.add('hidden');
-            document.getElementById('view-document').classList.add('hidden');
-            initApp();
-        }
-
-        let pixBase = { active: false, until: null };
-        async function showUpgradeModal() {
-            pixBase = { active: proActive(userProfile), until: userProfile ? userProfile.pro_until : null };
-            document.getElementById('upgradeModal').classList.remove('hidden');
-            document.getElementById('pixLoading').classList.remove('hidden');
-            document.getElementById('pixLoading').textContent = 'Gerando QR Code Pix seguro...';
-            document.getElementById('pixContent').classList.add('hidden');
-            try {
-                const { data: { session } } = await _supabase.auth.getSession();
-                if (!session) throw new Error('Sessão expirada. Entre de novo.');
-                const resp = await fetch(`${API_URL}/pix/create`, { method: 'POST', headers: { 'Authorization': `Bearer ${session.access_token}` } });
-                const data = await resp.json().catch(() => null);
-                if (!resp.ok || !data || data.error) throw new Error((data && data.error) || 'erro ao gerar o Pix');
-                document.getElementById('pixQrImg').src = 'data:image/png;base64,' + data.qr_base64;
-                document.getElementById('pixCopyPaste').value = data.qr_code;
-                document.getElementById('pixLoading').classList.add('hidden');
-                document.getElementById('pixContent').classList.remove('hidden');
-                startPixPolling();
-            } catch (e) {
-                document.getElementById('pixLoading').textContent = 'Não foi possível gerar o Pix: ' + e.message;
-            }
-        }
-
-        function startPixPolling() {
-            stopPixPolling();
-            let tries = 0;
-            pixPoll = setInterval(async () => {
-                tries++;
-                const ok = await checkPlanIsPro();
-                if (ok) { stopPixPolling(); alert('Pagamento confirmado! Sua conta agora é PRO.'); location.reload(); }
-                else if (tries > 150) stopPixPolling(); // ~10 min
-            }, 4000);
-        }
-        function stopPixPolling() { if (pixPoll) { clearInterval(pixPoll); pixPoll = null; } }
-
-        async function checkPlanIsPro() {
-            if (!currentUser) return false;
-            const { data } = await _supabase.from('profiles').select('plan, pro_until').eq('id', currentUser.id).single();
-            if (!data || !proActive(data)) return false;
-            return !pixBase.active || data.pro_until !== pixBase.until; // renovação: o vencimento precisa mudar
-        }
-
-        function closeUpgradeModal() { 
-            stopPixPolling();
-            document.getElementById('upgradeModal').classList.add('hidden');
-            document.getElementById('pixLoading').classList.remove('hidden');
-            document.getElementById('pixContent').classList.add('hidden');
-        }
-
-        function copyPixCode() {
-            const copyText = document.getElementById('pixCopyPaste');
-            copyText.select();
-            document.execCommand('copy');
-            alert('Código Pix Copia e Cola copiado com sucesso!');
-        }
-
-        async function manualCheckPayment() {
-            if (await checkPlanIsPro()) { location.reload(); }
-            else alert('Pagamento ainda não confirmado. Pode levar alguns segundos após pagar.');
-        }
-
-        window.onload = () => {
-            captureRef(); showRefBanner();
-            const t = new URLSearchParams(location.search).get('c');
-            if (t) { initClient(t); return; }
-            if (location.hash.includes('error_code=otp_expired') || location.hash.includes('error=access_denied')) {
-                alert('Esse link para trocar a senha expirou ou já foi usado. Peça um novo em "Esqueci minha senha".');
-                history.replaceState(null, '', location.pathname);
-            }
-            if (location.hash.includes('type=recovery')) showRecovery(); else initApp();
-        };
-    </script>
-</body>
-</html>
+        async function loadMaterialSuggestions(item) {
+            hasSuggest = false;
+            const box = document.getElementById('matSuggest'); box.classList.add('hidden');
+            const token = clientMode ? clientToken : item.public_token;
+            if (!token || !(item.materials && item.materials.trim()) && !item.materials_category && !item.materials_category_name) return;
+            const { data } = await _supabase.rpc('get_material_suggestions', { p_token: token });
+            if (!currentContract || currentContract.id !== item.id || !Array.isArray(data) || !data.length) return;
+            hasSuggest = true;
+            document.getElementById('matSuggestList').innerHTML = data.map(i => `<a href="${esc(safeUrl(i.affiliate_url))}" target="_blank" rel="noopener noreferrer sponsored" class="shrink-0 w-36 bg-white border border-slate-200 rounded-xl overflow-hidden">
+                ${i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" class="w-full
