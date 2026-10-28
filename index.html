@@ -11,7 +11,21 @@
     <meta name="apple-mobile-web-app-title" content="ZapGarantia">
     <title>ZapGarantia - Sistema Completo com Cloudflare R2 e PDF</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    // mostra na tela qualquer erro do site (ajuda a achar o problema pelo celular)
+    window.addEventListener('error', function (e) {
+        var msg = (e.target && (e.target.src || e.target.href)) ? 'Não carregou: ' + (e.target.src || e.target.href) : (e.message || 'erro desconhecido');
+        var b = document.getElementById('zgErr');
+        if (!b) {
+            b = document.createElement('div'); b.id = 'zgErr';
+            b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b91c1c;color:#fff;font:13px sans-serif;padding:8px 12px;word-break:break-all';
+            (document.body || document.documentElement).appendChild(b);
+        }
+        b.textContent = 'Erro no site: ' + msg;
+    }, true);
+    </script>
+    <script src="supabase.js"></script>
+    <script>if (!window.supabase) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -235,7 +249,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 18 · importar CSV</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 19 · login reforçado</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -1389,8 +1403,4 @@
                 <button onclick="catEditing='new';catImport=false;renderAdminCatalog()" class="py-3 rounded-xl bg-purple-700 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-plus"></i> Novo produto</button>
                 <button onclick="catImport=true;csvParsed=null;renderAdminCatalog()" class="py-3 rounded-xl bg-slate-800 text-white font-bold text-sm cursor-pointer"><i class="fa-solid fa-file-csv"></i> Importar CSV</button>
             </div>`);
-            const rows = adminCatalog.map(i => `<div class="bg-slate-50 border ${i.active ? 'border-slate-200' : 'border-amber-300'} rounded-xl p-3 text-xs space-y-2">
-                <div class="flex justify-between"><span class="font-bold text-sm">${esc(i.title)}${i.price != null ? ' · ' + esc(fmtPrice(i.price)) : ''}${i.featured ? ' <span class="text-blue-700">(banner)</span>' : ''}</span><span class="font-bold ${i.active ? 'text-emerald-700' : 'text-amber-700'}">${i.active ? 'Visível' : 'Oculto'}</span></div>
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="catEditing='${esc(i.id)}';renderAdminCatalog()" class="py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Editar</button>
-                    <button onclick="toggleCatalogItem('${esc(i.id)}',${!i.active})" class="py-1.5 rounded-lg bg-amber-100 text-amber-900 font-semibold cursor-poi
+            const rows = adminCat
