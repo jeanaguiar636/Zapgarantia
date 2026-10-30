@@ -293,7 +293,7 @@
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 25 · login sem travar</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 26 · PDF corrigido</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -1046,6 +1046,18 @@
             return await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
         }
 
+        function canvasIsBlank(c) {
+            try {
+                if (!c || !c.width || !c.height) return true;
+                const w = 60, h = Math.max(1, Math.round(c.height * w / c.width));
+                const t = document.createElement('canvas'); t.width = w; t.height = h;
+                const x = t.getContext('2d'); x.drawImage(c, 0, 0, w, h);
+                const d = x.getImageData(0, 0, w, h).data;
+                for (let i = 0; i < d.length; i += 4) if (d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245) return false;
+                return true;
+            } catch (e) { return false; }
+        }
+
         function printDoc() {
             if (!currentContract) return;
             const old = document.title;
@@ -1064,6 +1076,7 @@
             const id = currentContract.id;
             // cópia do documento com largura fixa de folha A4 (evita PDF cortado ou vazio no celular)
             const clone = document.getElementById('printableArea').cloneNode(true);
+            let holder = null;
             try {
                 for (const im of Array.from(clone.querySelectorAll('#docGallery img, #finalGallery img'))) {
                     const single = im.parentElement && im.parentElement.className.includes('col-span-2');
@@ -1077,20 +1090,31 @@
                 clone.querySelectorAll('[class*="rounded-xl"]').forEach(e => { e.style.breakInside = 'avoid'; });
                 clone.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
                 clone.removeAttribute('id');
-                clone.style.cssText = 'position:absolute;left:0;top:0;width:794px;max-width:794px;box-sizing:border-box;padding:28px;background:#fff;color:#0f172a;z-index:-1;border:0;box-shadow:none;border-radius:0;';
-                document.body.appendChild(clone);
-                await html2pdf().from(clone).set({
+                // o gerador faz a própria cópia: o documento fica em fluxo normal (sem position absolute),
+                // dentro de uma caixa fora da tela, senão o PDF sai com folhas em branco
+                clone.style.cssText = 'width:794px;max-width:794px;box-sizing:border-box;padding:28px;background:#fff;color:#0f172a;border:0;box-shadow:none;border-radius:0;';
+                holder = document.createElement('div');
+                holder.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;';
+                holder.appendChild(clone);
+                document.body.appendChild(holder);
+                const worker = html2pdf().set({
                     margin: [10, 10, 10, 10],
                     filename: (currentContract.final_signed_at ? `Servico-completo-${id}.pdf` : `Orcamento-${id}.pdf`),
                     image: { type: 'jpeg', quality: 0.92 },
                     html2canvas: { scale: 1.5, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0, windowWidth: 794, imageTimeout: 15000, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                     pagebreak: { mode: ['css', 'legacy'] }
-                }).save();
+                }).from(clone);
+                const canvas = await worker.toCanvas().get('canvas');
+                if (canvasIsBlank(canvas)) throw new Error('PDF_VAZIO');
+                await worker.save();
             } catch (e) {
-                alert('Não foi possível gerar o PDF direto. Toque em "Imprimir" e escolha "Salvar como PDF".');
+                btn.disabled = false; label.textContent = oldLabel;
+                alert('O PDF direto não funcionou neste celular. Vou abrir a impressão: escolha "Salvar como PDF".');
+                printDoc();
             } finally {
-                clone.remove(); btn.disabled = false; label.textContent = oldLabel;
+                if (holder) holder.remove();
+                btn.disabled = false; label.textContent = oldLabel;
             }
         }
 
