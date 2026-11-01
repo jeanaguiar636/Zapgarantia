@@ -24,7 +24,7 @@
             <img src="icon-192.png" alt="" class="w-8 h-8 rounded-lg"><span>ZapGarantia</span>
         </a>
     </header>
-    <main class="max-w-xl mx-auto pb-10 space-y-4">
+    <main class="max-w-xl mx-auto pb-28 space-y-4">
         <p id="state" class="p-10 text-center text-slate-700">Carregando perfil...</p>
         <article id="card" class="hidden bg-white sm:rounded-2xl overflow-hidden shadow-sm sm:mt-4">
             <div class="relative h-36 sm:h-48 bg-gradient-to-r from-blue-700 to-blue-500">
@@ -42,12 +42,26 @@
                 <a id="btnWa" target="_blank" rel="noopener noreferrer" class="hidden mt-4 block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm">Falar no WhatsApp</a>
             </div>
         </article>
+        <section id="posts" class="hidden px-4 sm:px-0 space-y-3">
+            <h2 class="text-base font-black text-slate-900">Serviços realizados</h2>
+            <div id="postList" class="space-y-3"></div>
+            <button id="btnMore" class="hidden w-full bg-white border border-slate-200 text-slate-800 text-sm font-bold py-3 rounded-xl cursor-pointer">Ver mais serviços</button>
+        </section>
         <a id="cta" href="/" class="hidden mx-4 sm:mx-0 block bg-white border border-blue-100 rounded-2xl shadow-sm p-4 text-center">
             <span class="block text-sm font-bold text-slate-900">Você também é profissional?</span>
             <span class="block text-xs text-slate-700 mt-0.5">Faça orçamento com fotos, assinatura do cliente e PDF.</span>
             <span class="inline-block mt-2 bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">Crie sua conta grátis</span>
         </a>
     </main>
+    <div id="waBar" class="hidden fixed bottom-0 inset-x-0 bg-white/95 border-t border-slate-200 p-3">
+        <a id="btnWa2" target="_blank" rel="noopener noreferrer" class="block max-w-xl mx-auto text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm">Falar no WhatsApp</a>
+    </div>
+    <div id="viewer" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3">
+        <button id="vClose" class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Fechar">&times;</button>
+        <button id="vPrev" class="absolute left-1 top-1/2 text-white text-5xl px-3" aria-label="Anterior">&#8249;</button>
+        <button id="vNext" class="absolute right-1 top-1/2 text-white text-5xl px-3" aria-label="Próxima">&#8250;</button>
+        <img id="vImg" alt="" class="max-w-full max-h-full object-contain">
+    </div>
     <script>
         const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
@@ -63,6 +77,77 @@
         }
         const $ = id => document.getElementById(id);
         const okUrl = u => typeof u === 'string' && /^https:\/\//i.test(u);
+
+        async function rpc(name, args) {
+            const r = await fetch(SB_URL + '/rest/v1/rpc/' + name, {
+                method: 'POST',
+                headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify(args)
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return await r.json();
+        }
+
+        // visualizador de fotos
+        let vList = [], vIdx = 0;
+        function vShow() { $('vImg').src = vList[vIdx]; $('vPrev').classList.toggle('hidden', vList.length < 2); $('vNext').classList.toggle('hidden', vList.length < 2); }
+        function vOpen(list, i) { vList = list; vIdx = i; vShow(); $('viewer').classList.remove('hidden'); }
+        function vStep(d) { vIdx = (vIdx + d + vList.length) % vList.length; vShow(); }
+        $('vClose').onclick = () => $('viewer').classList.add('hidden');
+        $('viewer').onclick = e => { if (e.target === $('viewer')) $('viewer').classList.add('hidden'); };
+        $('vPrev').onclick = e => { e.stopPropagation(); vStep(-1); };
+        $('vNext').onclick = e => { e.stopPropagation(); vStep(1); };
+
+        function postCard(po, key, ownerName) {
+            const art = document.createElement('article');
+            art.id = 'p-' + po.id;
+            art.className = 'bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm';
+            const body = document.createElement('div'); body.className = 'p-4 space-y-2';
+            const top = document.createElement('div'); top.className = 'flex items-center justify-between gap-2';
+            const dt = document.createElement('span'); dt.className = 'text-xs text-slate-700';
+            dt.textContent = new Date(po.created_at).toLocaleDateString('pt-BR');
+            top.appendChild(dt);
+            if (po.signed) {
+                const b = document.createElement('span'); b.className = 'text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full';
+                b.textContent = 'Assinado pelo cliente'; top.appendChild(b);
+            }
+            const h = document.createElement('h3'); h.className = 'text-base font-black text-slate-900'; h.textContent = po.title;
+            body.appendChild(top); body.appendChild(h);
+            if (po.description) { const d = document.createElement('p'); d.className = 'text-sm text-slate-800 whitespace-pre-line'; d.textContent = po.description; body.appendChild(d); }
+            art.appendChild(body);
+            const imgs = (Array.isArray(po.images) ? po.images : []).filter(okUrl);
+            if (imgs.length) {
+                const g = document.createElement('div'); g.className = 'grid grid-cols-2 gap-0.5';
+                imgs.forEach((u, i) => {
+                    const im = document.createElement('img'); im.src = u; im.alt = po.title; im.loading = 'lazy';
+                    im.className = 'w-full object-cover bg-slate-100 cursor-zoom-in ' + ((imgs.length === 1 || (imgs.length % 2 === 1 && i === 0)) ? 'col-span-2 h-60' : 'h-36');
+                    im.onclick = () => vOpen(imgs, i); g.appendChild(im);
+                });
+                art.appendChild(g);
+            }
+            const foot = document.createElement('div'); foot.className = 'p-3 flex justify-end';
+            const sh = document.createElement('button'); sh.className = 'text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 px-3.5 py-2 rounded-full cursor-pointer';
+            sh.textContent = 'Compartilhar';
+            sh.onclick = async () => {
+                const url = location.origin + location.pathname + '?u=' + encodeURIComponent(key) + '#p-' + po.id;
+                try { if (navigator.share) { await navigator.share({ title: po.title, text: po.title + ' — ' + ownerName, url }); return; } } catch (e) { return; }
+                try { await navigator.clipboard.writeText(url); alert('Link copiado!'); } catch (e) { prompt('Copie o link:', url); }
+            };
+            foot.appendChild(sh); art.appendChild(foot);
+            return art;
+        }
+
+        async function loadPosts(key, ownerName, before) {
+            let list = [];
+            try { list = await rpc('get_public_posts', { p_key: key, p_limit: 10, p_before: before || null }); } catch (e) { return; }
+            if (!Array.isArray(list)) return;
+            list.forEach(po => $('postList').appendChild(postCard(po, key, ownerName)));
+            if (list.length) $('posts').classList.remove('hidden');
+            const more = $('btnMore');
+            more.classList.toggle('hidden', list.length < 10);
+            more.onclick = () => loadPosts(key, ownerName, list[list.length - 1].created_at);
+            if (!before && location.hash.startsWith('#p-')) { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }
+        }
 
         function waLink(num, name) {
             let d = String(num || '').replace(/\D/g, '');
@@ -86,7 +171,7 @@
             if (okUrl(data.cover_url)) { $('cover').src = data.cover_url; $('cover').classList.remove('hidden'); }
             if (okUrl(data.avatar_url)) $('avatar').src = data.avatar_url;
             const wa = waLink(data.whatsapp, data.name);
-            if (wa) { $('btnWa').href = wa; $('btnWa').classList.remove('hidden'); }
+            if (wa) { $('btnWa').href = wa; $('btnWa').classList.remove('hidden'); $('btnWa2').href = wa; $('waBar').classList.remove('hidden'); }
             if (data.ref_code) $('cta').href = '/?ref=' + encodeURIComponent(data.ref_code);
             $('cta').classList.remove('hidden');
             $('btnShare').onclick = async () => {
@@ -96,6 +181,7 @@
             };
             $('state').classList.add('hidden');
             $('card').classList.remove('hidden');
+            loadPosts(key, data.name, null);
         })();
     </script>
 </body>
