@@ -311,6 +311,36 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
                 </div>
                 <p id="mpLinkNote" class="text-xs text-slate-700"></p>
             </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <p class="text-sm font-bold text-slate-900">Serviços no meu perfil</p>
+                    <button onclick="openPostForm(null)" class="text-xs bg-blue-600 text-white font-bold px-3 py-2 rounded-lg cursor-pointer">+ Publicar serviço</button>
+                </div>
+                <p class="text-xs text-slate-700">Mostre os trabalhos que você fez. Quem abrir seu perfil vê tudo e pode falar com você no WhatsApp.</p>
+                <div id="postForm" class="hidden space-y-2 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                    <input id="postTitle" maxlength="100" placeholder="Título (ex.: Pintura de sala e quarto)" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none">
+                    <textarea id="postDesc" rows="4" maxlength="800" placeholder="Conte como foi o serviço" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
+                    <label class="block text-xs font-semibold uppercase">Ligar a um orçamento assinado (opcional)</label>
+                    <select id="postContract" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none"><option value="">Nenhum</option></select>
+                    <p class="text-xs text-slate-700">Com um orçamento assinado, o serviço ganha o selo <b>Assinado pelo cliente</b>.</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="text-center bg-white border border-blue-200 text-blue-800 font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-images"></i> Da galeria
+                            <input type="file" accept="image/*" multiple class="hidden" onchange="addPostPhotos(this)">
+                        </label>
+                        <label class="text-center bg-emerald-600 text-white font-semibold text-xs py-3 rounded-xl cursor-pointer"><i class="fa-solid fa-camera"></i> Câmera
+                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="addPostPhotos(this)">
+                        </label>
+                    </div>
+                    <p id="postPhotoCount" class="text-xs text-slate-700"></p>
+                    <div id="postPreview" class="grid grid-cols-4 gap-2"></div>
+                    <p class="text-xs text-amber-800 font-semibold">Fotos e texto ficam públicos. Evite mostrar rosto do cliente, endereço ou placa de carro.</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="closePostForm()" class="py-2.5 rounded-xl bg-slate-200 text-slate-800 font-semibold text-sm cursor-pointer">Cancelar</button>
+                        <button id="btnSavePost" onclick="savePost()" class="py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm cursor-pointer">Publicar</button>
+                    </div>
+                </div>
+                <div id="myPosts" class="space-y-2"></div>
+            </div>
         </div>
 
         <div id="view-catalog" class="hidden space-y-3">
@@ -360,7 +390,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 28 · login sem dependências</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 29 · serviços no perfil</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -533,6 +563,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
                 <button id="btnPdf" onclick="downloadPDF()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-file-pdf text-lg"></i>
                     <span>Baixar em PDF</span>
+                </button>
+                <button id="btnPublishPost" onclick="publishFromContract()" class="hidden w-full bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-800 font-bold py-3 rounded-xl text-sm transition cursor-pointer">
+                    <i class="fa-solid fa-bullhorn"></i> Publicar este serviço no meu perfil
                 </button>
                 <button id="btnPrint" onclick="printDoc()" class="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-print text-lg"></i>
@@ -1009,6 +1042,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             document.getElementById('proLinkArea').classList.toggle('hidden', clientMode || !item.public_token);
             document.getElementById('btnPdf').classList.toggle('hidden', clientMode && !signed);
             document.getElementById('btnBackHome').classList.toggle('hidden', clientMode);
+            document.getElementById('btnPublishPost').classList.toggle('hidden', clientMode || !item.signed_at || !(!item.professional_id || !currentUser || item.professional_id === currentUser.id));
             if (!clientMode && item.public_token) document.getElementById('shareLink').value = shareUrl(item);
         }
 
@@ -1464,6 +1498,98 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         if (!isStandalone()) document.getElementById('btnInstallApp').classList.remove('hidden');
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
+        // ---------- serviços no perfil ----------
+        let postEditId = null, postKeep = [], postNew = [], myPostsList = [], adminPosts = [];
+
+        async function loadMyPosts() {
+            const { data } = await _supabase.from('profile_posts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+            myPostsList = data || [];
+            const box = document.getElementById('myPosts');
+            box.innerHTML = myPostsList.length ? myPostsList.map(po => `<div class="bg-slate-50 border ${po.hidden ? 'border-amber-300' : 'border-slate-200'} rounded-xl p-3 text-xs space-y-2">
+                <div class="flex justify-between gap-2"><span class="font-bold text-sm text-slate-900">${esc(po.title)}</span>
+                <span class="shrink-0 font-bold ${po.hidden ? 'text-amber-700' : 'text-emerald-700'}">${po.hidden ? 'Ocultado' : 'Publicado'}</span></div>
+                <span class="text-slate-700 block">${esc(new Date(po.created_at).toLocaleDateString('pt-BR'))} · ${(po.images || []).length} foto(s)${po.signed ? ' · assinado pelo cliente' : ''}</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openPostForm('${esc(po.id)}')" class="py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Editar</button>
+                    <button onclick="deletePost('${esc(po.id)}')" class="py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold cursor-pointer">Excluir</button>
+                </div></div>`).join('') : '<p class="text-xs text-slate-700 text-center py-2">Você ainda não publicou nenhum serviço.</p>';
+        }
+        function renderPostPreview() {
+            document.getElementById('postPhotoCount').textContent = `${postKeep.length + postNew.length} de 5 foto(s)`;
+            const box = document.getElementById('postPreview'); box.innerHTML = '';
+            const add = (src, onRemove) => {
+                const w = document.createElement('div'); w.className = 'relative';
+                const im = document.createElement('img'); im.src = src; im.alt = '';
+                im.className = 'w-full h-20 object-cover rounded-lg border border-slate-200 bg-slate-100';
+                const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Remover foto');
+                x.className = 'absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full w-6 h-6 text-base leading-none cursor-pointer';
+                x.onclick = onRemove; w.appendChild(im); w.appendChild(x); box.appendChild(w);
+            };
+            postKeep.forEach((u, i) => add(u, () => { postKeep.splice(i, 1); renderPostPreview(); }));
+            postNew.forEach((f, i) => add(URL.createObjectURL(f), () => { postNew.splice(i, 1); renderPostPreview(); }));
+        }
+        function addPostPhotos(input) {
+            for (const f of Array.from(input.files || [])) {
+                if (postKeep.length + postNew.length >= 5) { alert('Use até 5 fotos por serviço.'); break; }
+                postNew.push(f);
+            }
+            input.value = ''; renderPostPreview();
+        }
+        function closePostForm() { document.getElementById('postForm').classList.add('hidden'); }
+        function openPostForm(pre) {
+            const existing = (typeof pre === 'string') ? myPostsList.find(x => x.id === pre) : null;
+            const src = existing || pre || {};
+            postEditId = existing ? existing.id : null;
+            postKeep = Array.isArray(src.images) ? src.images.slice(0, 5) : []; postNew = [];
+            document.getElementById('postTitle').value = src.title || '';
+            document.getElementById('postDesc').value = src.description || '';
+            const sel = document.getElementById('postContract');
+            sel.innerHTML = '<option value="">Nenhum</option>' + Object.values(contractsCache).filter(c => c.signed_at || c.final_signed_at)
+                .map(c => `<option value="${esc(c.id)}">${esc(c.client_name)} · R$ ${esc(c.service_value)}</option>`).join('');
+            sel.value = src.contract_id || '';
+            renderPostPreview();
+            const f = document.getElementById('postForm'); f.classList.remove('hidden'); f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        async function savePost() {
+            const btn = document.getElementById('btnSavePost'), label = btn.textContent;
+            const title = document.getElementById('postTitle').value.trim();
+            if (title.length < 2) { alert('Escreva o título do serviço.'); return; }
+            btn.disabled = true; btn.textContent = 'Publicando...';
+            try {
+                const urls = [];
+                for (let i = 0; i < postNew.length; i++) { btn.textContent = `Enviando foto ${i + 1} de ${postNew.length}...`; urls.push(await uploadFileToR2(postNew[i])); }
+                const { error } = await _supabase.rpc('save_post', { p_id: postEditId, p_title: title, p_description: document.getElementById('postDesc').value.trim(),
+                    p_images: postKeep.concat(urls), p_contract_id: document.getElementById('postContract').value || null });
+                if (error) throw error;
+                closePostForm(); await loadMyPosts();
+                alert(userProfile && userProfile.profile_public ? 'Serviço publicado no seu perfil!' : 'Serviço salvo! Para ele aparecer, ligue "Mostrar meu perfil para todos" e salve o perfil.');
+            } catch (e) { alert('Não foi possível publicar: ' + (e.message || e)); }
+            btn.disabled = false; btn.textContent = label;
+        }
+        async function deletePost(id) {
+            if (!confirm('Excluir este serviço do seu perfil?')) return;
+            const { error } = await _supabase.rpc('delete_post', { p_id: id });
+            if (error) { alert('Erro: ' + error.message); return; }
+            loadMyPosts();
+        }
+        function publishFromContract() {
+            const c = currentContract; if (!c) return;
+            if (!confirm('As fotos e o texto ficarão públicos no seu perfil. Confira se não aparecem rosto do cliente, endereço ou placa de carro. Continuar?')) return;
+            const imgs = (Array.isArray(c.final_images) && c.final_images.length ? c.final_images : (Array.isArray(c.images) && c.images.length ? c.images : (c.image_url ? [c.image_url] : []))).slice(0, 5);
+            openMyProfile();
+            openPostForm({ title: String(c.service_desc || 'Serviço realizado').split('\n')[0].trim().slice(0, 100), description: c.final_notes || '', images: imgs, contract_id: c.id });
+        }
+        function renderAdminPosts() {
+            const el = document.getElementById('adminPosts'); if (!el) return;
+            el.innerHTML = adminPosts.length ? adminPosts.map((po, i) => `<div class="flex justify-between items-center bg-white border border-slate-200 rounded-lg p-2">
+                <div><span class="font-semibold block">${esc(po.title)}</span><span class="text-slate-700">${po.hidden ? 'Ocultado' : 'Publicado'}</span></div>
+                <button onclick="adminHidePost(${i})" class="px-2 py-1 rounded bg-amber-100 text-amber-900 font-semibold cursor-pointer">${po.hidden ? 'Mostrar' : 'Esconder'}</button></div>`).join('') : '<span class="text-slate-700">Nenhum.</span>';
+        }
+        async function adminHidePost(i) {
+            const po = adminPosts[i]; if (!po) return;
+            if (await adminRpc('admin_set_post_hidden', { p_id: po.id, p_hidden: !po.hidden })) { po.hidden = !po.hidden; renderAdminPosts(); }
+        }
+
         // ---------- perfil público ----------
         let mpPending = { avatar: null, cover: null };
         function profileKey() { return (userProfile && (userProfile.profile_slug || userProfile.ref_code)) || ''; }
@@ -1511,6 +1637,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             const cv = document.getElementById('mpCoverImg');
             if (/^https:\/\//i.test(u.cover_url || '')) { cv.src = u.cover_url; cv.classList.remove('hidden'); } else { cv.removeAttribute('src'); cv.classList.add('hidden'); }
             refreshProfileLink();
+            closePostForm(); loadMyPosts();
         }
         async function saveMyProfile() {
             const btn = document.getElementById('btnSaveMyProfile'), label = btn.textContent;
@@ -2049,10 +2176,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
                         <button onclick="adminSaveUserLimits('${esc(u.id)}')" class="w-full py-1.5 rounded-lg bg-slate-200 font-semibold cursor-pointer">Salvar limites</button>
                         <p class="font-bold text-slate-700 uppercase text-xs">Termos deste usuário</p>
                         <div id="adminContracts" class="space-y-1">Carregando...</div>
+                        <p class="font-bold text-slate-700 uppercase text-xs">Serviços no perfil</p>
+                        <div id="adminPosts" class="space-y-1"></div>
                     </div>` : ''}
                 </div>`;
             }).join('');
-            if (adminOpenUser) renderAdminContracts();
+            if (adminOpenUser) { renderAdminContracts(); renderAdminPosts(); }
         }
 
         async function adminToggleUser(id) {
@@ -2062,6 +2191,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
                 const c = await adminRpc('admin_user_contracts', { p_user: id });
                 adminContracts = Array.isArray(c) ? c : [];
                 renderAdminContracts();
+                const ps = await adminRpc('admin_user_posts', { p_user: id });
+                adminPosts = Array.isArray(ps) ? ps : [];
+                renderAdminPosts();
             }
         }
 
