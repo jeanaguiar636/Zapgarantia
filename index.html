@@ -390,7 +390,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         <div id="view-creator" class="hidden space-y-5">
             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex justify-between items-center mb-5">
-                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 29 · serviços no perfil</p></div>
+                    <div><h1 class="text-xl font-bold text-slate-900">Gerar Termo de Serviço</h1><p class="text-xs text-emerald-700 font-semibold">versão 30 · perfil estilo rede social</p></div>
                     <button onclick="goHome()" class="text-xs text-slate-600 font-medium cursor-pointer">Voltar</button>
                 </div>
                 <form id="contractForm" class="space-y-4" onsubmit="saveContract(event)">
@@ -1558,11 +1558,21 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             try {
                 const urls = [];
                 for (let i = 0; i < postNew.length; i++) { btn.textContent = `Enviando foto ${i + 1} de ${postNew.length}...`; urls.push(await uploadFileToR2(postNew[i])); }
-                const { error } = await _supabase.rpc('save_post', { p_id: postEditId, p_title: title, p_description: document.getElementById('postDesc').value.trim(),
+                const { data: newId, error } = await _supabase.rpc('save_post', { p_id: postEditId, p_title: title, p_description: document.getElementById('postDesc').value.trim(),
                     p_images: postKeep.concat(urls), p_contract_id: document.getElementById('postContract').value || null });
                 if (error) throw error;
                 closePostForm(); await loadMyPosts();
-                alert(userProfile && userProfile.profile_public ? 'Serviço publicado no seu perfil!' : 'Serviço salvo! Para ele aparecer, ligue "Mostrar meu perfil para todos" e salve o perfil.');
+                let msg;
+                if (!(userProfile && userProfile.profile_public)) {
+                    msg = 'Serviço salvo, mas seu perfil está desligado. Ligue "Mostrar meu perfil para todos", toque em "Salvar perfil" e ele aparece para todos.';
+                } else {
+                    // confere se o serviço já aparece na página pública
+                    const { data: pub } = await _supabase.rpc('get_public_posts', { p_key: profileKey(), p_limit: 20, p_before: null });
+                    msg = (Array.isArray(pub) && pub.some(x => x.id === newId))
+                        ? 'Serviço publicado! Ele já aparece no seu perfil público.'
+                        : 'Serviço salvo, mas ainda não aparece no perfil público. Ligue "Mostrar meu perfil para todos", toque em "Salvar perfil" e confira de novo.';
+                }
+                alert(msg);
             } catch (e) { alert('Não foi possível publicar: ' + (e.message || e)); }
             btn.disabled = false; btn.textContent = label;
         }
