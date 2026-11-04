@@ -5,56 +5,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2563eb">
     <title>Perfil do profissional | ZapGarantia</title>
-    <meta name="description" content="Conheça este profissional e peça seu orçamento. Orçamento com assinatura do cliente e PDF pelo ZapGarantia.">
+    <meta name="description" content="Conheça este profissional, veja os serviços que ele já fez e fale com ele pelo WhatsApp. ZapGarantia: orçamento com assinatura do cliente e PDF.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="ZapGarantia">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:title" content="Perfil do profissional | ZapGarantia">
-    <meta property="og:description" content="Conheça este profissional e fale com ele pelo WhatsApp. Orçamento com assinatura do cliente e PDF pelo ZapGarantia.">
+    <meta property="og:description" content="Veja os serviços que este profissional já fez e fale com ele pelo WhatsApp.">
     <meta property="og:image" content="https://zapgarantia.alibr.com.br/og-image.jpg">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }</style>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body class="bg-slate-100 text-slate-900 antialiased">
     <header class="bg-blue-600 text-white shadow-md">
-        <a href="/" class="max-w-xl mx-auto px-4 py-3 flex items-center space-x-2 font-bold text-lg">
+        <a href="/" class="max-w-2xl mx-auto px-4 py-3 flex items-center space-x-2 font-bold text-lg">
             <img src="icon-192.png" alt="" class="w-8 h-8 rounded-lg"><span>ZapGarantia</span>
         </a>
     </header>
-    <main class="max-w-xl mx-auto pb-28 space-y-4">
+
+    <main class="max-w-2xl mx-auto pb-28">
         <p id="state" class="p-10 text-center text-slate-700">Carregando perfil...</p>
-        <article id="card" class="hidden bg-white sm:rounded-2xl overflow-hidden shadow-sm sm:mt-4">
-            <div class="relative h-36 sm:h-48 bg-gradient-to-r from-blue-700 to-blue-500">
-                <img id="cover" alt="" class="hidden absolute inset-0 w-full h-full object-cover">
-            </div>
-            <div class="px-4 pb-5">
-                <div class="-mt-14 flex items-end justify-between">
-                    <img id="avatar" alt="" class="w-28 h-28 rounded-full border-4 border-white bg-slate-200 object-cover" src="icon-192.png">
-                    <button id="btnShare" class="mb-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 px-3.5 py-2 rounded-full cursor-pointer">Compartilhar</button>
+
+        <div id="profile" class="hidden">
+            <!-- capa, foto e nome (como no Facebook) -->
+            <section class="bg-white sm:rounded-b-2xl shadow-sm">
+                <div class="relative h-40 sm:h-60 bg-gradient-to-r from-blue-700 to-blue-500">
+                    <img id="cover" alt="" class="hidden absolute inset-0 w-full h-full object-cover">
                 </div>
-                <h1 id="name" class="text-2xl font-black mt-2"></h1>
-                <p id="city" class="hidden text-sm text-slate-700"></p>
-                <p id="signed" class="hidden inline-block mt-2 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full"></p>
-                <p id="bio" class="mt-3 text-sm text-slate-800 whitespace-pre-line"></p>
-                <a id="btnWa" target="_blank" rel="noopener noreferrer" class="hidden mt-4 block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm">Falar no WhatsApp</a>
-            </div>
-        </article>
-        <section id="posts" class="hidden px-4 sm:px-0 space-y-3">
-            <h2 class="text-base font-black text-slate-900">Serviços realizados</h2>
-            <div id="postList" class="space-y-3"></div>
-            <button id="btnMore" class="hidden w-full bg-white border border-slate-200 text-slate-800 text-sm font-bold py-3 rounded-xl cursor-pointer">Ver mais serviços</button>
-        </section>
-        <a id="cta" href="/" class="hidden mx-4 sm:mx-0 block bg-white border border-blue-100 rounded-2xl shadow-sm p-4 text-center">
-            <span class="block text-sm font-bold text-slate-900">Você também é profissional?</span>
-            <span class="block text-xs text-slate-700 mt-0.5">Faça orçamento com fotos, assinatura do cliente e PDF.</span>
-            <span class="inline-block mt-2 bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">Crie sua conta grátis</span>
-        </a>
+                <div class="px-4 pb-4">
+                    <div class="-mt-16 sm:-mt-20">
+                        <img id="avatar" alt="" src="icon-192.png" class="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white bg-slate-200 object-cover">
+                    </div>
+                    <h1 id="name" class="text-2xl font-black mt-2 leading-tight"></h1>
+                    <p id="meta" class="text-sm text-slate-700 mt-0.5"></p>
+                    <div class="flex gap-2 mt-3">
+                        <a id="btnWa" target="_blank" rel="noopener noreferrer" class="hidden flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-sm">Falar no WhatsApp</a>
+                        <button id="btnShare" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-900 font-bold py-2.5 rounded-lg text-sm cursor-pointer">Compartilhar</button>
+                    </div>
+                </div>
+                <nav class="flex border-t border-slate-200 text-sm font-bold">
+                    <button data-tab="feed" class="tab flex-1 py-3 cursor-pointer">Publicações</button>
+                    <button data-tab="photos" class="tab flex-1 py-3 cursor-pointer">Fotos</button>
+                    <button data-tab="about" class="tab flex-1 py-3 cursor-pointer">Sobre</button>
+                </nav>
+            </section>
+
+            <!-- Publicações -->
+            <section id="tab-feed" class="px-3 sm:px-0 mt-3 space-y-3">
+                <div id="introBox" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-1">
+                    <h2 class="text-sm font-black">Apresentação</h2>
+                    <p id="introBio" class="text-sm text-slate-800 whitespace-pre-line"></p>
+                </div>
+                <div id="feed" class="space-y-3"></div>
+                <p id="feedMsg" class="hidden text-center text-sm text-slate-700 py-6"></p>
+                <button id="btnMore" class="hidden w-full bg-white border border-slate-200 text-slate-800 text-sm font-bold py-3 rounded-xl cursor-pointer">Ver mais serviços</button>
+            </section>
+
+            <!-- Fotos -->
+            <section id="tab-photos" class="hidden px-3 sm:px-0 mt-3">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3">
+                    <div id="photoGrid" class="grid grid-cols-3 gap-1"></div>
+                    <p id="photoMsg" class="hidden text-center text-sm text-slate-700 py-6">Ainda não há fotos.</p>
+                </div>
+            </section>
+
+            <!-- Sobre -->
+            <section id="tab-about" class="hidden px-3 sm:px-0 mt-3">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3 text-sm">
+                    <h2 class="font-black">Sobre</h2>
+                    <p id="aboutBio" class="text-slate-800 whitespace-pre-line"></p>
+                    <p id="aboutCity" class="hidden text-slate-800"></p>
+                    <p id="aboutSigned" class="hidden font-bold text-emerald-800"></p>
+                </div>
+            </section>
+
+            <a id="cta" href="/" class="hidden mx-3 sm:mx-0 mt-3 block bg-white border border-blue-100 rounded-xl shadow-sm p-4 text-center">
+                <span class="block text-sm font-bold text-slate-900">Você também é profissional?</span>
+                <span class="block text-xs text-slate-700 mt-0.5">Faça orçamento com fotos, assinatura do cliente e PDF.</span>
+                <span class="inline-block mt-2 bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">Crie sua conta grátis</span>
+            </a>
+        </div>
     </main>
+
     <div id="waBar" class="hidden fixed bottom-0 inset-x-0 bg-white/95 border-t border-slate-200 p-3">
-        <a id="btnWa2" target="_blank" rel="noopener noreferrer" class="block max-w-xl mx-auto text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm">Falar no WhatsApp</a>
+        <a id="btnWa2" target="_blank" rel="noopener noreferrer" class="block max-w-2xl mx-auto text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm">Falar no WhatsApp</a>
     </div>
     <div id="viewer" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3">
         <button id="vClose" class="absolute top-4 right-5 text-white text-4xl leading-none" aria-label="Fechar">&times;</button>
@@ -62,21 +101,13 @@
         <button id="vNext" class="absolute right-1 top-1/2 text-white text-5xl px-3" aria-label="Próxima">&#8250;</button>
         <img id="vImg" alt="" class="max-w-full max-h-full object-contain">
     </div>
+
     <script>
         const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
-        // sem biblioteca: uma chamada direta ao banco (a página abre mais rápido)
-        async function getProfile(key) {
-            const r = await fetch(SB_URL + '/rest/v1/rpc/get_public_profile', {
-                method: 'POST',
-                headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ p_key: key })
-            });
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            return await r.json();
-        }
         const $ = id => document.getElementById(id);
         const okUrl = u => typeof u === 'string' && /^https:\/\//i.test(u);
+        let KEY = '', OWNER = '', AVATAR = 'icon-192.png', ALL_IMAGES = [], lastDate = null;
 
         async function rpc(name, args) {
             const r = await fetch(SB_URL + '/rest/v1/rpc/' + name, {
@@ -88,7 +119,14 @@
             return await r.json();
         }
 
-        // visualizador de fotos
+        function waLink(num, name) {
+            let d = String(num || '').replace(/\D/g, '');
+            if (!d) return null;
+            if (d.length <= 11) d = '55' + d;
+            return 'https://wa.me/' + d + '?text=' + encodeURIComponent('Olá' + (name ? ', ' + name.split(' ')[0] : '') + '! Vi seu perfil no ZapGarantia e gostaria de um orçamento.');
+        }
+
+        // ----- visualizador de fotos -----
         let vList = [], vIdx = 0;
         function vShow() { $('vImg').src = vList[vIdx]; $('vPrev').classList.toggle('hidden', vList.length < 2); $('vNext').classList.toggle('hidden', vList.length < 2); }
         function vOpen(list, i) { vList = list; vIdx = i; vShow(); $('viewer').classList.remove('hidden'); }
@@ -98,90 +136,129 @@
         $('vPrev').onclick = e => { e.stopPropagation(); vStep(-1); };
         $('vNext').onclick = e => { e.stopPropagation(); vStep(1); };
 
-        function postCard(po, key, ownerName) {
+        // ----- abas -----
+        function showTab(t) {
+            ['feed', 'photos', 'about'].forEach(k => $('tab-' + k).classList.toggle('hidden', k !== t));
+            document.querySelectorAll('.tab').forEach(b => {
+                const on = b.dataset.tab === t;
+                b.classList.toggle('text-blue-700', on); b.classList.toggle('border-b-4', on); b.classList.toggle('border-blue-600', on);
+                b.classList.toggle('text-slate-700', !on);
+            });
+        }
+        document.querySelectorAll('.tab').forEach(b => { b.onclick = () => showTab(b.dataset.tab); });
+
+        // ----- cartão de publicação (estilo Facebook) -----
+        function mosaic(imgs, title) {
+            const g = document.createElement('div');
+            const n = imgs.length;
+            g.className = 'grid gap-0.5 ' + (n === 1 ? 'grid-cols-1' : 'grid-cols-2');
+            imgs.slice(0, 4).forEach((u, i) => {
+                const wrap = document.createElement('div'); wrap.className = 'relative';
+                const im = document.createElement('img'); im.src = u; im.alt = title; im.loading = 'lazy';
+                const big = n === 1 || (n === 3 && i === 0);
+                im.className = 'w-full object-cover bg-slate-100 cursor-zoom-in ' + (n === 1 ? 'h-72' : big ? 'h-56' : n === 3 ? 'h-32' : 'h-40');
+                im.onclick = () => vOpen(imgs, i);
+                wrap.appendChild(im);
+                if (n === 3 && i === 0) wrap.className += ' col-span-2';
+                if (i === 3 && n > 4) {
+                    const more = document.createElement('div');
+                    more.className = 'absolute inset-0 bg-black/55 text-white text-2xl font-black flex items-center justify-center cursor-pointer';
+                    more.textContent = '+' + (n - 4); more.onclick = () => vOpen(imgs, 3); wrap.appendChild(more);
+                }
+                g.appendChild(wrap);
+            });
+            return g;
+        }
+
+        function postCard(po) {
             const art = document.createElement('article');
             art.id = 'p-' + po.id;
-            art.className = 'bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm';
-            const body = document.createElement('div'); body.className = 'p-4 space-y-2';
-            const top = document.createElement('div'); top.className = 'flex items-center justify-between gap-2';
-            const dt = document.createElement('span'); dt.className = 'text-xs text-slate-700';
-            dt.textContent = new Date(po.created_at).toLocaleDateString('pt-BR');
-            top.appendChild(dt);
-            if (po.signed) {
-                const b = document.createElement('span'); b.className = 'text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full';
-                b.textContent = 'Assinado pelo cliente'; top.appendChild(b);
-            }
-            const h = document.createElement('h3'); h.className = 'text-base font-black text-slate-900'; h.textContent = po.title;
-            body.appendChild(top); body.appendChild(h);
-            if (po.description) { const d = document.createElement('p'); d.className = 'text-sm text-slate-800 whitespace-pre-line'; d.textContent = po.description; body.appendChild(d); }
-            art.appendChild(body);
+            art.className = 'bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm';
+            const head = document.createElement('div'); head.className = 'p-3 flex items-center gap-3';
+            const av = document.createElement('img'); av.src = AVATAR; av.alt = ''; av.className = 'w-10 h-10 rounded-full object-cover bg-slate-200';
+            const who = document.createElement('div'); who.className = 'min-w-0 flex-1';
+            const nm = document.createElement('p'); nm.className = 'text-sm font-bold truncate'; nm.textContent = OWNER;
+            const dt = document.createElement('p'); dt.className = 'text-xs text-slate-700'; dt.textContent = new Date(po.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+            who.appendChild(nm); who.appendChild(dt); head.appendChild(av); head.appendChild(who);
+            if (po.signed) { const b = document.createElement('span'); b.className = 'shrink-0 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full'; b.textContent = '✓ Assinado pelo cliente'; head.appendChild(b); }
+            art.appendChild(head);
+            const txt = document.createElement('div'); txt.className = 'px-3 pb-3 space-y-1';
+            const h = document.createElement('h3'); h.className = 'text-base font-black'; h.textContent = po.title; txt.appendChild(h);
+            if (po.description) { const d = document.createElement('p'); d.className = 'text-sm text-slate-800 whitespace-pre-line'; d.textContent = po.description; txt.appendChild(d); }
+            art.appendChild(txt);
             const imgs = (Array.isArray(po.images) ? po.images : []).filter(okUrl);
-            if (imgs.length) {
-                const g = document.createElement('div'); g.className = 'grid grid-cols-2 gap-0.5';
-                imgs.forEach((u, i) => {
-                    const im = document.createElement('img'); im.src = u; im.alt = po.title; im.loading = 'lazy';
-                    im.className = 'w-full object-cover bg-slate-100 cursor-zoom-in ' + ((imgs.length === 1 || (imgs.length % 2 === 1 && i === 0)) ? 'col-span-2 h-60' : 'h-36');
-                    im.onclick = () => vOpen(imgs, i); g.appendChild(im);
-                });
-                art.appendChild(g);
-            }
-            const foot = document.createElement('div'); foot.className = 'p-3 flex justify-end';
-            const sh = document.createElement('button'); sh.className = 'text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 px-3.5 py-2 rounded-full cursor-pointer';
+            if (imgs.length) art.appendChild(mosaic(imgs, po.title));
+            const foot = document.createElement('div'); foot.className = 'border-t border-slate-200 flex';
+            const sh = document.createElement('button'); sh.className = 'flex-1 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50 cursor-pointer';
             sh.textContent = 'Compartilhar';
             sh.onclick = async () => {
-                const url = location.origin + location.pathname + '?u=' + encodeURIComponent(key) + '#p-' + po.id;
-                try { if (navigator.share) { await navigator.share({ title: po.title, text: po.title + ' — ' + ownerName, url }); return; } } catch (e) { return; }
+                const url = location.origin + location.pathname + '?u=' + encodeURIComponent(KEY) + '#p-' + po.id;
+                try { if (navigator.share) { await navigator.share({ title: po.title, text: po.title + ' — ' + OWNER, url }); return; } } catch (e) { return; }
                 try { await navigator.clipboard.writeText(url); alert('Link copiado!'); } catch (e) { prompt('Copie o link:', url); }
             };
-            foot.appendChild(sh); art.appendChild(foot);
+            foot.appendChild(sh);
+            const wa = $('btnWa').href && !$('btnWa').classList.contains('hidden') ? $('btnWa').href : null;
+            if (wa) { const w = document.createElement('a'); w.href = wa; w.target = '_blank'; w.rel = 'noopener noreferrer'; w.className = 'flex-1 py-2.5 text-sm font-bold text-emerald-700 text-center hover:bg-emerald-50 border-l border-slate-200'; w.textContent = 'Pedir orçamento'; foot.appendChild(w); }
+            art.appendChild(foot);
             return art;
         }
 
-        async function loadPosts(key, ownerName, before) {
-            let list = [];
-            try { list = await rpc('get_public_posts', { p_key: key, p_limit: 10, p_before: before || null }); } catch (e) { return; }
-            if (!Array.isArray(list)) return;
-            list.forEach(po => $('postList').appendChild(postCard(po, key, ownerName)));
-            if (list.length) $('posts').classList.remove('hidden');
+        function renderPhotos() {
+            const grid = $('photoGrid'); grid.innerHTML = '';
+            ALL_IMAGES.forEach((u, i) => {
+                const im = document.createElement('img'); im.src = u; im.alt = ''; im.loading = 'lazy';
+                im.className = 'w-full h-28 object-cover bg-slate-100 cursor-zoom-in'; im.onclick = () => vOpen(ALL_IMAGES, i); grid.appendChild(im);
+            });
+            $('photoMsg').classList.toggle('hidden', ALL_IMAGES.length > 0);
+        }
+
+        async function loadPosts(before) {
+            let list;
+            try { list = await rpc('get_public_posts', { p_key: KEY, p_limit: 10, p_before: before || null }); }
+            catch (e) { if (!before) { $('feedMsg').textContent = 'Não foi possível carregar os serviços agora. Atualize a página.'; $('feedMsg').classList.remove('hidden'); } return; }
+            if (!Array.isArray(list)) list = [];
+            list.forEach(po => {
+                $('feed').appendChild(postCard(po));
+                (Array.isArray(po.images) ? po.images : []).filter(okUrl).forEach(u => ALL_IMAGES.push(u));
+            });
+            renderPhotos();
+            if (!before && !list.length) { $('feedMsg').textContent = 'Este profissional ainda não publicou serviços.'; $('feedMsg').classList.remove('hidden'); }
             const more = $('btnMore');
             more.classList.toggle('hidden', list.length < 10);
-            more.onclick = () => loadPosts(key, ownerName, list[list.length - 1].created_at);
+            if (list.length) more.onclick = () => loadPosts(list[list.length - 1].created_at);
             if (!before && location.hash.startsWith('#p-')) { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }
         }
 
-        function waLink(num, name) {
-            let d = String(num || '').replace(/\D/g, '');
-            if (!d) return null;
-            if (d.length <= 11) d = '55' + d;
-            return 'https://wa.me/' + d + '?text=' + encodeURIComponent('Olá' + (name ? ', ' + name.split(' ')[0] : '') + '! Vi seu perfil no ZapGarantia e gostaria de um orçamento.');
-        }
-
         (async () => {
-            const key = (new URLSearchParams(location.search).get('u') || '').trim();
-            if (!key) { $('state').textContent = 'Perfil não encontrado.'; return; }
+            KEY = (new URLSearchParams(location.search).get('u') || '').trim();
+            if (!KEY) { $('state').textContent = 'Perfil não encontrado.'; return; }
             let data = null;
-            try { data = await getProfile(key); } catch (e) { $('state').textContent = 'Não consegui carregar agora. Confira a internet e tente de novo.'; return; }
+            try { data = await rpc('get_public_profile', { p_key: KEY }); }
+            catch (e) { $('state').textContent = 'Não consegui carregar agora. Confira a internet e tente de novo.'; return; }
             if (!data) { $('state').textContent = 'Perfil não encontrado ou indisponível.'; return; }
+            OWNER = data.name;
             document.title = data.name + ' | ZapGarantia';
             $('name').textContent = data.name;
-            if (data.city) { $('city').textContent = data.city; $('city').classList.remove('hidden'); }
-            if (data.bio) $('bio').textContent = data.bio;
             const n = Number(data.signed) || 0;
-            if (n > 0) { $('signed').textContent = n + (n === 1 ? ' orçamento assinado' : ' orçamentos assinados'); $('signed').classList.remove('hidden'); }
+            $('meta').textContent = [data.city, n > 0 ? n + (n === 1 ? ' orçamento assinado' : ' orçamentos assinados') : ''].filter(Boolean).join(' · ');
+            if (data.bio) { $('introBio').textContent = data.bio; $('introBox').classList.remove('hidden'); $('aboutBio').textContent = data.bio; } else { $('aboutBio').textContent = 'Este profissional ainda não escreveu uma apresentação.'; }
+            if (data.city) { $('aboutCity').textContent = 'Cidade: ' + data.city; $('aboutCity').classList.remove('hidden'); }
+            if (n > 0) { $('aboutSigned').textContent = n + (n === 1 ? ' orçamento assinado pelos clientes' : ' orçamentos assinados pelos clientes'); $('aboutSigned').classList.remove('hidden'); }
             if (okUrl(data.cover_url)) { $('cover').src = data.cover_url; $('cover').classList.remove('hidden'); }
-            if (okUrl(data.avatar_url)) $('avatar').src = data.avatar_url;
+            if (okUrl(data.avatar_url)) { AVATAR = data.avatar_url; $('avatar').src = data.avatar_url; }
             const wa = waLink(data.whatsapp, data.name);
             if (wa) { $('btnWa').href = wa; $('btnWa').classList.remove('hidden'); $('btnWa2').href = wa; $('waBar').classList.remove('hidden'); }
             if (data.ref_code) $('cta').href = '/?ref=' + encodeURIComponent(data.ref_code);
             $('cta').classList.remove('hidden');
             $('btnShare').onclick = async () => {
-                const url = location.href;
+                const url = location.origin + location.pathname + '?u=' + encodeURIComponent(KEY);
                 try { if (navigator.share) { await navigator.share({ title: data.name + ' no ZapGarantia', text: 'Veja o perfil de ' + data.name, url }); return; } } catch (e) { return; }
                 try { await navigator.clipboard.writeText(url); alert('Link copiado!'); } catch (e) { prompt('Copie o link:', url); }
             };
             $('state').classList.add('hidden');
-            $('card').classList.remove('hidden');
-            loadPosts(key, data.name, null);
+            $('profile').classList.remove('hidden');
+            showTab('feed');
+            loadPosts(null);
         })();
     </script>
 </body>
