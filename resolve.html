@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2563eb">
+    <title>RESOLVE | ZapGarantia - Tire foto do B.O. e gere a petição</title>
+    <meta name="description" content="Cobrança indevida, voo atrasado, produto com defeito? Tire foto, escolha o modelo e gere a petição pronta pro Procon em 2 minutos.">
+    <link rel="icon" href="favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif} .hidden{display:none!important}</style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased">
+<header class="bg-blue-600 text-white shadow">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2 font-black text-lg"><img src="icon-192.png" class="w-8 h-8 rounded-lg"> ZapGarantia <span class="opacity-70 font-normal">| RESOLVE</span></a>
+        <a href="/" class="text-xs bg-white/20 px-3 py-1.5 rounded-lg">Voltar pro Orçamento</a>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto p-4 pb-28">
+    <!-- LOGIN -->
+    <div id="authBox" class="bg-white rounded-xl shadow-sm border p-6 space-y-4">
+        <h1 class="text-xl font-black">RESOLVE - sem IA, custo zero</h1>
+        <p class="text-sm text-slate-600">Mesma conta do ZapGarantia. Tira foto do B.O., escolhe o modelo e sai com petição pronta com artigo de lei.</p>
+        <input id="email" type="email" placeholder="seu@email.com" class="w-full border rounded-lg px-3 py-2.5 text-sm">
+        <input id="password" type="password" placeholder="senha" class="w-full border rounded-lg px-3 py-2.5 text-sm">
+        <div class="flex gap-2">
+            <button id="btnLogin" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg text-sm">Entrar</button>
+            <button id="btnSignup" class="flex-1 bg-slate-200 font-bold py-2.5 rounded-lg text-sm">Criar conta</button>
+        </div>
+        <p id="authMsg" class="text-xs text-red-600 hidden"></p>
+    </div>
+
+    <!-- APP -->
+    <div id="app" class="hidden space-y-4">
+        <div class="bg-white rounded-xl border p-4 flex items-center justify-between">
+            <div>
+                <p id="userEmail" class="text-sm font-bold"></p>
+                <p id="planInfo" class="text-xs text-slate-600"></p>
+            </div>
+            <div class="flex gap-2">
+                <button id="btnPro" class="hidden bg-amber-500 text-white font-bold px-4 py-2 rounded-lg text-xs">Virar PRO R$18</button>
+                <button id="btnLogout" class="bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold">Sair</button>
+            </div>
+        </div>
+
+        <div id="pixBox" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+            <p class="text-sm font-bold">Pague no Pix pra liberar PRO (30 dias)</p>
+            <img id="pixQr" class="w-48 h-48 mx-auto hidden border rounded-lg bg-white">
+            <p id="pixCode" class="text-[11px] break-all bg-white p-2 rounded border hidden"></p>
+            <p class="text-[11px] text-slate-600">Após pagar, feche e abra o app. Seu plano vira PRO automaticamente via webhook.</p>
+        </div>
+
+        <div class="bg-white rounded-xl border shadow-sm p-5 space-y-4">
+            <h2 class="font-black">Nova reclamação</h2>
+            <select id="categoria" class="w-full border rounded-lg px-3 py-2.5 text-sm">
+                <option value="voo_atraso">Voo atrasado +4h - ANAC 400 Art.21</option>
+                <option value="voo_cancelado">Voo cancelado - ANAC 400</option>
+                <option value="cobranca_indevida">Cobrança indevida banco/cartão - CDC Art.42 dobra</option>
+                <option value="produto_defeito">Produto com defeito 90 dias - CDC Art.18</option>
+                <option value="compra_nao_entregue">Compra online não entregue - CDC Art.49</option>
+                <option value="internet_falha">Internet/telefonia falhando - Anatel 632</option>
+                <option value="conta_abusiva">Conta luz/água abusiva</option>
+                <option value="nome_negativado">Nome negativado indevido</option>
+                <option value="multa">Recurso multa trânsito</option>
+                <option value="plano_saude">Plano negou procedimento</option>
+            </select>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input id="f_nome" placeholder="Seu nome completo" class="border rounded-lg px-3 py-2.5 text-sm">
+                <input id="f_cpf" placeholder="CPF" class="border rounded-lg px-3 py-2.5 text-sm">
+                <input id="f_empresa" placeholder="Empresa / Cia aérea / Banco" class="border rounded-lg px-3 py-2.5 text-sm">
+                <input id="f_valor" placeholder="Valor envolvido R$" class="border rounded-lg px-3 py-2.5 text-sm">
+                <input id="f_protocolo" placeholder="Nº voo / protocolo / pedido" class="border rounded-lg px-3 py-2.5 text-sm sm:col-span-2">
+                <textarea id="f_relato" placeholder="O que aconteceu? (2 linhas)" rows="3" class="border rounded-lg px-3 py-2.5 text-sm sm:col-span-2"></textarea>
+            </div>
+
+            <div>
+                <label class="text-xs font-bold">Foto do comprovante (nota, fatura, cartão embarque)</label>
+                <input id="f_file" type="file" accept="image/*" class="mt-1 w-full text-xs">
+                <p id="uploadMsg" class="text-[11px] text-slate-600 mt-1"></p>
+            </div>
+
+            <button id="btnGerar" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl text-sm">Gerar petição pronta</button>
+            <p id="limitMsg" class="hidden text-xs text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded-lg">Limite grátis de 2 casos atingido. Vire PRO por R$18 pra criar ilimitado.</p>
+        </div>
+
+        <div id="resultado" class="hidden bg-white rounded-xl border shadow-sm p-5 space-y-3">
+            <h3 class="font-black">Petição gerada</h3>
+            <pre id="peticaoTexto" class="text-xs whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border max-h-96 overflow-auto"></pre>
+            <div class="flex gap-2">
+                <button id="btnCopiar" class="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">Copiar texto</button>
+                <button id="btnPdf" class="flex-1 bg-slate-200 font-bold py-2.5 rounded-lg text-xs">Baixar PDF</button>
+                <button id="btnWhatsapp" class="flex-1 bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs">Enviar no Zap</button>
+            </div>
+            <p id="linkPublico" class="text-[11px] text-blue-600 break-all"></p>
+        </div>
+
+        <div class="bg-white rounded-xl border p-4">
+            <h3 class="font-black text-sm mb-3">Seus casos</h3>
+            <div id="listaCasos" class="space-y-2"></div>
+        </div>
+    </div>
+</main>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
+// TROQUE pela URL do seu Worker R2
+const WORKER_URL = "https://SEU_WORKER.workers.dev";
+const R2_MEDIA = WORKER_URL + "/media";
+
+const supabase = createClient(SB_URL, SB_KEY);
+
+const TEMPLATES = {
+  voo_atraso: { titulo: "Pedido de Indenização por Atraso de Voo", corpo: "À {{empresa}}, Eu, {{nome}}, CPF {{cpf}}, estive no voo {{protocolo}} com atraso superior a 4 horas, sem assistência material conforme Resolução ANAC 400, Art. 21. Solicito reembolso de {{valor}} e indenização por danos morais e materiais. Relato: {{relato}}. Anexo comprovantes." },
+  voo_cancelado: { titulo: "Voo Cancelado - Reembolso e Indenização", corpo: "À {{empresa}}, Eu, {{nome}}, CPF {{cpf}}, tive o voo {{protocolo}} cancelado sem aviso prévio, violando Resolução ANAC 400 Art. 21. Solicito reembolso integral de {{valor}} e realocação. Relato: {{relato}}." },
+  cobranca_indevida: { titulo: "Cobrança Indevida - Devolução em Dobro CDC Art.42", corpo: "Ao {{empresa}}, Eu, {{nome}}, CPF {{cpf}}, identifiquei cobrança indevida de {{valor}} referente a {{protocolo}}. Conforme CDC Art.42, solicito devolução em dobro. Relato: {{relato}}. Anexo fatura." },
+  produto_defeito: { titulo: "Produto com Defeito - CDC Art.18", corpo: "À {{empresa}}, Eu, {{nome}}, CPF {{cpf}}, comprei {{protocolo}} no valor de {{valor}} e apresentou defeito em 90 dias. Conforme CDC Art.18, solicito troca ou reembolso. Relato: {{relato}}." },
+  compra_nao_entregue: { titulo: "Compra Não Entregue - CDC Art.49", corpo: "À {{empresa}}, pedido {{protocolo}} no valor de {{valor}} não entregue. Eu, {{nome}}, CPF {{cpf}}, solicito entrega imediata ou reembolso. Relato: {{relato}}." },
+  internet_falha: { titulo: "Falha Internet/Telefonia - Anatel 632", corpo: "À {{empresa}}, Eu, {{nome}}, CPF {{cpf}}, serviço {{protocolo}} com falhas constantes. Conforme Resolução Anatel 632, solicito reparo e desconto proporcional de {{valor}}. Relato: {{relato}}." },
+  conta_abusiva: { titulo: "Conta Abusiva - Revisão", corpo: "À {{empresa}}, conta {{protocolo}} no valor de {{valor}} abusiva. Eu, {{nome}}, CPF {{cpf}}, solicito revisão e emissão correta. Relato: {{relato}}." },
+  nome_negativado: { titulo: "Negativação Indevida", corpo: "À {{empresa}}, Eu, {{nome}}, CPF {{cpf}}, fui negativado indevidamente por débito {{protocolo}} no valor de {{valor}}. Solicito baixa imediata e indenização. Relato: {{relato}}." },
+  multa: { titulo: "Recurso de Multa de Trânsito", corpo: "À autoridade de trânsito, Eu, {{nome}}, CPF {{cpf}}, recorro da multa {{protocolo}} no valor de {{valor}}. Relato: {{relato}}. Solicito cancelamento por falta de fundamento." },
+  plano_saude: { titulo: "Plano Negou Procedimento - Rol ANS", corpo: "Ao {{empresa}}, Eu, {{nome}}, CPF {{cpf}}, tive procedimento {{protocolo}} no valor de {{valor}} negado. Conforme Lei 9656 e Rol ANS, solicito autorização imediata. Relato: {{relato}}." },
+};
+
+const $ = id => document.getElementById(id);
+let currentUser = null;
+let uploadedKey = "";
+
+async function checkAuth(){
+  const { data: { user } } = await supabase.auth.getUser();
+  if(!user){ $('authBox').classList.remove('hidden'); $('app').classList.add('hidden'); return; }
+  currentUser = user;
+  $('authBox').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('userEmail').textContent = user.email;
+  await loadProfile(); await loadCasos();
+}
+
+async function loadProfile(){
+  const { data } = await supabase.from('profiles').select('plan,pro_until,blocked').eq('id', currentUser.id).single();
+  if(data?.blocked){ alert('Conta bloqueada'); await supabase.auth.signOut(); location.reload(); return; }
+  const isPro = data?.plan === 'pro' && (!data.pro_until || new Date(data.pro_until) > new Date());
+  $('planInfo').textContent = isPro ? `PRO até ${data.pro_until ? new Date(data.pro_until).toLocaleDateString('pt-BR') : 'vitalício'} - ilimitado` : 'Plano FREE - 2 casos grátis';
+  $('btnPro').classList.toggle('hidden', isPro);
+}
+
+async function loadCasos(){
+  const { data, error } = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at', {ascending:false});
+  const list = $('listaCasos'); list.innerHTML = '';
+  if(!data || !data.length){ list.innerHTML = '<p class="text-xs text-slate-500">Nenhum caso ainda.</p>'; return; }
+  if(data.length >= 2){
+    const { data: prof } = await supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
+    if(prof?.plan !== 'pro'){ $('limitMsg').classList.remove('hidden'); $('btnGerar').disabled = true; $('btnGerar').classList.add('opacity-50'); }
+  }
+  data.forEach(c=>{
+    const d = document.createElement('div'); d.className = 'border rounded-lg p-3 text-xs flex justify-between items-center';
+    d.innerHTML = `<div><p class="font-bold">${c.categoria} - ${c.empresa||''}</p><p class="text-[11px] text-slate-600">${new Date(c.created_at).toLocaleString('pt-BR')} - ${c.status||'Pendente'}</p></div><a href="/r/${c.public_token}" target="_blank" class="text-blue-600 font-bold">Ver link</a>`;
+    list.appendChild(d);
+  });
+}
+
+$('btnLogin').onclick = async ()=>{
+  const { error } = await supabase.auth.signInWithPassword({ email: $('email').value, password: $('password').value });
+  if(error) { $('authMsg').textContent = error.message; $('authMsg').classList.remove('hidden'); } else checkAuth();
+};
+$('btnSignup').onclick = async ()=>{
+  const { error } = await supabase.auth.signUp({ email: $('email').value, password: $('password').value });
+  if(error) { $('authMsg').textContent = error.message; $('authMsg').classList.remove('hidden'); } else { $('authMsg').textContent = 'Conta criada! Verifique seu email.'; $('authMsg').classList.remove('hidden'); }
+};
+$('btnLogout').onclick = async ()=>{ await supabase.auth.signOut(); location.reload(); };
+
+$('btnPro').onclick = async ()=>{
+  const { data: { session } } = await supabase.auth.getSession();
+  const r = await fetch(WORKER_URL + '/pix/create', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } });
+  const j = await r.json();
+  if(j.qr_base64){ $('pixBox').classList.remove('hidden'); $('pixQr').src = 'data:image/png;base64,' + j.qr_base64; $('pixQr').classList.remove('hidden'); $('pixCode').textContent = j.qr_code; $('pixCode').classList.remove('hidden'); }
+  else alert(j.error || 'Erro ao gerar Pix');
+};
+
+$('f_file').onchange = async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  $('uploadMsg').textContent = 'Enviando...';
+  const { data: { session } } = await supabase.auth.getSession();
+  const r = await fetch(WORKER_URL + '/upload', { method: 'PUT', headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': file.type }, body: file });
+  const j = await r.json();
+  if(r.ok){ uploadedKey = j.key; $('uploadMsg').textContent = 'Foto enviada: ' + j.key; }
+  else $('uploadMsg').textContent = 'Erro: ' + (j.error || r.statusText);
+};
+
+$('btnGerar').onclick = async ()=>{
+  const cat = $('categoria').value;
+  const tpl = TEMPLATES[cat];
+  const dados = {
+    nome: $('f_nome').value.trim() || 'Cliente',
+    cpf: $('f_cpf').value.trim() || '000.000.000-00',
+    empresa: $('f_empresa').value.trim() || 'Empresa',
+    valor: $('f_valor').value.trim() || 'R$ 0,00',
+    protocolo: $('f_protocolo').value.trim() || 'sem número',
+    relato: $('f_relato').value.trim() || 'Relato não informado',
+  };
+  if(dados.nome.length < 5){ alert('Nome muito curto'); return; }
+
+  let texto = tpl.corpo;
+  for(const [k,v] of Object.entries(dados)){ texto = texto.replaceAll(`{{${k}}}`, v); }
+
+  // salva no banco casos (mesma base do ZapGarantia)
+  const { data, error } = await supabase.from('casos').insert({
+    professional_id: currentUser.id,
+    categoria: cat,
+    empresa: dados.empresa,
+    valor: dados.valor,
+    relato: dados.relato,
+    peticao: texto,
+    image_key: uploadedKey || null,
+    status: 'Pendente'
+  }).select('public_token').single();
+
+  if(error){
+    if(error.message.includes('LIMITE_GRATUITO') || error.message.includes('CONTA_BLOQUEADA')){ alert(error.message); return; }
+    alert('Erro: ' + error.message); return;
+  }
+
+  $('peticaoTexto').textContent = `*** ${tpl.titulo} ***\n\n${texto}\n\n${uploadedKey ? 'Comprovante: ' + R2_MEDIA + '/' + uploadedKey : ''}\n\nGerado em ${new Date().toLocaleString('pt-BR')} via RESOLVE - ZapGarantia`;
+  $('linkPublico').innerHTML = `Link público: <a href="/r/${data.public_token}" target="_blank" class="underline">zapgarantia.alibr.com.br/r/${data.public_token}</a>`;
+  $('resultado').classList.remove('hidden');
+  $('resultado').scrollIntoView({behavior:'smooth'});
+  await loadCasos();
+};
+
+$('btnCopiar').onclick = ()=>{ navigator.clipboard.writeText($('peticaoTexto').textContent); alert('Copiado!'); };
+$('btnPdf').onclick = ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF(); const txt = $('peticaoTexto').textContent;
+  const lines = doc.splitTextToSize(txt, 180); doc.text(lines, 10, 15); doc.save('peticao-resolve.pdf');
+};
+$('btnWhatsapp').onclick = ()=>{
+  const txt = encodeURIComponent($('peticaoTexto').textContent.slice(0,1500));
+  window.open('https://wa.me/?text=' + txt, '_blank');
+};
+
+checkAuth();
+</script>
+</body>
+</html>
