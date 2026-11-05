@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin - Editar RESOLVE | ZapGarantia</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-4">
+<div class="max-w-4xl mx-auto space-y-4">
+  <div class="bg-white p-4 rounded-xl border flex justify-between items-center">
+    <h1 class="font-black">Admin - Editar RESOLVE</h1>
+    <div class="flex gap-2">
+      <a href="/resolve/" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold">Ver RESOLVE</a>
+      <a href="/" class="bg-slate-200 px-3 py-2 rounded-lg text-xs font-bold">ZapGarantia</a>
+    </div>
+  </div>
+
+  <div id="authBox" class="bg-white p-6 rounded-xl border">
+    <p class="text-sm font-bold">Login admin</p>
+    <input id="email" placeholder="email admin" class="w-full border rounded-lg px-3 py-2 mt-2 text-sm">
+    <input id="password" type="password" placeholder="senha" class="w-full border rounded-lg px-3 py-2 mt-2 text-sm">
+    <button id="btnLogin" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg mt-3 text-sm">Entrar como admin</button>
+    <p id="authMsg" class="text-xs text-red-600 mt-2 hidden"></p>
+  </div>
+
+  <div id="app" class="hidden space-y-4">
+    <div class="bg-white p-4 rounded-xl border">
+      <h2 class="font-black text-sm">Templates do RESOLVE - clique pra editar</h2>
+      <p class="text-xs text-slate-600 mt-1">Variáveis que pode usar: {{nome}} {{cpf}} {{empresa}} {{valor}} {{protocolo}} {{relato}} {{cliente_nome}} {{cliente_contato}} {{servico_feito}}</p>
+    </div>
+    <div id="lista" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
+    <div class="bg-white p-4 rounded-xl border">
+      <h3 class="font-black text-sm">Adicionar nova categoria</h3>
+      <input id="new_cat" placeholder="id da categoria ex: gesseiro" class="w-full border rounded px-3 py-2 text-sm mt-2">
+      <input id="new_titulo" placeholder="Título ex: Notificação Gesseiro" class="w-full border rounded px-3 py-2 text-sm mt-2">
+      <textarea id="new_corpo" placeholder="Corpo com {{variaveis}}" rows="4" class="w-full border rounded px-3 py-2 text-sm mt-2"></textarea>
+      <button id="btnAdd" class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg text-xs mt-2">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar -->
+<div id="modal" class="hidden fixed inset-0 bg-black/50 p-4 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl p-5 w-full max-w-2xl space-y-3">
+    <h3 class="font-black">Editar template</h3>
+    <p id="m_cat" class="text-xs font-bold text-blue-600"></p>
+    <input id="m_titulo" class="w-full border rounded-lg px-3 py-2 text-sm">
+    <textarea id="m_corpo" rows="8" class="w-full border rounded-lg px-3 py-2 text-sm"></textarea>
+    <div class="flex gap-2">
+      <button id="m_save" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg text-sm">Salvar</button>
+      <button id="m_del" class="bg-red-100 text-red-700 font-bold px-4 py-2.5 rounded-lg text-sm">Excluir</button>
+      <button id="m_close" class="bg-slate-200 font-bold px-4 py-2.5 rounded-lg text-sm">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
+const supabase = createClient(SB_URL, SB_KEY);
+let editing = null;
+
+async function checkAdmin(){
+  const { data: { user } } = await supabase.auth.getUser();
+  if(!user) return false;
+  const { data } = await supabase.rpc('is_admin');
+  return data === true;
+}
+
+async function loadTemplates(){
+  const { data } = await supabase.from('resolve_templates').select('*').order('categoria');
+  const lista = document.getElementById('lista'); lista.innerHTML = '';
+  (data||[]).forEach(t=>{
+    const div = document.createElement('div'); div.className = 'bg-white border rounded-xl p-4 space-y-2';
+    div.innerHTML = `<p class="text-xs font-black text-blue-600">${t.categoria}</p><p class="font-bold text-sm">${t.titulo}</p><p class="text-xs text-slate-600 line-clamp-3">${t.corpo.slice(0,120)}...</p><button class="bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Editar</button>`;
+    div.querySelector('button').onclick = ()=> openModal(t);
+    lista.appendChild(div);
+  });
+}
+
+function openModal(t){
+  editing = t;
+  document.getElementById('m_cat').textContent = t.categoria;
+  document.getElementById('m_titulo').value = t.titulo;
+  document.getElementById('m_corpo').value = t.corpo;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+document.getElementById('btnLogin').onclick = async ()=>{
+  const { error } = await supabase.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
+  if(error){ document.getElementById('authMsg').textContent = error.message; document.getElementById('authMsg').classList.remove('hidden'); return; }
+  if(!await checkAdmin()){ document.getElementById('authMsg').textContent = 'Não é admin'; document.getElementById('authMsg').classList.remove('hidden'); return; }
+  document.getElementById('authBox').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); loadTemplates();
+};
+
+document.getElementById('m_close').onclick = ()=> document.getElementById('modal').classList.add('hidden');
+document.getElementById('m_save').onclick = async ()=>{
+  const { error } = await supabase.from('resolve_templates').update({ titulo: document.getElementById('m_titulo').value, corpo: document.getElementById('m_corpo').value, updated_at: new Date().toISOString() }).eq('id', editing.id);
+  if(error) alert(error.message); else { document.getElementById('modal').classList.add('hidden'); loadTemplates(); }
+};
+document.getElementById('m_del').onclick = async ()=>{
+  if(!confirm('Excluir categoria '+editing.categoria+'?')) return;
+  await supabase.from('resolve_templates').delete().eq('id', editing.id);
+  document.getElementById('modal').classList.add('hidden'); loadTemplates();
+};
+document.getElementById('btnAdd').onclick = async ()=>{
+  const cat = document.getElementById('new_cat').value.trim().toLowerCase();
+  const titulo = document.getElementById('new_titulo').value.trim();
+  const corpo = document.getElementById('new_corpo').value.trim();
+  if(!cat || !titulo || !corpo) { alert('Preencha tudo'); return; }
+  const { error } = await supabase.from('resolve_templates').insert({ categoria: cat, titulo, corpo });
+  if(error) alert(error.message); else { document.getElementById('new_cat').value=''; document.getElementById('new_titulo').value=''; document.getElementById('new_corpo').value=''; loadTemplates(); }
+};
+
+// auto login check
+(async ()=>{
+  if(await checkAdmin()){ document.getElementById('authBox').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); loadTemplates(); }
+})();
+</script>
+</body>
+</html>
