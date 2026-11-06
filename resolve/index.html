@@ -23,156 +23,147 @@
 }
 </style>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RESOLVE - Categorias de Serviço | ZapGarantia</title>
+<title>RESOLVE | ZapGarantia</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif} .hidden{display:none!important}</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>body{font-family:Inter,system-ui,sans-serif;background:#eef2f7} input,select,textarea{color:#0f172a!important} input::placeholder,textarea::placeholder{color:#9ca3af!important} label{color:#0f172a!important;font-weight:800!important;font-size:13px!important;display:block;margin-bottom:6px} .card{background:#fff;border-radius:18px;border:1px solid #e2e8f0;box-shadow:0 4px 20px rgba(0,0,0,.04)} .btn-role{transition:all .2s} .btn-role.selected{box-shadow:0 6px 18px rgba(0,0,0,.15);border-width:2.5px!important}</style>
 </head>
-<body class="bg-slate-100">
-<header class="bg-blue-600 text-white shadow">
-<div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
-<a href="/" class="font-black">ZapGarantia | RESOLVE</a>
-<a href="/admin-resolve.html" class="text-xs bg-white/20 px-3 py-1.5 rounded-lg">Admin</a>
+<body>
+<header class="bg-blue-600 text-white sticky top-0 z-40 shadow">
+<div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+<a href="/" class="font-black text-[19px] flex items-center gap-2">ZapGarantia <span class="opacity-70 font-normal">| RESOLVE</span></a>
+<div class="flex gap-2"><a href="/" class="bg-white/20 text-white text-xs font-bold px-4 py-2 rounded-lg">Voltar</a><a href="/admin-resolve.html" class="bg-white/20 text-white text-xs font-bold px-4 py-2 rounded-lg">Admin</a></div>
 </div>
 </header>
 <main class="max-w-3xl mx-auto p-4 space-y-4 pb-28">
-<div id="authBox" class="bg-white p-6 rounded-xl border">
-<h1 class="font-black text-lg">RESOLVE - Serviços</h1>
-<p class="text-xs text-slate-600 mt-1">Mesma conta do ZapGarantia. Escolha a categoria e gere o documento.</p>
-<input id="email" placeholder="email" class="w-full border rounded-lg px-3 py-2.5 mt-3 text-sm">
-<input id="password" type="password" placeholder="senha" class="w-full border rounded-lg px-3 py-2.5 mt-2 text-sm">
-<div class="flex gap-2 mt-3"><button id="btnLogin" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg text-sm">Entrar</button><button id="btnSignup" class="flex-1 bg-slate-200 font-bold py-2.5 rounded-lg text-sm">Criar conta</button></div>
+<!-- LOGIN - MESMA CONTA DO ZAPGARANTIA, SEM CONGELAR, SEM DUPLICAR -->
+<div id="authLoading" class="card p-5 text-center hidden"><p class="text-sm font-bold">Verificando login do ZapGarantia...</p><p class="text-[11px] text-slate-500">Se você já está logado no ZapGarantia, vai entrar direto.</p></div>
+<div id="authBox" class="card p-6 sm:p-7 max-w-md mx-auto mt-4 space-y-4">
+<h1 class="font-black text-[22px] text-center">Entrar no RESOLVE</h1>
+<p class="text-[13px] text-slate-500 text-center">Mesma conta do ZapGarantia - já logado lá, entra direto aqui</p>
+<!-- SÓ 1 CONJUNTO DE BOTÕES - NÃO DUPLICA -->
+<div class="grid grid-cols-2 gap-3">
+<button id="roleLoginContratante" class="btn-role selected bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1 border-2 border-blue-600"><i class="fa-solid fa-user-tie text-lg"></i>Sou Contratante</button>
+<button id="roleLoginContratado" class="btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1"><i class="fa-solid fa-hard-hat text-lg"></i>Sou Contratado</button>
+</div>
+<p id="roleLoginTxt" class="text-[11px] text-center font-bold text-blue-700">Você entrou como: Contratante</p>
+<input id="email" type="email" placeholder="seu@email.com" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 outline-none focus:border-blue-600">
+<input id="password" type="password" placeholder="Sua senha" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50 outline-none focus:border-blue-600">
+<p id="authMsg" class="text-xs text-red-600 font-bold hidden text-center"></p>
+<button id="btnLogin" class="w-full bg-slate-900 text-white font-black py-3.5 rounded-xl">Entrar</button>
+<button id="btnSignupUnico" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-xl text-sm">Criar conta como Contratante</button>
+<p class="text-[11px] text-slate-500 text-center">Selecione em cima se é Contratante ou Contratado - o botão de criar conta muda junto. Sem repetir.</p>
 </div>
 
 <div id="app" class="hidden space-y-4">
-<div class="bg-white p-4 rounded-xl border">
-<select id="categoria" class="w-full border rounded-lg px-3 py-3 text-sm font-bold"></select>
-<p class="text-[11px] text-slate-500 mt-2">Dica: categoria define o modelo. Você pode editar os textos no Admin.</p>
+<!-- PERFIL DO ZAPGARANTIA - SÓ MOSTRA, NÃO CRIA OUTRO -->
+<div class="card p-5 flex justify-between items-center">
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"><i class="fa-solid fa-user text-blue-600"></i></div><div><p id="userEmail" class="text-sm font-black"></p><p id="perfilTipoTop" class="text-[11px] font-bold text-blue-600"></p></div></div>
+<button id="btnLogout" class="bg-slate-100 px-4 py-2 rounded-full text-xs font-black">Sair</button>
+</div>
+<div class="card p-5 space-y-3">
+<div class="flex justify-between items-center"><h3 class="font-black text-[15px] flex items-center gap-2"><i class="fa-solid fa-share-nodes text-blue-600"></i>Seu perfil do ZapGarantia</h3><span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-3 py-1 rounded-full">PÚBLICO</span></div>
+<p class="text-[12px] text-slate-500">Este é o mesmo perfil que você já criou no ZapGarantia. Aqui só mostra, não cria outro.</p>
+<div id="perfilPreview" class="hidden bg-slate-50 border-2 border-slate-200 rounded-xl p-4 flex items-center gap-3"><div class="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center text-white font-black text-lg" id="perfilLetra">J</div><div><p id="perfilPreviewNome" class="font-black text-sm"></p><p id="perfilPreviewInsta" class="text-xs text-blue-600 font-bold"></p><p id="perfilPreviewBio" class="text-[11px] text-slate-600"></p></div></div>
+<a href="/" class="inline-block bg-blue-50 border border-blue-200 text-blue-700 font-black py-2 px-4 rounded-xl text-xs">Criar / Editar perfil no ZapGarantia →</a>
+<input type="hidden" id="perfil_nome"><input type="hidden" id="perfil_insta"><input type="hidden" id="perfil_whats"><input type="hidden" id="perfil_cidade"><input type="hidden" id="perfil_bio">
+<p id="perfilMsg" class="hidden"></p>
 </div>
 
-<div class="bg-white p-5 rounded-xl border space-y-3">
-<h2 class="font-black text-sm">Dados do documento</h2>
-<div id="formCampos" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-<div><label class="text-xs font-bold">Relato detalhado / O que foi feito</label><textarea id="f_relato" rows="4" class="w-full border rounded-lg px-3 py-2.5 text-sm mt-1" placeholder="Descreva o problema..."></textarea></div>
-<div><label class="text-xs font-bold">Foto comprovante</label><input id="f_file" type="file" accept="image/*" class="w-full text-xs mt-1"><p id="uploadMsg" class="text-[11px] text-slate-500"></p></div>
-<button id="btnGerar" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl text-sm">Gerar documento</button>
+<!-- FORM IGUAL DA FOTO - Notificação - Atraso de Obra -->
+<div class="card p-5 space-y-3">
+<select id="categoria" class="w-full border-2 border-slate-900 rounded-xl px-4 py-3.5 text-[16px] font-bold bg-white"></select>
+<p class="text-[13px] text-slate-500">Dica: categoria define o modelo. Você pode editar os textos no Admin.</p>
 </div>
 
-<div id="resultado" class="hidden bg-white p-5 rounded-xl border space-y-3">
-<h3 class="font-black">Documento gerado - envie pro cliente</h3>
-<pre id="peticaoTexto" class="text-xs whitespace-pre-wrap bg-slate-50 p-3 rounded border max-h-96 overflow-auto"></pre>
-<div class="flex gap-2">
-<button id="btnCopiar" class="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">Copiar</button>
-<button id="btnPdf" class="flex-1 bg-slate-200 font-bold py-2.5 rounded-lg text-xs">PDF</button>
-<button id="btnWa" class="flex-1 bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs">WhatsApp</button>
+<div class="card p-5 space-y-4">
+<h3 class="font-black text-[16px]">Dados do documento</h3>
+<!-- PAPEL NO DOCUMENTO - SÓ 1 CONJUNTO, NÃO DUPLICA O DE CIMA -->
+<div>
+<label>Você é quem neste documento?</label>
+<div class="grid grid-cols-2 gap-3">
+<button type="button" id="btnSouContratante" class="btn-role selected bg-blue-600 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 border-[2.5px] border-blue-600">Sou Contratante<span class="text-[10px] font-medium opacity-80">Quem contratou</span></button>
+<button type="button" id="btnSouContratado" class="btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1">Sou Contratado<span class="text-[10px] font-medium opacity-70">Quem fez o serviço</span></button>
 </div>
-<div class="flex gap-2 pt-2 border-t">
-<button data-act="Assinado" class="act flex-1 bg-emerald-100 text-emerald-800 font-bold py-2 rounded-lg text-xs">Cliente Assinou</button>
-<button data-act="Rejeitado" class="act flex-1 bg-red-100 text-red-800 font-bold py-2 rounded-lg text-xs">Rejeitado</button>
-<button data-act="Contestado" class="act flex-1 bg-amber-100 text-amber-800 font-bold py-2 rounded-lg text-xs">Contestado</button>
+<p id="roleFormTxt" class="text-[11px] font-bold text-blue-700 mt-2">Você selecionou: Contratante - vai aparecer no documento</p>
 </div>
-<input id="motivoRejeicao" placeholder="Motivo da rejeição/contestação" class="hidden w-full border rounded-lg px-3 py-2 text-xs mt-2">
-<p id="linkPublico" class="text-[11px] text-blue-600 break-all"></p>
+<div class="grid grid-cols-1 gap-3">
+<input id="f_nome" placeholder="Seu nome" class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm">
+<input id="f_cpf" placeholder="Seu CPF" class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm">
+<input id="f_empresa" placeholder="Empresa / Oficina" class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold">
+<input id="f_produto_nome" placeholder="Nome do produto / serviço" class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm">
+<input id="f_produto_codigo" placeholder="Código do produto / Nº pedido" class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm">
+<input id="f_valor" placeholder="Valor R$" class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold">
+<input id="f_protocolo" placeholder="Nº pedido / placa / OS" class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm">
+</div>
+<div class="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 space-y-3">
+<p class="font-black text-[13px] flex items-center gap-2"><i class="fa-solid fa-location-dot text-blue-600"></i>Endereços - Opcional</p>
+<input id="f_endereco_contratante" placeholder="Endereço do Contratante (opcional)" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white">
+<input id="f_endereco_contratado" placeholder="Endereço do Contratado (opcional)" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white">
+<div class="grid grid-cols-2 gap-3"><input id="f_cep" placeholder="CEP (opcional)" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white"><input id="f_cidade" placeholder="Cidade (opcional)" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white"></div>
+</div>
+<div><label>Relato detalhado / O que foi feito</label><textarea id="f_relato" rows="4" placeholder="Descreva o problema..." class="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-sm resize-none"></textarea></div>
+<div><label>Foto comprovante</label><input id="f_file" type="file" accept="image/*" class="w-full text-sm mt-1"><p id="uploadMsg" class="text-xs text-slate-600 mt-1 font-bold">Pode gerar sem foto também</p><img id="previewImg" class="hidden w-full mt-2 rounded-xl border max-h-72 object-contain bg-white"></div>
+<div class="bg-amber-50 border-2 border-amber-200 rounded-xl p-3 flex gap-2 items-start"><input type="checkbox" id="aceiteTermos" checked class="w-5 h-5 accent-blue-600"><label for="aceiteTermos" class="!mb-0 !text-[12px] !font-medium !text-slate-700">Li e concordo com os <a href="/termos/" target="_blank" class="text-blue-600 underline font-bold">Termos de Uso</a> e <a href="/privacidade/" target="_blank" class="text-blue-600 underline font-bold">Política de Privacidade</a>. Todo acordo é entre Contratante e Contratado.</label></div>
+<button id="btnGerar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-[16px] shadow">Gerar documento</button>
 </div>
 
-<div class="bg-white p-4 rounded-xl border">
-<h3 class="font-black text-sm">Seus documentos</h3>
-<div id="listaCasos" class="space-y-2 mt-3"></div>
+<div id="resultado" class="hidden card p-6 space-y-4 border-2 border-emerald-200">
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center"><i class="fa-solid fa-check text-white"></i></div><h3 class="font-black text-emerald-900">Documento gerado!</h3></div>
+<div class="flex gap-2"><button id="btnOuvirResolve" class="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl text-xs">Ouvir documento</button><button id="btnPararResolve" class="bg-slate-900 text-white font-black px-4 py-3 rounded-xl text-xs">Parar</button></div>
+<pre id="peticaoTexto" class="text-[13px] whitespace-pre-wrap bg-slate-50 p-4 rounded-xl border max-h-80 overflow-auto"></pre>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button id="btnCopiar" class="bg-slate-900 text-white font-black py-3.5 rounded-xl text-xs">Copiar link</button><button id="btnWa" class="bg-emerald-600 text-white font-black py-3.5 rounded-xl text-xs">Compartilhar</button><button id="btnVisitar" class="bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs">Visitar</button><button id="btnPdf" class="bg-white border-2 border-slate-200 font-black py-3.5 rounded-xl text-xs">Baixar PDF</button></div>
+<p id="linkPublico" class="text-[11px] text-blue-700 break-all bg-blue-50 p-3 rounded-xl"></p>
+</div>
+
+<div class="card p-5">
+<div class="flex justify-between items-center"><h3 class="font-black text-[16px]">Seus documentos - status da assinatura</h3></div>
+<div id="listaCasos" class="space-y-3 mt-4"></div>
+</div>
+
+<div class="card p-5 text-center space-y-2">
+<p class="text-[12px] text-slate-600">Ao usar o RESOLVE você concorda com nossos termos. O ZapGarantia é apenas uma ferramenta - todo acordo é entre Contratante e Contratado.</p>
+<div class="flex justify-center gap-4 text-[12px] font-bold"><a href="/privacidade/" class="text-blue-600 underline">Política de Privacidade</a><a href="/termos/" class="text-blue-600 underline">Termos de Uso</a></div>
 </div>
 </div>
 </main>
-
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
-const WORKER_URL = "https://SEU_WORKER.workers.dev";
+const SB_KEY = "sb_publishable_haJ8eg8OciGN6cK8GGg3ig_bGOKUAud";
 const supabase = createClient(SB_URL, SB_KEY);
-let currentUser=null, uploadedKey="", templates={}, currentToken=null;
-
-const FIELD_LABELS = { nome:"Seu nome", cpf:"Seu CPF", empresa:"Empresa / Oficina", valor:"Valor R$", protocolo:"Nº pedido / placa / OS", relato:"Relato", cliente_nome:"Nome do cliente que não pagou", cliente_contato:"WhatsApp do cliente", servico_feito:"Serviço que você fez" };
-
-async function loadTemplates(){
-  const { data } = await supabase.from('resolve_templates').select('*').order('categoria');
-  templates = {}; const sel = document.getElementById('categoria'); sel.innerHTML='';
-  (data||[]).forEach(t=>{
-    templates[t.categoria]=t;
-    const opt=document.createElement('option'); opt.value=t.categoria; opt.textContent=t.titulo; sel.appendChild(opt);
-  });
-  renderForm();
-}
-function renderForm(){
-  const cat = document.getElementById('categoria').value;
-  const t = templates[cat]; if(!t) return;
-  const campos = t.campos||[];
-  const form = document.getElementById('formCampos'); form.innerHTML='';
-  campos.forEach(c=>{
-    if(c==='relato') return;
-    const label = FIELD_LABELS[c]||c;
-    const id = 'f_'+c;
-    const inp = document.createElement('input'); inp.id=id; inp.placeholder=label; inp.className='border rounded-lg px-3 py-2.5 text-sm';
-    form.appendChild(inp);
-  });
-}
-document.getElementById('categoria').onchange = renderForm;
-
-async function checkAuth(){
-  const { data:{user} } = await supabase.auth.getUser();
-  if(!user){ document.getElementById('authBox').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); return; }
-  currentUser=user;
-  document.getElementById('authBox').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');
-  await loadTemplates(); await loadCasos();
-}
-document.getElementById('btnLogin').onclick = async ()=>{ const { error } = await supabase.auth.signInWithPassword({email:document.getElementById('email').value,password:document.getElementById('password').value}); if(!error) checkAuth(); };
-document.getElementById('btnSignup').onclick = async ()=>{ await supabase.auth.signUp({email:document.getElementById('email').value,password:document.getElementById('password').value}); alert('Conta criada'); };
-
-document.getElementById('f_file').onchange = async (e)=>{
-  const file=e.target.files[0]; if(!file) return;
-  document.getElementById('uploadMsg').textContent='Enviando...';
-  const { data:{session} } = await supabase.auth.getSession();
-  const r = await fetch(WORKER_URL+'/upload',{method:'PUT',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':file.type},body:file});
-  const j = await r.json(); if(r.ok){ uploadedKey=j.key; document.getElementById('uploadMsg').textContent='Enviado: '+j.key; } else document.getElementById('uploadMsg').textContent='Erro';
-};
-
-document.getElementById('btnGerar').onclick = async ()=>{
-  const cat = document.getElementById('categoria').value;
-  const t = templates[cat];
-  const dados={}; (t.campos||[]).forEach(c=>{ const el=document.getElementById('f_'+c); if(el) dados[c]=el.value; });
-  dados.relato = document.getElementById('f_relato').value;
-  let texto = t.corpo; for(const [k,v] of Object.entries(dados)){ texto = texto.replaceAll(`{{${k}}}`, v||''); }
-  const { data, error } = await supabase.from('casos').insert({ professional_id: currentUser.id, categoria:cat, empresa:dados.empresa||dados.cliente_nome||'', valor:dados.valor||'', relato:dados.relato, peticao:texto, image_key:uploadedKey, cliente_nome:dados.cliente_nome||null, cliente_contato:dados.cliente_contato||null, servico_feito:dados.servico_feito||null, status:'Pendente', status_assinatura:'Pendente' }).select('public_token').single();
-  if(error){ alert(error.message); return; }
-  currentToken=data.public_token;
-  document.getElementById('peticaoTexto').textContent=text;
-  document.getElementById('linkPublico').innerHTML=`Link: <a href="/r/${data.public_token}" target="_blank" class="underline">zapgarantia.alibr.com.br/r/${data.public_token}</a>`;
-  document.getElementById('resultado').classList.remove('hidden');
-  loadCasos();
-};
-
-document.querySelectorAll('.act').forEach(b=>{
-  b.onclick = async ()=>{
-    const act=b.dataset.act;
-    let motivo=null;
-    if(act!=='Assinado'){ document.getElementById('motivoRejeicao').classList.remove('hidden'); motivo=document.getElementById('motivoRejeicao').value; if(!motivo){ alert('Informe motivo'); return; } }
-    if(!currentToken) return;
-    await supabase.from('casos').update({ status_assinatura:act, motivo_rejeicao:motivo, status: act==='Assinado'?'Resolvido':'Pendente' }).eq('public_token', currentToken);
-    alert('Status atualizado: '+act); loadCasos();
-  };
-});
-
-document.getElementById('btnCopiar').onclick = ()=> navigator.clipboard.writeText(document.getElementById('peticaoTexto').textContent);
-document.getElementById('btnPdf').onclick = ()=>{ const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.text(doc.splitTextToSize(document.getElementById('peticaoTexto').textContent,180),10,15); doc.save('resolve.pdf'); };
-document.getElementById('btnWa').onclick = ()=> window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('peticaoTexto').textContent.slice(0,1200)),'_blank');
-
-async function loadCasos(){
-  const { data } = await supabase.from('casos').select('*').eq('professional_id',currentUser.id).order('created_at',{ascending:false}).limit(20);
-  const lista=document.getElementById('listaCasos'); lista.innerHTML='';
-  (data||[]).forEach(c=>{
-    const d=document.createElement('div'); d.className='border rounded-lg p-3 text-xs flex justify-between'; d.innerHTML=`<div><p class="font-bold">${c.categoria} - ${c.empresa||c.cliente_nome||''}</p><p>${c.status_assinatura} - ${new Date(c.created_at).toLocaleDateString('pt-BR')}</p></div><a href="/r/${c.public_token}" class="text-blue-600 font-bold">Abrir</a>`; lista.appendChild(d);
-  });
-}
-
+let currentUser=null, uploadedKey="", templates={}, ultimoToken=null, ultimaPeticao="", roleForm="Contratante", roleLogin="Contratante";
+function setRoleForm(role){ roleForm=role; const c=document.getElementById('btnSouContratante'); const d=document.getElementById('btnSouContratado'); if(role==='Contratante'){ c.className='btn-role selected bg-blue-600 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 border-[2.5px] border-blue-600'; d.className='btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1'; } else { d.className='btn-role selected bg-emerald-600 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 border-[2.5px] border-emerald-600'; c.className='btn-role bg-white border-2 border-blue-300 text-blue-700 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1'; } document.getElementById('roleFormTxt').textContent='Você selecionou: '+role+' - vai aparecer no documento'; }
+document.getElementById('btnSouContratante').onclick=()=>setRoleForm('Contratante');
+document.getElementById('btnSouContratado').onclick=()=>setRoleForm('Contratado');
+function setRoleLogin(role){ roleLogin=role; const c=document.getElementById('roleLoginContratante'); const d=document.getElementById('roleLoginContratado'); if(role==='Contratante'){ c.className='btn-role selected bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1 border-2 border-blue-600'; d.className='btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1'; } else { d.className='btn-role selected bg-emerald-600 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1 border-2 border-emerald-600'; c.className='btn-role bg-white border-2 border-blue-300 text-blue-700 font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1'; } document.getElementById('roleLoginTxt').textContent='Você entrou como: '+role; const btnUnico=document.getElementById('btnSignupUnico'); if(btnUnico){ btnUnico.textContent='Criar conta como '+role; btnUnico.className='w-full text-white font-black py-3.5 rounded-xl text-sm '+(role==='Contratante'?'bg-blue-600 hover:bg-blue-700':'bg-emerald-600 hover:bg-emerald-700'); } localStorage.setItem('zapgarantia_role', role); }
+document.getElementById('roleLoginContratante').onclick=()=>setRoleLogin('Contratante');
+document.getElementById('roleLoginContratado').onclick=()=>setRoleLogin('Contratado');
+const urlRole=new URLSearchParams(location.search).get('role'); if(urlRole){ if(urlRole.toLowerCase().includes('contratado')) setRoleLogin('Contratado'); if(urlRole.toLowerCase().includes('contratante')) setRoleLogin('Contratante'); }
+async function loadPerfil(){ if(currentUser){ try{ const { data } = await supabase.from('profiles').select('*').eq('user_id', currentUser.id).single(); if(data && data.nome_exibicao){ const p={nome:data.nome_exibicao, insta:data.insta||'', cidade:data.cidade||'', bio:data.bio||''}; preencherPerfil(p); localStorage.setItem('zapgarantia_perfil_unico', JSON.stringify(p)); return; } }catch{} } const p=JSON.parse(localStorage.getItem('zapgarantia_perfil_unico')||'{}'); if(p.nome) preencherPerfil(p); }
+function preencherPerfil(p){ const el=(id)=>document.getElementById(id); if(el('perfil_nome')) el('perfil_nome').value=p.nome||''; if(el('perfil_insta')) el('perfil_insta').value=p.insta||''; if(el('perfil_cidade')) el('perfil_cidade').value=p.cidade||''; if(el('perfil_bio')) el('perfil_bio').value=p.bio||''; showPerfilPreview(p); }
+function showPerfilPreview(p){ if(!p.nome) return; document.getElementById('perfilPreview').classList.remove('hidden'); document.getElementById('perfilLetra').textContent=p.nome.charAt(0).toUpperCase(); document.getElementById('perfilPreviewNome').textContent=p.nome+' - '+(p.cidade||''); document.getElementById('perfilPreviewInsta').textContent=p.insta||''; document.getElementById('perfilPreviewBio').textContent=(p.bio||'')+' • Perfil do ZapGarantia'; }
+async function loadTemplates(){ const { data } = await supabase.from('resolve_templates').select('*').order('categoria'); const sel=document.getElementById('categoria'); sel.innerHTML=''; const fallback=[{categoria:'atraso_obra',titulo:'Notificação - Atraso de Obra'},{categoria:'cliente_nao_pagou',titulo:'Cliente não pagou'},{categoria:'voo_atraso',titulo:'Voo atrasado'},{categoria:'banco',titulo:'Banco'}]; const list=(data&&data.length)?data:fallback; list.forEach(t=>{ templates[t.categoria]=t; const o=document.createElement('option'); o.value=t.categoria; o.textContent=t.titulo||t.categoria; sel.appendChild(o); }); }
+async function checkAuth(){ try{ const { data:{session} } = await supabase.auth.getSession(); const { data:{user} } = await supabase.auth.getUser(); const usuario=user||session?.user; if(!usuario){ document.getElementById('authBox').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); const rs=localStorage.getItem('zapgarantia_role'); if(rs) setRoleLogin(rs); loadPerfil(); return; } currentUser=usuario; const rs=localStorage.getItem('zapgarantia_role'); if(rs && rs!==roleLogin) setRoleLogin(rs); document.getElementById('authBox').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); document.getElementById('userEmail').textContent=usuario.email; document.getElementById('perfilTipoTop').textContent='Logado como '+roleLogin+' • Mesma conta do ZapGarantia'; await loadTemplates(); await loadCasos(); loadPerfil(); }catch(e){ document.getElementById('authBox').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); } }
+supabase.auth.onAuthStateChange((event, session)=>{ if(event==='SIGNED_IN' && session?.user) checkAuth(); if(event==='SIGNED_OUT'){ document.getElementById('authBox').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); } });
+async function doSignupUnico(){ const role=roleLogin; const btn=document.getElementById('btnSignupUnico'); const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value; if(!email||!password){ alert('Digite email e senha para criar conta como '+role); return; } if(btn){ btn.disabled=true; btn.textContent='Criando conta... Aguarde'; } try{ const { error } = await supabase.auth.signUp({email,password}); if(error) throw error; localStorage.setItem('zapgarantia_role', role); document.getElementById('authMsg').textContent='Conta criada como '+role+'! Agora clique em Entrar'; document.getElementById('authMsg').classList.remove('hidden'); }catch(e){ document.getElementById('authMsg').textContent='Erro: '+e.message; document.getElementById('authMsg').classList.remove('hidden'); }finally{ if(btn){ btn.disabled=false; btn.textContent='Criar conta como '+role; } } }
+document.getElementById('btnSignupUnico').onclick=()=>doSignupUnico();
+document.getElementById('btnLogin').onclick=async()=>{ const btn=document.getElementById('btnLogin'); const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value; if(!email||!password){ alert('Digite email e senha'); return; } if(btn){ btn.disabled=true; btn.textContent='Entrando... Aguarde'; } document.getElementById('authMsg').textContent='Entrando...'; document.getElementById('authMsg').classList.remove('hidden'); try{ const { error } = await supabase.auth.signInWithPassword({email,password}); if(error) throw error; localStorage.setItem('zapgarantia_role', roleLogin); document.getElementById('authMsg').textContent='Logado! Entrando no RESOLVE...'; await checkAuth(); }catch(e){ document.getElementById('authMsg').textContent='Erro: '+e.message+' - Tente de novo ou clique em Criar conta'; alert('Erro ao entrar: '+e.message); }finally{ if(btn){ btn.disabled=false; btn.textContent='Entrar'; } } };
+document.getElementById('btnLogout').onclick=async()=>{ await supabase.auth.signOut(); location.reload(); };
+document.getElementById('f_file').onchange=async(e)=>{ const file=e.target.files[0]; if(!file) return; const p=document.getElementById('previewImg'); p.src=URL.createObjectURL(file); p.classList.remove('hidden'); document.getElementById('uploadMsg').textContent='Enviando...'; try{ const name=currentUser.id+'/'+Date.now()+'-'+file.name; const { data } = await supabase.storage.from('comprovantes').upload(name,file); if(data){ uploadedKey=data.path; document.getElementById('uploadMsg').textContent='Enviado'; } }catch{ document.getElementById('uploadMsg').textContent='Preview OK'; uploadedKey=file.name; } };
+document.getElementById('btnGerar').onclick=async()=>{ if(!document.getElementById('aceiteTermos').checked){ alert('Você precisa aceitar os Termos de Uso e Política de Privacidade para gerar o documento.'); return; } const cat=document.getElementById('categoria').value; const t=templates[cat]; const dados={}; ['nome','cpf','empresa','valor','protocolo'].forEach(k=>{ const el=document.getElementById('f_'+k); if(el) dados[k]=el.value.trim(); }); dados.produto_nome=document.getElementById('f_produto_nome').value.trim(); dados.produto_codigo=document.getElementById('f_produto_codigo').value.trim(); dados.endereco_contratante=document.getElementById('f_endereco_contratante').value.trim(); dados.endereco_contratado=document.getElementById('f_endereco_contratado').value.trim(); dados.cep=document.getElementById('f_cep').value.trim(); dados.cidade=document.getElementById('f_cidade').value.trim(); const relato=document.getElementById('f_relato').value.trim(); if(!dados.nome||!dados.empresa||!relato){ alert('Preencha nome, empresa e relato'); return; } let texto=(t?.corpo||'Notificação - {{empresa}} - {{nome}} - {{relato}}'); Object.entries(dados).forEach(([k,v])=>{ texto=texto.replaceAll('{{'+k+'}}', v); }); texto=texto.replaceAll('{{relato}}', relato); texto='Você é: '+roleForm+'\n\n'+texto; if(dados.endereco_contratante) texto+='\n\nEndereço do Contratante: '+dados.endereco_contratante; if(dados.endereco_contratado) texto+='\n\nEndereço do Contratado: '+dados.endereco_contratado; if(dados.cep) texto+='\nCEP: '+dados.cep; if(dados.cidade) texto+='\nCidade: '+dados.cidade; const perfil=JSON.parse(localStorage.getItem('zapgarantia_perfil_unico')||'{}'); if(perfil.nome) texto+='\n\nPerfil ZapGarantia: '+perfil.nome+' '+(perfil.insta||'')+' '+(perfil.cidade||''); ultimaPeticao=texto; document.getElementById('peticaoTexto').textContent=texto; document.getElementById('resultado').classList.remove('hidden'); const token=Math.random().toString(36).slice(2,10)+Date.now().toString(36); ultimoToken=token; try{ const { data, error } = await supabase.from('casos').insert({professional_id: currentUser.id, categoria: cat, empresa: dados.empresa, valor: dados.valor, relato, peticao: texto, cliente_nome: dados.nome, public_token: token, image_keys: uploadedKey?[uploadedKey]:[]}).select('public_token').single(); if(data) ultimoToken=data.public_token; }catch(e){} document.getElementById('linkPublico').textContent='Link: https://zapgarantia.alibr.com.br/r/?token='+ultimoToken; await loadCasos(); };
+document.getElementById('btnCopiar').onclick=()=>{ navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/r/?token='+ultimoToken+'\n\n'+ultimaPeticao); alert('Copiado!'); };
+document.getElementById('btnWa').onclick=()=>{ if(!ultimoToken) return; window.open('https://wa.me/?text='+encodeURIComponent('Documento RESOLVE: https://zapgarantia.alibr.com.br/r/?token='+ultimoToken),'_blank'); };
+document.getElementById('btnVisitar').onclick=()=>{ if(!ultimoToken) return; window.open('/r/?token='+ultimoToken,'_blank'); };
+document.getElementById('btnPdf').onclick=()=>{ const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao,180),10,15); doc.save('RESOLVE.pdf'); };
+let synth=window.speechSynthesis; document.getElementById('btnOuvirResolve').onclick=()=>{ synth.cancel(); const u=new SpeechSynthesisUtterance(ultimaPeticao); u.lang='pt-BR'; synth.speak(u); };
+document.getElementById('btnPararResolve').onclick=()=>synth.cancel();
+async function loadCasos(){ const { data } = await supabase.from('casos').select('*').eq('professional_id',currentUser.id).order('created_at',{ascending:false}).limit(30); const lista=document.getElementById('listaCasos'); lista.innerHTML=''; if(!data||!data.length){ lista.innerHTML='<p class=text-sm text-center py-8> Nenhum documento ainda</p>'; return; } data.forEach(c=>{ let badge='', cor='border-amber-200 bg-amber-50/50'; if(c.status_assinatura==='Assinado'){ badge='<span class="bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full">Assinado</span>'; cor='border-emerald-200 bg-emerald-50/50'; } else if(c.status_assinatura==='Contestado'){ badge='<span class="bg-red-500 text-white text-[11px] font-black px-3 py-1 rounded-full">Contestado</span>'; cor='border-red-200 bg-red-50/50'; } else { badge='<span class="bg-amber-400 text-amber-900 text-[11px] font-black px-3 py-1 rounded-full">Aguardando</span>'; } const d=document.createElement('div'); d.className='border-2 rounded-xl p-3 flex justify-between items-center '+cor; d.innerHTML='<div><p class="font-black text-sm">'+(c.empresa||'Documento')+'</p><p class="text-[11px] text-slate-500">'+new Date(c.created_at).toLocaleDateString('pt-BR')+' • R$ '+(c.valor||'-')+'</p></div><div class="flex gap-2 items-center">'+badge+'<a href="/r/?token='+c.public_token+'" target="_blank" class="bg-blue-600 text-white font-black px-3 py-1.5 rounded-full text-xs">Abrir</a></div>'; lista.appendChild(d); }); }
+// CONTESTAÇÃO VINDA DO ZAPGARANTIA
+async function checkContestToken(){ const ct=new URLSearchParams(location.search).get('contest_token'); if(!ct) return; const banner=document.createElement('div'); banner.className='bg-red-50 border-2 border-red-300 rounded-2xl p-5 text-center space-y-2'; banner.innerHTML='<p class="font-black text-red-800">Você está contestando um serviço do ZapGarantia</p><p class="text-xs text-red-700">Preencha abaixo sua contestação. O profissional vai ver que você contestou no painel dele.</p>'; document.getElementById('app').prepend(banner); try{ const { data } = await supabase.from('contracts').select('*').eq('public_token', ct).single(); if(data){ document.getElementById('f_empresa').value=data.client_name||''; document.getElementById('f_relato').value='Contestação do serviço: '+(data.service||'')+' - Valor: R$ '+(data.total||'')+' - Motivo da contestação: '; document.getElementById('f_valor').value=data.total||''; } }catch{} }
 checkAuth();
+setTimeout(checkContestToken, 1500);
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
