@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZapGarantia - Redirecionando</title>
+<script>
+(function(){
+  var path = location.pathname;
+  var search = location.search;
+  // Se for /r/TOKEN -> vai para /r/?token=TOKEN
+  if(path.startsWith('/r/') && path !== '/r/' && path !== '/r/index.html'){
+    var token = path.split('/').filter(Boolean)[1];
+    if(token) { location.replace('/r/?token='+token); return; }
+  }
+  // Se for /c/TOKEN -> vai para /c/?token=TOKEN
+  if(path.startsWith('/c/') && path !== '/c/' && path !== '/c/index.html'){
+    var token = path.split('/').filter(Boolean)[1];
+    if(token) { location.replace('/c/?token='+token); return; }
+  }
+  // Se já tem ?token= na URL e está em /r/ ou /c/, deixa o index.html da pasta cuidar
+  if((path === '/r/' || path === '/r') && search.includes('token=')){
+    location.replace('/r/index.html'+search); return;
+  }
+  if((path === '/c/' || path === '/c') && search.includes('token=')){
+    location.replace('/c/index.html'+search); return;
+  }
+})();
+</script>
+<style>body{font-family:system-ui,sans-serif;text-align:center;padding:40px} a{color:#2563eb}</style>
+</head>
+<body>
+<h2>ZapGarantia</h2>
+<p>Página não encontrada. Voltando para o início...</p>
+<p><a href="/">Ir para o início</a> | <a href="/resolve/">Ir para o RESOLVE</a></p>
+<script>
+// se não for rota conhecida, volta pro inicio após 2s
+setTimeout(function(){
+  if(!location.pathname.startsWith('/r/') && !location.pathname.startsWith('/c/')){
+    location.href = '/';
+  }
+}, 2000);
+</script>
+</body>
+</html>
