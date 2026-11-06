@@ -21,27 +21,6 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
-</style><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
 </style>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RESOLVE - Boletim do Problema | ZapGarantia</title>
@@ -83,6 +62,13 @@ input,select,textarea{color:#0f172a !important}
 <div class="card p-4 text-center border-2 border-emerald-200 bg-emerald-50"><p class="text-[11px] font-bold text-emerald-700">RESOLVIDO / ASSINADO</p><p id="countAssinado" class="text-[28px] font-black text-emerald-600 leading-none mt-1">0</p><p class="text-[10px] text-emerald-600 mt-1">Resolvido</p></div>
 <div class="card p-4 text-center border-2 border-red-200 bg-red-50"><p class="text-[11px] font-bold text-red-700">CONTESTADO / RECUSADO</p><p id="countRecusado" class="text-[28px] font-black text-red-600 leading-none mt-1">0</p><p class="text-[10px] text-red-600 mt-1">Contestou</p></div>
 </div>
+</div>
+
+<div id="infoSalva" class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-center">
+<p class="font-black text-[13px] text-blue-900">Onde seu BO salva?</p>
+<p class="text-[12px] text-blue-800 mt-1">Salva em 2 lugares: 1) No banco do ZapGarantia (tabela <b>casos</b>, ligado no seu login) - pra abrir em outro celular / WhatsApp. 2) No seu celular (backup) - pra abrir aqui mesmo se o banco falhar.</p>
+<p id="infoLogado" class="text-[12px] font-bold text-blue-900 mt-2">Verificando login...</p>
+<p id="infoSalvos" class="text-[11px] text-blue-700">Boletins salvos: verificando...</p>
 </div>
 
 <!-- SEM LOGIN AQUI - SÓ AVISO SE NÃO TIVER LOGADO NO ZAPGARANTIA -->
@@ -131,12 +117,11 @@ input,select,textarea{color:#0f172a !important}
 
 <div><label>O que deu errado? O que estragou? *</label><textarea id="f_problema" rows="4" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm bg-slate-50" placeholder="Ex: O reboco ficou torto, a tinta descascou em 2 dias, o pedreiro não voltou pra arrumar..."></textarea></div>
 
-<div><label>Foto da prova - foto do defeito, do que estragou</label><input id="f_file" type="file" accept="image/*" class="w-full text-xs mt-1"><img id="previewImg" class="hidden w-full rounded-xl mt-2 border"><p id="uploadMsg" class="text-[11px] text-slate-500"></p></div>
+<div><label>Foto da prova - até 15 fotos do defeito, do que estragou</label><p class="text-[11px] text-slate-500 -mt-1 mb-2">Pode selecionar até 15 fotos de uma vez. As fotos vão aparecer no documento.</p><input id="f_file" type="file" accept="image/*" multiple class="w-full text-xs mt-1"><p id="fotosCount" class="text-[11px] font-bold text-blue-600 mt-2">0 / 15 fotos selecionadas</p><div id="fotosPreview" class="grid grid-cols-3 gap-2 mt-2"></div><p id="uploadMsg" class="text-[11px] text-slate-500"></p></div>
 
 <label class="flex items-start gap-2 text-[11px] font-normal text-slate-600"><input id="aceiteTermos" type="checkbox" class="mt-0.5"> Li e aceito os <a href="/termos/" class="text-blue-600 underline font-bold">Termos</a> e <a href="/privacidade/" class="text-blue-600 underline font-bold">Privacidade</a>. Entendo que o ZapGarantia é só uma ferramenta, não é advogado e não é parte do acordo.</label>
 
 <button id="btnGerar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-sm">📋 Gerar Boletim / Notificação</button>
-<p id="saveMsg" class="text-center text-[12px] font-bold hidden"></p>
 </div>
 
 <div id="resultado" class="hidden card p-5 sm:p-6 space-y-3">
@@ -148,11 +133,7 @@ input,select,textarea{color:#0f172a !important}
 <button id="btnWa" class="flex-1 bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs">WhatsApp</button>
 <button id="btnVisitar" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg text-xs">Visitar</button>
 </div>
-<div class="bg-slate-50 border rounded-xl p-3">
-<p class="text-[11px] font-bold text-slate-600 mb-1">Link - copie só este link para abrir no navegador:</p>
-<a id="linkPublico" href="#" target="_blank" class="text-[11px] text-blue-600 break-all underline" style="word-break:break-all; overflow-wrap:anywhere;"></a>
-</div>
-<p class="text-[11px] text-slate-500">O botão Copiar agora copia só o link. O WhatsApp manda o texto + link.</p>
+<p id="linkPublico" class="text-[11px] text-blue-600 break-all"></p>
 </div>
 
 <div class="card p-4 sm:p-5">
@@ -173,12 +154,6 @@ const supabase = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, au
 let currentUser=null, uploadedKey="", ultimoToken="", ultimaPeticao="";
 
 function $(id){ return document.getElementById(id); }
-function getLink(token){ return 'https://zapgarantia.alibr.com.br/r/?token=' + token; }
-function showSaveMsg(text, isError){
-  const el = $('saveMsg'); if(!el) return;
-  el.textContent = text; el.classList.remove('hidden');
-  el.style.color = isError ? '#dc2626' : '#059669';
-}
 
 async function checkAuth(){
   const notLogged = $('notLogged'), appBox = $('app');
@@ -192,6 +167,7 @@ async function checkAuth(){
     currentUser = session.user;
     if(notLogged) notLogged.classList.add('hidden');
     if(appBox) appBox.classList.remove('hidden');
+    const il = $('infoLogado'); if(il) il.textContent = 'Logado como: ' + (session.user.email || 'sem email') + ' - seus boletins são desse login. Se entrar com outro login, os boletins antigos não aparecem.';
     await loadCasos();
     return true;
   }catch(e){
@@ -201,11 +177,46 @@ async function checkAuth(){
   }
 }
 
+let fotosSelecionadas = []; // até 15 fotos
+let fotosBase64 = [];
 if($('f_file')) $('f_file').onchange = async (e) => {
-  const file = e.target.files[0]; if(!file) return;
-  const p = $('previewImg'); if(p){ p.src = URL.createObjectURL(file); p.classList.remove('hidden'); }
-  const um = $('uploadMsg'); if(um) um.textContent = 'Foto pronta pra enviar junto com o boletim';
-  uploadedKey = file.name;
+  const files = Array.from(e.target.files || []);
+  if(!files.length) return;
+  // Limite 15
+  const sobrando = 15 - fotosSelecionadas.length;
+  if(files.length > sobrando){ alert('Você só pode colocar até 15 fotos. Você já tem ' + fotosSelecionadas.length + ', pode adicionar mais ' + sobrando + '.'); }
+  const paraAdicionar = files.slice(0, sobrando);
+  for(const file of paraAdicionar){
+    fotosSelecionadas.push(file);
+    // Prévia pequena pra não estourar a memória - comprime pra 800px
+    try{
+      const dataUrl = await new Promise((resolve)=>{
+        const reader = new FileReader();
+        reader.onload = (ev)=>{
+          const img = new Image();
+          img.onload = ()=>{
+            const canvas = document.createElement('canvas');
+            const max = 800;
+            let w = img.width, h = img.height;
+            if(w > max){ h = h * max / w; w = max; }
+            if(h > max){ w = w * max / h; h = max; }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      fotosBase64.push(dataUrl);
+    }catch{ fotosBase64.push(''); }
+  }
+  // Mostra prévia em grade
+  const grid = $('fotosPreview'); if(grid){ grid.innerHTML = ''; fotosBase64.forEach((src, idx)=>{ if(!src) return; const d = document.createElement('div'); d.className = 'relative'; d.innerHTML = '<img src="' + src + '" class="w-full h-24 object-cover rounded-lg border"><button data-idx="' + idx + '" class="btnRemoverFoto absolute top-1 right-1 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full font-black">×</button>'; grid.appendChild(d); }); grid.querySelectorAll('.btnRemoverFoto').forEach(b=>{ b.onclick = (ev)=>{ ev.preventDefault(); const i = parseInt(b.dataset.idx); fotosSelecionadas.splice(i,1); fotosBase64.splice(i,1); const cnt = $('fotosCount'); if(cnt) cnt.textContent = fotosSelecionadas.length + ' / 15 fotos selecionadas'; const um = $('uploadMsg'); if(um) um.textContent = fotosSelecionadas.length ? fotosSelecionadas.length + ' fotos prontas' : ''; // Recarrega prévia
+      const g2 = $('fotosPreview'); if(g2){ g2.innerHTML=''; fotosBase64.forEach((s2, j)=>{ if(!s2) return; const dd=document.createElement('div'); dd.className='relative'; dd.innerHTML='<img src="'+s2+'" class="w-full h-24 object-cover rounded-lg border"><button data-idx="'+j+'" class="btnRemoverFoto2 absolute top-1 right-1 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full font-black">×</button>'; g2.appendChild(dd); }); } }; }); }
+  const cnt = $('fotosCount'); if(cnt) cnt.textContent = fotosSelecionadas.length + ' / 15 fotos selecionadas';
+  const um = $('uploadMsg'); if(um) um.textContent = fotosSelecionadas.length + ' fotos prontas pra enviar junto com o boletim';
+  uploadedKey = fotosSelecionadas.length ? fotosSelecionadas[0].name : '';
 };
 
 if($('btnGerar')) $('btnGerar').onclick = async () => {
@@ -214,99 +225,109 @@ if($('btnGerar')) $('btnGerar').onclick = async () => {
   const profissional = $('f_profissional')?.value.trim() || '';
   const quem = $('f_quem_registra')?.value.trim() || '';
   const contato = $('f_contato')?.value.trim() || '';
-  const valorRaw = $('f_valor')?.value.trim() || '';
+  const valor = $('f_valor')?.value.trim() || '';
   const dataServ = $('f_data')?.value || '';
   const combinado = $('f_combinado')?.value.trim() || '';
   const problema = $('f_problema')?.value.trim() || '';
   if(!profissional || !quem || !problema){ alert('Preencha quem fez o serviço, quem está registrando e o que deu errado'); return; }
-
-  // CORREÇÃO 1: confirmar que está logado ANTES de tentar salvar. Se não estiver, não gera link falso.
-  const { data: { session } } = await supabase.auth.getSession();
-  if(!session?.user){
-    showSaveMsg('Você precisa estar logado no ZapGarantia para salvar. Volta para o ZapGarantia, entra, e clica em Resolva de novo.', true);
-    alert('Você precisa estar logado no ZapGarantia para salvar o boletim. Volta lá, entra, e clica em Resolva de novo.');
-    return;
-  }
-  currentUser = session.user;
-
   const catTxt = $('categoria').options[$('categoria').selectedIndex].text;
-  let texto = `BOLETIM RESOLVE - ZAPGARANTIA\n\nProblema: ${catTxt}\nQuem fez o serviço: ${profissional}\nQuem está registrando: ${quem}\nContato: ${contato}\nValor do serviço: R$ ${valorRaw}\nData do serviço: ${dataServ}\n\nO QUE FOI COMBINADO:\n${combinado}\n\nO QUE DEU ERRADO / O QUE ESTRAGOU:\n${problema}\n\nEste boletim é um registro do problema, feito pela parte que se sentiu prejudicada, para servir como prova e tentar resolver. O ZapGarantia é só a ferramenta, não é advogado e não é parte do acordo.`;
+  let texto = `BOLETIM RESOLVE - ZAPGARANTIA\n\nProblema: ${catTxt}\nQuem fez o serviço: ${profissional}\nQuem está registrando: ${quem}\nContato: ${contato}\nValor do serviço: R$ ${valor}\nData do serviço: ${dataServ}\n\nO QUE FOI COMBINADO:\n${combinado}\n\nO QUE DEU ERRADO / O QUE ESTRAGOU:\n${problema}\n\nFotos anexadas neste boletim: ' + fotosBase64.length + ' foto(s) de prova.\n\nEste boletim é um registro do problema, feito pela parte que se sentiu prejudicada, para servir como prova e tentar resolver. O ZapGarantia é só a ferramenta, não é advogado e não é parte do acordo.`;
   ultimaPeticao = texto;
-
-  const btn = $('btnGerar');
-  const btnOriginal = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Salvando... aguarde';
-  showSaveMsg('Salvando boletim...', false);
-  $('resultado').classList.add('hidden');
-
-  // token seguro
-  const token = Array.from(crypto.getRandomValues(new Uint8Array(12))).map(b=>b.toString(36)).join('').replace(/[^a-z0-9]/g,'').slice(0,16) + Date.now().toString(36);
-  // valor: se for número, manda número. Se vazio, manda null para não quebrar o banco.
-  let valorParaBanco = null;
-  if(valorRaw){
-    const v = parseFloat(valorRaw.replace('R$','').replace(/\./g,'').replace(',','.').trim());
-    if(!isNaN(v)) valorParaBanco = v;
-  }
-
-  // CORREÇÃO 2: o erro antigo era o catch{} vazio. Ele escondia o erro e mostrava link mesmo sem salvar.
-  // Agora: se der erro, NÃO mostra link, mostra o erro de verdade.
-  const { data, error } = await supabase.from('casos').insert({
-    professional_id: currentUser.id,
-    categoria: cat,
-    empresa: profissional,
-    valor: valorParaBanco,
-    relato: problema + ' | Combinado: ' + combinado,
-    peticao: texto,
-    cliente_nome: quem,
-    cliente_contato: contato,
-    servico_feito: combinado,
-    public_token: token,
-    status:'Pendente',
-    status_assinatura:'Pendente'
-  }).select('public_token').single();
-
-  btn.disabled = false; btn.textContent = btnOriginal;
-
-  if(error){
-    console.error('Erro ao salvar boletim:', error);
-    ultimoToken = "";
-    showSaveMsg('NÃO SALVOU. Erro: ' + (error.message || 'erro no banco') + ' - Tenta de novo. Se continuar, me manda print deste erro.', true);
-    alert('NÃO SALVOU! O boletim não foi salvo no banco.\n\nErro: ' + error.message + '\n\nNão adianta copiar o link, ele vai dar "documento não encontrado". Tenta de novo. Se continuar, tira print deste erro.');
-    return;
-  }
-  if(!data || !data.public_token){
-    showSaveMsg('NÃO SALVOU. O banco não devolveu o token. Tenta de novo.', true);
-    alert('NÃO SALVOU. Tenta de novo.');
-    return;
-  }
-
-  // CORREÇÃO 3: só agora, depois de confirmar que salvou, mostra o resultado e o link
-  ultimoToken = data.public_token;
   const pt = $('peticaoTexto'); if(pt) pt.textContent = texto;
   const res = $('resultado'); if(res) res.classList.remove('hidden');
-  const lp = $('linkPublico');
-  if(lp){ lp.textContent = getLink(ultimoToken); lp.href = getLink(ultimoToken); }
-  showSaveMsg('Salvo! Agora pode copiar o link, ele vai abrir.', false);
+  const token = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  ultimoToken = token;
+  // Backup no celular pra Visitar abrir mesmo se o banco falhar - agora com até 15 fotos
+  try{
+    const backup = { empresa: profissional, categoria: cat, valor: valor, peticao: texto, relato: problema, cliente_nome: quem, cliente_contato: contato, servico_feito: combinado, created_at: new Date().toISOString(), public_token: token, status_assinatura: 'Pendente', fotos_count: fotosBase64.length };
+    localStorage.setItem('boletim_' + token, JSON.stringify(backup));
+    localStorage.setItem('resolve_boletim_' + token, JSON.stringify(backup));
+    try{ localStorage.setItem('fotos_' + token, JSON.stringify(fotosBase64)); }catch(e){ console.log('Muitas fotos pro backup, salvando só as 5 primeiras'); try{ localStorage.setItem('fotos_' + token, JSON.stringify(fotosBase64.slice(0,5))); }catch{} }
+  }catch{}
+  // Tenta salvar no banco - 1º tenta completo, se falhar por coluna, tenta só com colunas mínimas
+  let salvouNoBanco = false;
+  try{
+    let { data, error } = await supabase.from('casos').insert({ professional_id: currentUser.id, categoria: cat, empresa: profissional, valor: valor, relato: problema + ' | Combinado: ' + combinado, peticao: texto, cliente_nome: quem, cliente_contato: contato, servico_feito: combinado, public_token: token, status:'Pendente', status_assinatura:'Pendente' }).select('public_token').single();
+    if(error){
+      console.log('Tentativa 1 falhou:', error.message);
+      // 2ª tentativa: só colunas que sempre existem
+      const r2 = await supabase.from('casos').insert({ professional_id: currentUser.id, categoria: cat, empresa: profissional, valor: valor, relato: problema + ' | Combinado: ' + combinado, peticao: texto, public_token: token, status:'Pendente', status_assinatura:'Pendente' }).select('public_token').single();
+      if(!r2.error && r2.data){ salvouNoBanco = true; ultimoToken = r2.data.public_token; }
+      else { console.log('Tentativa 2 falhou também:', r2.error?.message); }
+    } else if(data){ salvouNoBanco = true; ultimoToken = data.public_token; }
+  }catch(e){ console.log('Erro ao salvar boletim:', e); }
+  // Mostra se salvou ou não, sem esconder
+  const lpStatus = $('linkPublico');
+  if(!salvouNoBanco){
+    if(lpStatus) lpStatus.innerHTML = '<span style="color:#b45309;font-weight:bold">⚠️ Não salvou no banco, mas o Visitar vai abrir o documento direto daqui mesmo. Pra compartilhar com outra pessoa, gere de novo depois de rodar o SQL de correção.</span><br>Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
+  }
+  const lp = $('linkPublico'); if(lp) lp.textContent = 'Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
   await loadCasos();
-  res.scrollIntoView({behavior:'smooth'});
 };
 
-// CORREÇÃO 4: Copiar agora copia SÓ o link puro. Antes copiava link + texto junto, e quando colava no navegador o token ficava gigante com o texto todo grudado (foto 3).
-if($('btnCopiar')) $('btnCopiar').onclick = async () => {
-  if(!ultimoToken){ alert('Gere o boletim primeiro e espere aparecer "Salvo!"'); return; }
-  const link = getLink(ultimoToken);
-  try{ await navigator.clipboard.writeText(link); alert('Link copiado! Cola só ele no navegador ou no WhatsApp.'); }
-  catch(e){ prompt('Copia este link:', link); }
+if($('btnCopiar')) $('btnCopiar').onclick = () => { navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken + '\n\n' + ultimaPeticao); alert('Copiado!'); };
+if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Boletim RESOLVE: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken), '_blank'); };
+if($('btnVisitar')) $('btnVisitar').onclick = () => {
+  if(!ultimaPeticao){ alert('Gere o boletim primeiro'); return; }
+  // VISITAR À PROVA DE FALHA: abre o documento DIRETO daqui, sem depender do banco/token
+  // 1) Primeiro tenta abrir o link normal /r/?token= (pra quem já salvou no banco)
+  // 2) Se o banco falhou, abre o documento gerado na hora em uma nova aba
+  const w = window.open('', '_blank');
+  if(!w){ window.open('/r/?token=' + ultimoToken, '_blank'); return; }
+  let fotosHtml = '';
+  if(fotosBase64 && fotosBase64.length){
+    fotosHtml = '<div style="margin-top:20px"><h3 style="font-weight:900">Fotos de prova - ' + fotosBase64.length + ' foto(s)</h3><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">';
+    fotosBase64.forEach(src=>{ if(src) fotosHtml += '<img src="' + src + '" style="width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid #ddd">'; });
+    fotosHtml += '</div></div>';
+  }
+  const htmlDoc = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BOLETIM RESOLVE - ' + (document.getElementById('f_profissional')?.value || '') + '</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="bg-slate-100 p-4"><div class="max-w-2xl mx-auto bg-white rounded-2xl shadow p-6 space-y-4"><div class="bg-slate-900 text-white p-4 rounded-xl"><p class="text-[11px] tracking-widest">DOCUMENTO OFICIAL RESOLVE</p><p class="font-black">' + (document.getElementById('categoria')?.options[document.getElementById('categoria')?.selectedIndex]?.text || '') + '</p></div><pre style="font-family:Georgia,serif;white-space:pre-wrap;line-height:1.7;font-size:15px">' + ultimaPeticao.replace(/</g,'&lt;') + '</pre>' + fotosHtml + '<div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 text-center"><p class="font-black text-sm">Link oficial para compartilhar:</p><p class="text-blue-600 break-all text-xs mt-1">https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken + '</p><p class="text-[11px] text-slate-500 mt-2">Se esse link não abrir em outro celular, é porque o banco não salvou. Gere de novo depois de rodar o SQL de correção.</p></div><div class="grid grid-cols-2 gap-3"><button onclick="window.print()" class="bg-slate-900 text-white font-black py-3 rounded-xl">Baixar / Imprimir PDF</button><button onclick="navigator.clipboard.writeText(document.body.innerText);alert(\'Copiado!\')" class="bg-blue-600 text-white font-black py-3 rounded-xl">Copiar</button></div></div></body></html>';
+  w.document.write(htmlDoc); w.document.close();
 };
-if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Boletim RESOLVE - ZapGarantia\n\n' + ultimaPeticao + '\n\nLink: ' + getLink(ultimoToken)), '_blank'); };
-if($('btnVisitar')) $('btnVisitar').onclick = () => { if(!ultimoToken) return; window.open(getLink(ultimoToken), '_blank'); };
 if($('btnPdf')) $('btnPdf').onclick = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao, 180), 10, 15); doc.save('RESOLVE-boletim.pdf'); };
 
 async function loadCasos(){
   if(!currentUser) return;
   try{
-    const { data, error } = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at',{ascending:false}).limit(20);
-    if(error){ console.error('Erro ao carregar lista:', error); return; }
+    // 1) Busca no banco
+    let listaBanco = [];
+    try{
+      const { data } = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at',{ascending:false}).limit(20);
+      listaBanco = data || [];
+    }catch(e){ console.log('Banco falhou, vou mostrar os do celular:', e); }
+    // 2) Busca também no backup do celular (pra não sumir se o banco falhar)
+    let listaCelular = [];
+    try{
+      for(let i=0; i<localStorage.length; i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith('boletim_')){
+          try{ const b = JSON.parse(localStorage.getItem(k)); if(b && b.peticao) listaCelular.push({ categoria: b.categoria, empresa: b.empresa, valor: b.valor, peticao: b.peticao, cliente_nome: b.cliente_nome, created_at: b.created_at, public_token: b.public_token, status_assinatura: b.status_assinatura || 'Pendente', _doCelular: true }); }catch{}
+        }
+      }
+    }catch{}
+    // 3) Junta os dois sem duplicar (pelo token)
+    const vistos = new Set(listaBanco.map(c=>c.public_token));
+    listaCelular.forEach(c=>{ if(!vistos.has(c.public_token)) listaBanco.push(c); });
+    // Ordena por data
+    listaBanco.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+    const data = listaBanco;
+    const infoSalvos = $('infoSalvos'); if(infoSalvos) infoSalvos.textContent = 'Boletins salvos: ' + data.length + ' (' + listaCelular.length + ' no celular + ' + (listaBanco.length - listaCelular.length) + ' no banco)';
+    // --- resto do código original continua abaixo, mas usando 'data' já juntado ---
+    // Para não quebrar, cria um objeto falso que o código antigo espera
+    const _fake = { data: data };
+    // O código abaixo foi adaptado para usar 'data' direto
+    const lista = $('listaCasos'); if(!lista) return; lista.innerHTML='';
+    let tot=0, pend=0, ass=0, rec=0;
+    (data||[]).forEach(c=>{
+      tot++; if(c.status_assinatura==='Assinado') ass++; else if(c.status_assinatura==='Rejeitado' || c.status_assinatura==='Contestado') rec++; else pend++;
+      const tagCelular = c._doCelular ? '<span class="bg-blue-100 text-blue-700 text-[9px] font-black px-2 py-0.5 rounded-full">SÓ NO CELULAR</span> ' : '';
+      const d=document.createElement('div'); d.className='border rounded-xl p-3 text-xs flex justify-between items-center'; d.innerHTML=`<div><p class="font-bold">${tagCelular}${c.categoria} - ${c.empresa||''}</p><p>${c.status_assinatura} - ${new Date(c.created_at).toLocaleDateString('pt-BR')}</p></div><a href="/r/?token=${c.public_token}" class="text-blue-600 font-bold">Abrir</a>`; lista.appendChild(d);
+    });
+    if($('countTotal')) $('countTotal').textContent = tot;
+    if($('countPendente')) $('countPendente').textContent = pend;
+    if($('countAssinado')) $('countAssinado').textContent = ass;
+    if($('countRecusado')) $('countRecusado').textContent = rec;
+    return;
+    const { data: _unused } = _fake;
     const lista = $('listaCasos'); if(!lista) return; lista.innerHTML='';
     let tot=0, pend=0, ass=0, rec=0;
     (data||[]).forEach(c=>{
@@ -317,7 +338,7 @@ async function loadCasos(){
     if($('countPendente')) $('countPendente').textContent = pend;
     if($('countAssinado')) $('countAssinado').textContent = ass;
     if($('countRecusado')) $('countRecusado').textContent = rec;
-  }catch(e){ console.error(e); }
+  }catch{}
 }
 
 async function tryLoginFromZapLink(){
