@@ -26,147 +26,274 @@
 <title>Documento RESOLVE | ZapGarantia</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>body{font-family:Inter,sans-serif}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+body{font-family:Inter,sans-serif; background:#eef2f7}
+.doc-paper{background:white; border-radius:18px; border:1.5px solid #e2e8f0; box-shadow:0 10px 40px rgba(0,0,0,0.08)}
+.doc-text{font-family:'Georgia', serif; line-height:1.75; font-size:15.5px; color:#1e293b; text-align:justify}
+.speech-active{animation:pulse 1.5s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,99,235,0.4)}70%{box-shadow:0 0 0 12px rgba(37,99,235,0)}100%{box-shadow:0 0 0 0 rgba(37,99,235,0)}}
+</style>
 </head>
-<body class="bg-slate-100">
-<header class="bg-blue-600 text-white p-4">
+<body>
+<header class="bg-gradient-to-r from-blue-700 to-blue-600 text-white p-4 sticky top-0 z-40 shadow-lg">
 <div class="max-w-2xl mx-auto flex justify-between items-center">
-<a href="/" class="font-black flex items-center gap-2"><i class="fa-solid fa-file-shield"></i> ZapGarantia RESOLVE</a>
-<a href="/resolve/" class="bg-white text-blue-600 text-xs font-bold px-3 py-1.5 rounded-full">Criar outro</a>
+<a href="/" class="font-black flex items-center gap-2 text-[15px]"><i class="fa-solid fa-scale-balanced"></i> RESOLVE</a>
+<a href="/resolve/" class="bg-white text-blue-700 text-xs font-black px-5 py-2.5 rounded-full shadow">Criar outro</a>
 </div>
 </header>
-<main class="max-w-2xl mx-auto p-4 space-y-4">
-<div id="loading" class="bg-white p-8 rounded-2xl border text-center">
-<p class="text-sm text-slate-600"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Carregando documento...</p>
-</div>
+
+<main class="max-w-2xl mx-auto p-3 sm:p-4 space-y-4 pb-28">
+
+<div id="loading" class="doc-paper p-10 text-center"><div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div><p class="text-sm font-bold mt-4 text-slate-600">Carregando documento...</p><p id="debug" class="text-[10px] text-slate-400 mt-2"></p></div>
 
 <div id="doc" class="hidden space-y-4">
-<div class="bg-white p-6 rounded-2xl border shadow-sm">
-<div class="flex items-center gap-2 mb-3"><span id="catBadge" class="bg-blue-100 text-blue-700 text-[11px] font-black px-2.5 py-1 rounded-full uppercase">CATEGORIA</span><span id="statusBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full">Pendente</span></div>
-<h1 id="empresa" class="font-black text-lg">Empresa</h1>
-<p id="valor" class="text-sm text-slate-600 mt-1">Valor: R$ -</p>
-<div class="mt-4 bg-slate-50 border rounded-xl p-4">
-<pre id="peticao" class="text-sm whitespace-pre-wrap text-slate-800 leading-relaxed"></pre>
-</div>
-<div id="fotoBox" class="hidden mt-4">
-<p class="text-xs font-bold mb-2">Comprovante:</p>
-<img id="foto" class="w-full rounded-xl border max-h-96 object-contain bg-white">
-</div>
-<p id="data" class="text-[11px] text-slate-500 mt-3"></p>
+
+<!-- DOCUMENTO BONITO DETALHADO PARA LEITURA -->
+<div class="doc-paper overflow-hidden">
+<div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 flex justify-between items-center">
+<div><p class="text-[11px] font-bold tracking-widest text-slate-300">DOCUMENTO OFICIAL RESOLVE</p><p id="catTop" class="font-black text-[13px] mt-1"></p></div>
+<div class="text-right"><p id="statusBadge" class="text-[10px] font-black px-3 py-1 rounded-full inline-block"></p><p id="dataTop" class="text-[10px] text-slate-300 mt-1"></p></div>
 </div>
 
-<div id="assinaturaBox" class="bg-white p-6 rounded-2xl border shadow-sm space-y-3">
-<h2 class="font-black text-sm">O que você deseja fazer com este documento?</h2>
-<input id="nomeAssina" placeholder="Seu nome completo para assinar" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600">
-<textarea id="motivo" placeholder="Se for Rejeitar ou Contestar, informe o motivo aqui (obrigatório)" rows="3" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-600 resize-none"></textarea>
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-<button id="btnAssinar" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-sm"><i class="fa-solid fa-check mr-1"></i>Assinar documento</button>
-<button id="btnRejeitar" class="bg-red-50 border-2 border-red-200 text-red-700 font-bold py-3 rounded-xl text-sm hover:bg-red-100"><i class="fa-solid fa-xmark mr-1"></i>Rejeitar</button>
-<button id="btnContestar" class="bg-amber-50 border-2 border-amber-200 text-amber-800 font-bold py-3 rounded-xl text-sm hover:bg-amber-100"><i class="fa-solid fa-comment-dots mr-1"></i>Contestar</button>
+<div class="p-6 sm:p-8 space-y-6">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-building text-blue-600"></i></div>
+<div class="flex-1">
+<p class="text-[11px] font-black tracking-widest text-slate-500 uppercase">Empresa Reclamada</p>
+<h1 id="empresa" class="font-black text-[22px] leading-tight text-slate-900 mt-1"></h1>
+<p id="valor" class="text-sm font-bold text-slate-700 mt-1 bg-amber-50 border border-amber-200 inline-block px-3 py-1 rounded-full"></p>
 </div>
-<p id="msg" class="text-xs text-center"></p>
 </div>
 
-<div id="assinadoBox" class="hidden bg-emerald-50 border-2 border-emerald-200 p-6 rounded-2xl text-center">
-<p class="font-black text-emerald-800"><i class="fa-solid fa-circle-check mr-2"></i>Documento já assinado</p>
-<p id="assinadoInfo" class="text-xs text-emerald-700 mt-2"></p>
+<!-- AREA DE LEITURA BONITA + OUVIR -->
+<div class="relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-full"></div>
+<div class="pl-5">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-black text-[13px] tracking-widest uppercase text-slate-600 flex items-center gap-2"><i class="fa-solid fa-file-lines text-blue-600"></i> Petição para leitura</h2>
+<div class="flex gap-2">
+<button id="btnOuvir" class="bg-blue-600 hover:bg-blue-700 text-white font-black px-4 py-2 rounded-full text-xs flex items-center gap-2 shadow"><i class="fa-solid fa-volume-high"></i> <span id="ouvirTxt">Ouvir documento</span></button>
+<button id="btnDetalhe" class="bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-800 font-black px-4 py-2 rounded-full text-xs flex items-center gap-2"><i class="fa-solid fa-up-right-from-square"></i> Abrir detalhado</button>
 </div>
+</div>
+
+<div id="audioBar" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 flex items-center gap-3">
+<div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center animate-pulse"><i class="fa-solid fa-waveform text-white text-xs"></i></div>
+<div class="flex-1"><p class="text-xs font-black text-blue-900">Lendo documento em voz alta...</p><p class="text-[11px] text-blue-700">Voz do navegador - PT-BR</p></div>
+<button id="btnPararAudio" class="bg-slate-900 text-white font-black px-4 py-2 rounded-full text-xs">Parar</button>
+</div>
+
+<div class="bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 sm:p-6">
+<pre id="peticao" class="doc-text whitespace-pre-wrap"></pre>
+</div>
+
+<div id="extras" class="mt-4 grid grid-cols-2 gap-3 text-xs"></div>
+</div>
+</div>
+
+<div class="bg-slate-50 border-t border-slate-200 p-4 flex items-center gap-3 text-[11px] text-slate-600">
+<i class="fa-solid fa-shield-halved text-emerald-600"></i><span>Documento gerado pelo ZapGarantia RESOLVE - registro com data e hora oficial</span>
+</div>
+</div>
+</div>
+
+<!-- O QUE VOCE DESEJA FAZER - ASSINAR -->
+<div id="assinaturaBox" class="doc-paper p-6 sm:p-7 space-y-5">
+<h2 class="font-black text-[18px] text-slate-900 flex items-center gap-2"><i class="fa-solid fa-pen-nib text-blue-600"></i> O que você deseja fazer?</h2>
+<p class="text-[12px] text-slate-500 font-medium -mt-3">Leia o documento acima com calma. Você pode ouvir em áudio antes de decidir.</p>
+<input id="nomeAssina" placeholder="Seu nome completo *" class="w-full border-2 border-slate-200 rounded-2xl px-5 py-4 text-[15px] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 font-medium">
+<textarea id="motivo" placeholder="Se Rejeitar ou Contestar, informe o motivo (obrigatório)" rows="3" class="w-full border-2 border-slate-200 rounded-2xl px-5 py-4 text-[14px] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 resize-none font-medium"></textarea>
+
+<div class="space-y-3">
+<button id="btnAssinar" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl text-[16px] shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-check-circle text-xl"></i> Assinar e concordar</button>
+<button id="btnRejeitar" class="w-full bg-white border-2 border-red-200 hover:bg-red-50 text-red-600 font-black py-4 rounded-2xl text-[15px] flex items-center justify-center gap-2"><i class="fa-solid fa-xmark-circle text-xl"></i> Não concordo</button>
+<button id="btnContestar" class="w-full bg-amber-50 border-2 border-amber-300 hover:bg-amber-100 text-amber-800 font-black py-4 rounded-2xl text-[15px] flex items-center justify-center gap-2"><i class="fa-solid fa-comment-dots text-xl"></i> Contestar</button>
+</div>
+<p id="msg" class="text-xs text-center font-bold"></p>
+</div>
+
+<div id="assinadoBox" class="hidden doc-paper p-8 text-center space-y-3">
+<div id="assinadoIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto text-2xl"></div>
+<p id="assinadoTitulo" class="font-black text-xl"></p>
+<p id="assinadoInfo" class="text-sm font-medium text-slate-600"></p>
+<p id="assinadoMotivo" class="text-xs bg-white border-2 p-3 rounded-xl mt-3 hidden"></p>
+</div>
+
+<!-- BOTOES NO FINAL DO DOCUMENTO DEPOIS DO ASSINAR - COMO VOCE PEDIU -->
+<div class="doc-paper p-6 space-y-4">
+<div class="text-center"><p class="text-[11px] font-black tracking-widest uppercase text-slate-500">Ações do documento</p><p class="text-xs text-slate-500 font-medium">Copie, compartilhe ou baixe depois de assinar</p></div>
+<div class="grid grid-cols-2 gap-3">
+<button id="btnCopiarLink" class="bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-2 shadow"><i class="fa-solid fa-link text-lg"></i> Copiar link</button>
+<button id="btnCompartilhar" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-2 shadow"><i class="fa-brands fa-whatsapp text-xl"></i> Compartilhar</button>
+<button id="btnVisitar" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-2 shadow"><i class="fa-solid fa-eye text-lg"></i> Visitar<br><span class="text-[10px] font-medium opacity-80">em outra página</span></button>
+<button id="btnBaixar" class="bg-white border-2 border-slate-200 hover:bg-slate-50 font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-2 text-slate-800 shadow-sm"><i class="fa-solid fa-file-pdf text-red-500 text-xl"></i> Baixar PDF</button>
+</div>
+<div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center"><p class="text-[10px] font-black text-blue-900">Link público:</p><p id="linkCurto" class="text-[11px] text-blue-700 break-all font-medium mt-1"></p></div>
+</div>
+
+
+<!-- ALTERAÇÃO 3: QUEM VIZUALIZA SEM CONTA PODE CRIAR -->
+<div class="doc-paper p-6 space-y-4 mt-4 border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white">
+<div class="flex items-center gap-3"><div class="w-11 h-11 bg-violet-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-user-plus text-white"></i></div><div><h3 class="font-black text-[16px]">Não tem conta ainda?</h3><p class="text-[12px] text-slate-500 font-medium">Crie sua conta grátis e faça seu perfil de rede social no ZapGarantia</p></div></div>
+<div class="grid grid-cols-2 gap-3">
+<a href="/resolve/?role=contratante" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5 shadow"><i class="fa-solid fa-user-tie text-xl"></i> Sou Contratante<span class="text-[10px] font-medium opacity-80">Criar conta como Contratante</span></a>
+<a href="/resolve/?role=contratado" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5 shadow"><i class="fa-solid fa-hard-hat text-xl"></i> Sou Contratado<span class="text-[10px] font-medium opacity-80">Criar conta como Contratado</span></a>
+</div>
+<p class="text-[11px] text-center text-slate-500 font-medium">Todos podem criar seu perfil público de rede social no ZapGarantia</p>
+</div>
+
 </div>
 </main>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.[STRIPPED 127 bytes].D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
-const R2_PUBLIC = "https://SEU_R2_PUBLIC.r2.dev"; // TROQUE PELO SEU DOMÍNIO R2 PUBLICO
+const SB_KEY = "sb_publishable_haJ8eg8OciGN6cK8GGg3ig_bGOKUAud";
 const supabase = createClient(SB_URL, SB_KEY);
 
-function getToken(){
-  const path = window.location.pathname; // /r/TOKEN ou /r/
-  let token = null;
-  if(path.startsWith('/r/')){
-    const parts = path.split('/').filter(Boolean);
-    if(parts.length >= 2) token = parts[1];
-  }
-  if(!token){
-    const params = new URLSearchParams(window.location.search);
-    token = params.get('token') || params.get('t');
-  }
-  if(!token && window.location.hash){
-    token = window.location.hash.replace('#','');
-  }
-  return token;
-}
+let currentToken=null, docData=null, synth=window.speechSynthesis, utterance=null, isSpeaking=false;
+
+function getToken(){ let t=new URLSearchParams(location.search).get('token'); if(!t){ const p=location.pathname.split('/').filter(Boolean); if(p.length>=2) t=p[1]; } return t; }
 
 async function load(){
-  const token = getToken();
-  if(!token){ document.getElementById('loading').innerHTML='<p class="text-sm text-red-600">Link inválido - token não encontrado</p>'; return; }
-  
-  // tenta buscar caso público
-  let { data, error } = await supabase.from('casos').select('*').eq('public_token', token).single();
-  
-  // fallback via RPC se você criou get_public_caso
-  if(error){
-    const { data: rpcData } = await supabase.rpc('get_public_caso', { p_token: token });
-    if(rpcData && rpcData.length) data = rpcData[0];
-    else data = null;
+  const token=getToken(); currentToken=token; document.getElementById('debug').textContent='Token: '+(token||'NENHUM');
+  if(!token){ document.getElementById('loading').innerHTML='<p class=text-red-600 font-bold>Link inválido</p>'; return; }
+  let data = null;
+  // 1) Tenta na tabela CASOS (boletim do RESOLVE)
+  try{ const r1 = await supabase.from('casos').select('*').eq('public_token', token).single(); if(r1.data) data = r1.data; }catch{}
+  // 2) Tenta RPC que pula o RLS (casos)
+  if(!data){ try{ const { data:rpc } = await supabase.rpc('get_public_caso',{p_token:token}); if(rpc && rpc.length) data = rpc[0]; }catch{} }
+  // 3) Tenta na tabela CONTRACTS (orçamento do ZapGarantia) - o token UUID 0505aa53... é daqui!
+  if(!data){ try{ const r2 = await supabase.from('contracts').select('*').eq('public_token', token).single(); if(r2.data){ const c = r2.data; data = { empresa: c.client_name || c.empresa || '', categoria: c.categoria || 'ZapGarantia - Orçamento', valor: c.total || c.valor || '', peticao: c.service || c.descricao || c.peticao || c.relato || 'Orçamento ZapGarantia', relato: c.service || '', cliente_nome: c.client_name || '', created_at: c.created_at || new Date().toISOString(), updated_at: c.updated_at || c.created_at || new Date().toISOString(), status_assinatura: c.status_assinatura || 'Pendente', public_token: token }; } }catch{} }
+  // 4) Tenta RPC de contrato
+  if(!data){ try{ const { data:rpc2 } = await supabase.rpc('get_public_contract',{p_token:token}); if(rpc2 && rpc2.length) { const c = rpc2[0]; data = { empresa: c.client_name || c.empresa || '', categoria: c.categoria || 'ZapGarantia', valor: c.total || c.valor || '', peticao: c.service || c.peticao || '', relato: c.service || '', cliente_nome: c.client_name || '', created_at: c.created_at || new Date().toISOString(), updated_at: c.updated_at || c.created_at || new Date().toISOString(), status_assinatura: c.status_assinatura || 'Pendente', public_token: token }; } }catch{} }
+  // 5) FALLBACK: backup salvo no celular quando gerou o boletim
+  if(!data){
+    try{
+      const backup = localStorage.getItem('boletim_' + token) || localStorage.getItem('resolve_boletim_' + token) || localStorage.getItem('orcamento_' + token);
+      if(backup){
+        const b = JSON.parse(backup);
+        data = { empresa: b.empresa || b.client_name || '', categoria: b.categoria || 'RESOLVE', valor: b.valor || b.total || '', peticao: b.peticao || b.relato || b.service || '', relato: b.relato || b.service || '', cliente_nome: b.cliente_nome || b.client_name || '', created_at: b.created_at || new Date().toISOString(), updated_at: b.created_at || new Date().toISOString(), status_assinatura: 'Pendente', public_token: token };
+        console.log('Documento aberto pelo backup do celular');
+      }
+    }catch{}
   }
-
-  if(!data){ document.getElementById('loading').innerHTML=`<p class="text-sm text-red-600">Documento não encontrado para token: ${token}</p>`; return; }
-
+  if(!data){ document.getElementById('loading').innerHTML='<p class=text-red-600 font-bold>Documento não encontrado para token: '+token+'</p><p class=text-xs text-slate-500 mt-2>Esse documento pode ser um orçamento antigo do ZapGarantia ou um boletim que não salvou. Gere um boletim novo no RESOLVE que agora já abre.</p><a href="/resolve/" class="block mt-4 bg-blue-600 text-white font-bold py-3 rounded-xl text-sm">Voltar pro RESOLVE</a>'; return; }
+  docData=data;
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('doc').classList.remove('hidden');
-  document.getElementById('catBadge').textContent = data.categoria || 'RESOLVE';
-  document.getElementById('empresa').textContent = data.empresa || data.cliente_nome || 'Documento RESOLVE';
-  document.getElementById('valor').textContent = data.valor ? `Valor: R$ ${data.valor}` : '';
-  document.getElementById('peticao').textContent = data.peticao || data.relato || '';
-  document.getElementById('data').textContent = `Criado em ${new Date(data.created_at).toLocaleString('pt-BR')} • Token ${data.public_token.slice(0,8)}...`;
-  
-  const statusBadge = document.getElementById('statusBadge');
-  statusBadge.textContent = data.status_assinatura || 'Pendente';
-  statusBadge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full ' + (data.status_assinatura==='Assinado' ? 'bg-emerald-100 text-emerald-700' : data.status_assinatura==='Rejeitado' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700');
 
-  if(data.image_key){
-    document.getElementById('fotoBox').classList.remove('hidden');
-    document.getElementById('foto').src = `${R2_PUBLIC}/${data.image_key}`;
-  }
+  document.getElementById('catTop').textContent=data.categoria||'RESOLVE';
+  document.getElementById('empresa').textContent=data.empresa||'';
+  document.getElementById('valor').textContent=data.valor?`💰 Valor envolvido: R$ ${data.valor}`:'';
+  document.getElementById('valor').style.display=data.valor?'inline-block':'none';
+  document.getElementById('dataTop').textContent=new Date(data.created_at).toLocaleDateString('pt-BR')+' '+new Date(data.created_at).toLocaleTimeString('pt-BR');
+  document.getElementById('peticao').textContent=data.peticao||data.relato||'';
 
-  if(data.status_assinatura && data.status_assinatura !== 'Pendente'){
+  const extras=document.getElementById('extras'); extras.innerHTML='';
+  if(data.protocolo) extras.innerHTML+=`<div class="bg-white border p-3 rounded-xl"><b class="text-[10px] uppercase text-slate-500">Protocolo</b><p class="font-bold font-mono">${data.protocolo}</p></div>`;
+  if(data.image_key) extras.innerHTML+=`<div class="bg-white border p-3 rounded-xl"><b class="text-[10px] uppercase text-slate-500">Comprovante</b><p class="font-bold">✅ Foto anexada</p></div>`;
+
+  const badge=document.getElementById('statusBadge');
+  if(data.status_assinatura==='Assinado'){
+    badge.textContent='✅ '+(data.cliente_nome||'Assinado e concordado'); badge.className='bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full';
     document.getElementById('assinaturaBox').classList.add('hidden');
-    document.getElementById('assinadoBox').classList.remove('hidden');
-    document.getElementById('assinadoInfo').textContent = `${data.status_assinatura} ${data.motivo_rejeicao ? '- Motivo: '+data.motivo_rejeicao : ''}`;
+    const box=document.getElementById('assinadoBox'); box.classList.remove('hidden');
+    document.getElementById('assinadoIcon').className='w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-2xl text-emerald-600'; document.getElementById('assinadoIcon').innerHTML='<i class="fa-solid fa-check"></i>';
+    document.getElementById('assinadoTitulo').textContent='✅ '+(data.cliente_nome||'Cliente')+' assinou e concordou'; document.getElementById('assinadoTitulo').className='font-black text-xl text-emerald-800';
+    document.getElementById('assinadoInfo').textContent='Assinado em '+new Date(data.updated_at||data.created_at).toLocaleString('pt-BR');
+  } else if(data.status_assinatura==='Rejeitado' || data.status_assinatura==='Contestado'){
+    badge.textContent='❌ '+data.status_assinatura; badge.className='bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full';
+    document.getElementById('assinaturaBox').classList.add('hidden');
+    const box=document.getElementById('assinadoBox'); box.classList.remove('hidden');
+    document.getElementById('assinadoIcon').className='w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto text-2xl text-red-600'; document.getElementById('assinadoIcon').innerHTML='<i class="fa-solid fa-xmark"></i>';
+    document.getElementById('assinadoTitulo').textContent='❌ '+(data.cliente_nome||'Cliente')+' não concordou'; document.getElementById('assinadoTitulo').className='font-black text-xl text-red-800';
+    document.getElementById('assinadoInfo').textContent=data.status_assinatura;
+    if(data.motivo_rejeicao){ const m=document.getElementById('assinadoMotivo'); m.classList.remove('hidden'); m.textContent='Motivo: '+data.motivo_rejeicao; m.className='text-xs bg-red-50 border-2 border-red-200 p-3 rounded-xl mt-3 text-red-800'; }
+  } else {
+    badge.textContent='⏳ Aguardando'; badge.className='bg-amber-400 text-amber-900 text-[10px] font-black px-3 py-1 rounded-full';
   }
 
-  // ações
-  async function atualizar(novoStatus){
-    const nome = document.getElementById('nomeAssina').value.trim();
-    const motivo = document.getElementById('motivo').value.trim();
-    if(novoStatus==='Assinado' && !nome){ alert('Digite seu nome completo para assinar'); return; }
-    if(novoStatus!=='Assinado' && !motivo){ alert('Informe o motivo da rejeição/contestação'); return; }
-    document.getElementById('msg').textContent = 'Enviando...';
-    
-    // tenta update direto (precisa de policy anon permitindo update por public_token)
-    let { error } = await supabase.from('casos').update({ 
-      status_assinatura: novoStatus, 
-      motivo_rejeicao: motivo || null,
-      cliente_nome: nome || data.cliente_nome,
-      status: novoStatus==='Assinado' ? 'Resolvido' : 'Pendente'
-    }).eq('public_token', token);
+  document.getElementById('linkCurto').textContent=location.href;
 
-    if(error){
-      // fallback via RPC sign_caso
-      const { error: rpcErr } = await supabase.rpc('sign_caso', { p_token: token, p_nome: nome, p_status: novoStatus, p_motivo: motivo });
-      if(rpcErr){ document.getElementById('msg').textContent = 'Erro: '+ (error.message || rpcErr.message); return; }
-    }
-    
-    document.getElementById('msg').textContent = '✅ '+novoStatus+' com sucesso!';
-    setTimeout(()=> location.reload(), 1500);
-  }
+  // ACOES NO FINAL
+  document.getElementById('btnCopiarLink').onclick=()=>{ navigator.clipboard.writeText(location.href); alert('✅ Link copiado!'); };
+  document.getElementById('btnCompartilhar').onclick=()=>{ window.open('https://wa.me/?text='+encodeURIComponent('Documento RESOLVE: '+location.href),'_blank'); };
+  document.getElementById('btnVisitar').onclick=()=>{ window.open(location.href,'_blank'); };
+  document.getElementById('btnBaixar').onclick=baixarPdf;
+  document.getElementById('btnDetalhe').onclick=abrirDetalhado;
 
-  document.getElementById('btnAssinar').onclick = ()=> atualizar('Assinado');
-  document.getElementById('btnRejeitar').onclick = ()=> atualizar('Rejeitado');
-  document.getElementById('btnContestar').onclick = ()=> atualizar('Contestado');
+  // AUDIO - VOZ DO NAVEGADOR
+  document.getElementById('btnOuvir').onclick=toggleAudio;
+  document.getElementById('btnPararAudio').onclick=pararAudio;
 }
+
+function toggleAudio(){
+  if(isSpeaking){ pararAudio(); return; }
+  const texto=document.getElementById('peticao').textContent;
+  if(!texto) return;
+  pararAudio();
+  utterance=new SpeechSynthesisUtterance(texto);
+  utterance.lang='pt-BR';
+  utterance.rate=1.0;
+  utterance.pitch=1.0;
+  const voices=synth.getVoices();
+  const brVoice=voices.find(v=>v.lang.includes('pt-BR')||v.lang.includes('pt_'))||voices[0];
+  if(brVoice) utterance.voice=brVoice;
+  utterance.onstart=()=>{ isSpeaking=true; document.getElementById('ouvirTxt').textContent='Pausar áudio'; document.getElementById('btnOuvir').classList.add('speech-active','bg-red-600'); document.getElementById('btnOuvir').classList.remove('bg-blue-600'); document.getElementById('audioBar').classList.remove('hidden'); };
+  utterance.onend=()=>{ isSpeaking=false; document.getElementById('ouvirTxt').textContent='Ouvir documento'; document.getElementById('btnOuvir').classList.remove('speech-active','bg-red-600'); document.getElementById('btnOuvir').classList.add('bg-blue-600'); document.getElementById('audioBar').classList.add('hidden'); };
+  synth.speak(utterance);
+}
+function pararAudio(){
+  synth.cancel(); isSpeaking=false;
+  document.getElementById('ouvirTxt').textContent='Ouvir documento';
+  document.getElementById('btnOuvir').classList.remove('speech-active','bg-red-600'); document.getElementById('btnOuvir').classList.add('bg-blue-600');
+  document.getElementById('audioBar').classList.add('hidden');
+}
+
+function baixarPdf(){
+  const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.text('DOCUMENTO RESOLVE - ZapGarantia',10,15);
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text(`Empresa: ${docData.empresa||''}`,10,25); if(docData.valor) doc.text(`Valor: R$ ${docData.valor}`,10,32);
+  const lines=doc.splitTextToSize(docData.peticao||'',180); doc.text(lines,10,42); doc.save('RESOLVE-'+(docData.empresa||'documento')+'.pdf');
+}
+
+function abrirDetalhado(){
+  const w=window.open('','_blank');
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Documento Detalhado</title><script src="https://cdn.tailwindcss.com"><\/script><style>body{font-family:Georgia,serif; line-height:1.8}<\/style></head><body class="bg-white p-8 max-w-3xl mx-auto"><div class="border-b-2 border-blue-600 pb-4 mb-6"><h1 class="font-black text-2xl">Documento RESOLVE - ${docData.empresa||''}</h1><p class="text-sm text-slate-600">${docData.categoria||''} • ${new Date(docData.created_at).toLocaleString('pt-BR')}</p>${docData.valor?`<p class="font-bold">Valor: R$ ${docData.valor}</p>`:''}</div><div class="prose max-w-none text-[16px] leading-relaxed whitespace-pre-wrap">${docData.peticao||''}</div><div class="mt-10 pt-6 border-t text-xs text-slate-500">Documento gerado em ${new Date().toLocaleString('pt-BR')} via ZapGarantia RESOLVE - ${location.href}</div><script>window.print()<\/script></body></html>`;
+  w.document.write(html); w.document.close();
+}
+
+async function assinar(status){
+  const nome=document.getElementById('nomeAssina').value.trim(); const motivo=document.getElementById('motivo').value.trim();
+  if(status==='Assinado' && !nome){ alert('Digite seu nome completo'); return; }
+  if(status!=='Assinado' && !motivo){ alert('Informe o motivo da rejeição'); return; }
+  pararAudio();
+  document.getElementById('msg').textContent='Enviando assinatura...';
+  const { error } = await supabase.from('casos').update({status_assinatura:status, motivo_rejeicao:motivo, cliente_nome:nome||'Cliente'}).eq('public_token',currentToken);
+  if(error){
+    // Se o boletim só existe no backup do celular, atualiza o backup
+    try{
+      const key = 'boletim_' + currentToken;
+      const b = JSON.parse(localStorage.getItem(key) || '{}');
+      b.status_assinatura = status; b.motivo_rejeicao = motivo; b.cliente_nome = nome || b.cliente_nome;
+      localStorage.setItem(key, JSON.stringify(b));
+      localStorage.setItem('resolve_boletim_' + currentToken, JSON.stringify(b));
+      document.getElementById('msg').textContent='✅ '+status+' registrado neste celular!';
+      setTimeout(()=>location.reload(),1200);
+      return;
+    }catch{}
+    document.getElementById('msg').textContent='Erro: '+error.message; return;
+  }
+  document.getElementById('msg').textContent='✅ '+status+' registrado! Recarregando...';
+  setTimeout(()=>location.reload(),1200);
+}
+
+document.getElementById('btnAssinar').onclick=()=>assinar('Assinado');
+document.getElementById('btnRejeitar').onclick=()=>assinar('Rejeitado');
+document.getElementById('btnContestar').onclick=()=>assinar('Contestado');
+
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=()=>{ speechSynthesis.getVoices(); }; }
 
 load();
 </script>
