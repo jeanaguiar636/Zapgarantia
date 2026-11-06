@@ -173,192 +173,270 @@ input,select,textarea{color:#0f172a !important}
 
 </div>
 </main>
+
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
 const SB_KEY = "sb_publishable_haJ8eg8OciGN6cK8GGg3ig_bGOKUAud";
-const supabase = createClient(SB_URL, SB_KEY);
-let currentUser=null, uploadedKey="", templates={}, ultimoToken=null, ultimaPeticao="", roleForm="Contratante", roleLogin="Contratante";
-function setRoleForm(role){ roleForm=role; const c=document.getElementById('btnSouContratante'); const d=document.getElementById('btnSouContratado'); if(role==='Contratante'){ c.className='btn-role selected bg-blue-600 text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5 border-[3px] border-blue-600 shadow-lg'; d.className='btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5'; } else { d.className='btn-role selected bg-emerald-600 text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5 border-[3px] border-emerald-600 shadow-lg'; c.className='btn-role bg-white border-2 border-blue-300 text-blue-700 font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5'; } document.getElementById('roleFormTxt').textContent='Você selecionou: '+role+' - vai aparecer no documento'; }
-document.getElementById('btnSouContratante').onclick=()=>setRoleForm('Contratante');
-document.getElementById('btnSouContratado').onclick=()=>setRoleForm('Contratado');
-function setRoleLogin(role){ roleLogin=role; const c=document.getElementById('roleLoginContratante'); const d=document.getElementById('roleLoginContratado'); if(role==='Contratante'){ c.className='btn-role selected bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1 border-2 border-blue-600'; d.className='btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1'; } else { d.className='btn-role selected bg-emerald-600 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1 border-2 border-emerald-600'; c.className='btn-role bg-white border-2 border-blue-300 text-blue-700 font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1'; } document.getElementById('roleLoginTxt').textContent='Você entrou como: '+role;
-  const btnUnico=document.getElementById('btnSignupUnico'); if(btnUnico){ btnUnico.textContent='Criar conta como '+role; btnUnico.className='w-full text-white font-black py-3.5 rounded-xl mt-3 text-sm '+(role==='Contratante'?'bg-blue-600 hover:bg-blue-700':'bg-emerald-600 hover:bg-emerald-700'); }
-  localStorage.setItem('zapgarantia_role', role); }
-document.getElementById('roleLoginContratante').onclick=()=>setRoleLogin('Contratante');
-document.getElementById('roleLoginContratado').onclick=()=>setRoleLogin('Contratado');
-const urlRole=new URLSearchParams(location.search).get('role'); if(urlRole){ if(urlRole.toLowerCase().includes('contratado')) setRoleLogin('Contratado'); if(urlRole.toLowerCase().includes('contratante')) setRoleLogin('Contratante'); }
-// PERFIL ÚNICO ZAPGARANTIA - MESMO PARA ZAPGARANTIA E RESOLVE
+const supabase = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'sb-gktfwlhvdnsezqcpjrpf-auth-token' } });
+const $ = (id) => document.getElementById(id);
+let currentUser = null, uploadedKey = "", templates = {}, ultimoToken = null, ultimaPeticao = "", roleForm = "Contratante", roleLogin = "Contratante";
+
+function setRoleForm(role){
+  roleForm = role;
+  const c = $('btnSouContratante'), d = $('btnSouContratado');
+  if(!c || !d) return;
+  if(role === 'Contratante'){
+    c.className = 'btn-role selected bg-blue-600 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 border-[2.5px] border-blue-600';
+    d.className = 'btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1';
+  } else {
+    d.className = 'btn-role selected bg-emerald-600 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 border-[2.5px] border-emerald-600';
+    c.className = 'btn-role bg-white border-2 border-blue-300 text-blue-700 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1';
+  }
+  const t = $('roleFormTxt'); if(t) t.textContent = 'Você selecionou: ' + role + ' - vai aparecer no documento';
+}
+function setRoleLogin(role){
+  roleLogin = role;
+  const c = $('roleLoginContratante'), d = $('roleLoginContratado');
+  if(c && d){
+    if(role === 'Contratante'){
+      c.className = 'btn-role selected bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1 border-2 border-blue-600';
+      d.className = 'btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1';
+    } else {
+      d.className = 'btn-role selected bg-emerald-600 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1 border-2 border-emerald-600';
+      c.className = 'btn-role bg-white border-2 border-blue-300 text-blue-700 font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1';
+    }
+  }
+  const t = $('roleLoginTxt'); if(t) t.textContent = 'Você entrou como: ' + role;
+  const b = $('btnSignupUnico');
+  if(b){ b.textContent = 'Criar conta como ' + role; b.className = 'w-full text-white font-black py-3.5 rounded-xl text-sm ' + (role === 'Contratante' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700'); }
+  try{ localStorage.setItem('zapgarantia_role', role); }catch{}
+}
+if($('btnSouContratante')) $('btnSouContratante').onclick = () => setRoleForm('Contratante');
+if($('btnSouContratado')) $('btnSouContratado').onclick = () => setRoleForm('Contratado');
+if($('roleLoginContratante')) $('roleLoginContratante').onclick = () => setRoleLogin('Contratante');
+if($('roleLoginContratado')) $('roleLoginContratado').onclick = () => setRoleLogin('Contratado');
+
 async function loadPerfil(){
-  // 1) Tenta carregar do Supabase (tabela profiles) - é o perfil oficial único
+  let p = null;
   if(currentUser){
     try{
       const { data } = await supabase.from('profiles').select('*').eq('user_id', currentUser.id).single();
-      if(data && data.nome_exibicao){
-        const p={nome:data.nome_exibicao, insta:data.insta||'', whats:data.whats||'', cidade:data.cidade||'', bio:data.bio||'', role:data.role||roleLogin};
-        preencherPerfil(p); localStorage.setItem('zapgarantia_perfil_unico', JSON.stringify(p)); return;
-      }
-    }catch(e){ console.log('profiles ainda não existe, usando local'); }
+      if(data && data.nome_exibicao) p = { nome: data.nome_exibicao, insta: data.insta || '', cidade: data.cidade || '', bio: data.bio || '' };
+    }catch{}
   }
-  // 2) Fallback: localStorage ÚNICO (mesma chave nos 2 apps)
-  const p=JSON.parse(localStorage.getItem('zapgarantia_perfil_unico')||'{}');
-  if(p.nome) preencherPerfil(p);
-}
-function preencherPerfil(p){
-  const el=(id)=>document.getElementById(id); if(el('perfil_nome')) el('perfil_nome').value=p.nome||''; if(el('perfil_insta')) el('perfil_insta').value=p.insta||''; if(el('perfil_whats')) el('perfil_whats').value=p.whats||''; if(el('perfil_cidade')) el('perfil_cidade').value=p.cidade||''; if(el('perfil_bio')) el('perfil_bio').value=p.bio||''; showPerfilPreview(p);
-}
-function showPerfilPreview(p){ if(!p.nome) return; document.getElementById('perfilPreview').classList.remove('hidden'); document.getElementById('perfilLetra').textContent=p.nome.charAt(0).toUpperCase(); document.getElementById('perfilPreviewNome').textContent=p.nome+' - '+(p.cidade||''); document.getElementById('perfilPreviewInsta').textContent=p.insta||''; document.getElementById('perfilPreviewBio').textContent=(p.bio||'')+' • Perfil único ZapGarantia'; }
-document.getElementById('btnSalvarPerfil').onclick=()=>{ window.location.href='/'; return; }; if(false){ document.getElementById('btnSalvarPerfil').onclick=async()=>{
-  const p={nome:document.getElementById('perfil_nome').value.trim(), insta:document.getElementById('perfil_insta').value.trim(), whats:document.getElementById('perfil_whats').value.trim(), cidade:document.getElementById('perfil_cidade').value.trim(), bio:document.getElementById('perfil_bio').value.trim(), role:roleLogin};
-  if(!p.nome){ alert('Digite seu nome de exibição no perfil'); return; }
-  // Salva no mesmo lugar para os 2 apps
-  localStorage.setItem('zapgarantia_perfil_unico', JSON.stringify(p));
-  if(currentUser){
-    try{ await supabase.from('profiles').upsert({user_id: currentUser.id, email: currentUser.email, nome_exibicao: p.nome, insta: p.insta, whats: p.whats, cidade: p.cidade, bio: p.bio, role: p.role}, {onConflict:'user_id'}); }catch(e){ console.log('salvo só local, profiles ainda não existe'); }
+  if(!p){
+    try{ p = JSON.parse(localStorage.getItem('zapgarantia_perfil_unico') || '{}'); }catch{ p = {}; }
   }
-  document.getElementById('perfilMsg').classList.remove('hidden'); document.getElementById('perfilMsg').textContent='Perfil único salvo! Agora é o mesmo no ZapGarantia e no RESOLVE.'; showPerfilPreview(p);
-};
-async function loadTemplates(){ const { data } = await supabase.from('resolve_templates').select('*').order('categoria'); const sel=document.getElementById('categoria'); sel.innerHTML=''; const fallback=[{categoria:'cliente_nao_pagou',titulo:'Cliente não pagou'},{categoria:'atraso_obra',titulo:'Atraso de obra'},{categoria:'voo_atraso',titulo:'Voo atrasado'},{categoria:'banco',titulo:'Banco'}]; const list=(data&&data.length)?data:fallback; list.forEach(t=>{ templates[t.categoria]=t; const o=document.createElement('option'); o.value=t.categoria; o.textContent=t.titulo||t.categoria; sel.appendChild(o); }); }
-async function checkAuth(){
-  const authBox=document.getElementById('authBox'); const appBox=document.getElementById('app');
-  // Mostra "verificando" para não parecer congelado
-  const loading=document.getElementById('authLoading'); if(loading) loading.classList.remove('hidden');
+  if(p && p.nome) showPerfilPreview(p);
+}
+function showPerfilPreview(p){
+  if(!p || !p.nome) return;
+  const pv = $('perfilPreview'); if(!pv) return;
+  pv.classList.remove('hidden');
+  const l = $('perfilLetra'); if(l) l.textContent = p.nome.charAt(0).toUpperCase();
+  const n = $('perfilPreviewNome'); if(n) n.textContent = p.nome + ' - ' + (p.cidade || '');
+  const i = $('perfilPreviewInsta'); if(i) i.textContent = p.insta || '';
+  const b = $('perfilPreviewBio'); if(b) b.textContent = (p.bio || '') + ' • Perfil do ZapGarantia';
+}
+async function loadTemplates(){
+  const sel = $('categoria'); if(!sel) return;
+  const fallback = [{ categoria: 'cliente_nao_pagou', titulo: 'Cliente não pagou' }, { categoria: 'atraso_obra', titulo: 'Notificação - Atraso de Obra' }, { categoria: 'voo_atraso', titulo: 'Voo atrasado' }, { categoria: 'banco', titulo: 'Banco / Cobrança' }];
   try{
-    // 1) Tenta sessão local RÁPIDO (sem rede) - é a mesma do ZapGarantia, mesmo domínio
-    let session=null;
-    try{
-      const r = await Promise.race([
-        supabase.auth.getSession(),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), 4000))
-      ]);
-      session = r.data?.session;
-    }catch(e){ console.log('getSession timeout, tentando localStorage direto'); }
-    // 2) Fallback: ler direto do localStorage do ZapGarantia (mesma chave)
-    if(!session?.user){
-      try{
-        const raw = localStorage.getItem('sb-gktfwlhvdnsezqcpjrpf-auth-token');
-        if(raw){ const parsed=JSON.parse(raw); if(parsed?.user) session={user: parsed.user}; }
-      }catch{}
-    }
-    const usuario = session?.user;
-    if(loading) loading.classList.add('hidden');
-    if(!usuario){
-      authBox.classList.remove('hidden'); appBox.classList.add('hidden');
-      // Restaurar papel salvo no ZapGarantia
-      const roleSalvo=localStorage.getItem('zapgarantia_role'); if(roleSalvo) setRoleLogin(roleSalvo);
-      loadPerfil(); return;
-    }
-    currentUser=usuario;
-    // Restaurar papel salvo
-    const roleSalvo=localStorage.getItem('zapgarantia_role'); if(roleSalvo && roleSalvo!==roleLogin) setRoleLogin(roleSalvo);
-    authBox.classList.add('hidden'); appBox.classList.remove('hidden');
-    document.getElementById('userEmail').textContent=usuario.email;
-    document.getElementById('perfilTipoTop').textContent='Logado como '+roleLogin+' • Mesma conta do ZapGarantia';
-    await loadTemplates(); await loadCasos(); loadPerfil();
-  }catch(e){
-    console.log('checkAuth erro', e);
-    authBox.classList.remove('hidden'); appBox.classList.add('hidden');
+    const { data } = await supabase.from('resolve_templates').select('*').order('categoria');
+    const list = (data && data.length) ? data : fallback;
+    sel.innerHTML = '';
+    list.forEach(t => { templates[t.categoria] = t; const o = document.createElement('option'); o.value = t.categoria; o.textContent = t.titulo || t.categoria; sel.appendChild(o); });
+  }catch{
+    sel.innerHTML = '';
+    fallback.forEach(t => { templates[t.categoria] = t; const o = document.createElement('option'); o.value = t.categoria; o.textContent = t.titulo; sel.appendChild(o); });
   }
 }
-// Se já estiver logado no ZapGarantia, entrar automaticamente sem pedir login de novo
-supabase.auth.onAuthStateChange((event, session)=>{
-  if((event==='SIGNED_IN' || event==='INITIAL_SESSION') && session?.user){ checkAuth(); }
-  if(event==='SIGNED_OUT'){ document.getElementById('authBox').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); }
+async function loadCasos(){
+  if(!currentUser) return;
+  let data = [];
+  try{
+    const r = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at', { ascending: false }).limit(30);
+    data = r.data || [];
+  }catch{}
+  const total = data.length;
+  const pendente = data.filter(c => !c.status_assinatura || c.status_assinatura === 'Aguardando' || c.status_assinatura === 'Pendente').length;
+  const assinado = data.filter(c => c.status_assinatura === 'Assinado').length;
+  const contestado = data.filter(c => c.status_assinatura === 'Contestado' || c.status_assinatura === 'Rejeitado' || c.status_assinatura === 'Recusado').length;
+  const recusado = contestado;
+  const set = (id, v) => { const e = $(id); if(e) e.textContent = v; };
+  set('countTotal', total); set('countPendente', pendente); set('countAssinado', assinado); set('countContestado', contestado); set('countRecusado', recusado);
+  const lista = $('listaCasos'); if(!lista) return;
+  lista.innerHTML = '';
+  if(!data.length){ lista.innerHTML = '<p class="text-sm text-center py-8">Nenhum documento ainda</p>'; return; }
+  data.forEach(c => {
+    let badge = '', cor = 'border-amber-200 bg-amber-50/50';
+    if(c.status_assinatura === 'Assinado'){ badge = '<span class="bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full">✅ Assinado</span>'; cor = 'border-emerald-200 bg-emerald-50/50'; }
+    else if(c.status_assinatura === 'Contestado' || c.status_assinatura === 'Recusado' || c.status_assinatura === 'Rejeitado'){ badge = '<span class="bg-red-500 text-white text-[11px] font-black px-3 py-1 rounded-full">❌ Recusado / Contestado</span>'; cor = 'border-red-200 bg-red-50/50'; }
+    else { badge = '<span class="bg-amber-400 text-amber-900 text-[11px] font-black px-3 py-1 rounded-full">⏳ Não assinado / Pendente</span>'; }
+    const d = document.createElement('div');
+    d.className = 'border-2 rounded-xl p-3 flex justify-between items-center ' + cor;
+    d.innerHTML = '<div><p class="font-black text-sm">' + (c.empresa || 'Documento') + '</p><p class="text-[11px] text-slate-500">' + new Date(c.created_at).toLocaleDateString('pt-BR') + ' • R$ ' + (c.valor || '-') + '</p></div><div class="flex gap-2 items-center">' + badge + '<a href="/r/?token=' + c.public_token + '" target="_blank" class="bg-blue-600 text-white font-black px-3 py-1.5 rounded-full text-xs">Abrir</a></div>';
+    lista.appendChild(d);
+  });
+}
+async function checkAuth(){
+  const authBox = $('authBox'), appBox = $('app'), loading = $('authLoading');
+  if(loading) loading.classList.remove('hidden');
+  try{
+    const { data: { session } } = await supabase.auth.getSession();
+    const usuario = session?.user || null;
+    if(!usuario){
+      if(authBox) authBox.classList.remove('hidden');
+      if(appBox) appBox.classList.add('hidden');
+      if(loading) loading.classList.add('hidden');
+      const rs = localStorage.getItem('zapgarantia_role'); if(rs) setRoleLogin(rs);
+      const em = localStorage.getItem('zapgarantia_email'); if(em && $('email') && !$('email').value) $('email').value = em;
+      loadPerfil();
+      return false;
+    }
+    currentUser = usuario;
+    const rs = localStorage.getItem('zapgarantia_role'); if(rs) setRoleLogin(rs);
+    if(authBox) authBox.classList.add('hidden');
+    if(appBox) appBox.classList.remove('hidden');
+    if(loading) loading.classList.add('hidden');
+    const ue = $('userEmail'); if(ue) ue.textContent = usuario.email;
+    const pt = $('perfilTipoTop'); if(pt) pt.textContent = 'Logado como ' + roleLogin + ' • Mesma conta do ZapGarantia';
+    await loadTemplates();
+    await loadCasos();
+    loadPerfil();
+    return true;
+  }catch(e){
+    if(loading) loading.classList.add('hidden');
+    if(authBox) authBox.classList.remove('hidden');
+    if(appBox) appBox.classList.add('hidden');
+    return false;
+  }
+}
+supabase.auth.onAuthStateChange((event, session) => {
+  if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user){ checkAuth(); }
+  if(event === 'SIGNED_OUT'){
+    const a = $('authBox'), b = $('app');
+    if(a) a.classList.remove('hidden');
+    if(b) b.classList.add('hidden');
+  }
 });
-// LOGIN ÚNICO - usa o papel selecionado nos 2 botões grandes de cima
 async function doSignupUnico(){
   const role = roleLogin;
-  const btn = document.getElementById('btnSignupUnico');
-  const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
-  if(!email||!password){ alert('Digite email e senha para criar conta como '+role); return; }
-  if(btn){ btn.disabled=true; btn.textContent='Criando conta... Aguarde'; }
+  const btn = $('btnSignupUnico');
+  const email = $('email')?.value.trim() || '', password = $('password')?.value || '';
+  if(!email || !password){ alert('Digite email e senha para criar conta como ' + role); return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Criando conta... Aguarde'; }
   try{
-    const { error } = await supabase.auth.signUp({email,password});
+    const { error } = await supabase.auth.signUp({ email, password });
     if(error) throw error;
     localStorage.setItem('zapgarantia_role', role);
-    document.getElementById('authMsg').textContent='Conta criada como '+role+'! Agora clique em Entrar';
-    document.getElementById('authMsg').classList.remove('hidden');
-    document.getElementById('authMsg').className='text-xs text-emerald-600 mt-3 font-bold text-center';
+    localStorage.setItem('zapgarantia_email', email);
+    const m = $('authMsg'); if(m){ m.textContent = 'Conta criada como ' + role + '! Agora clique em Entrar'; m.classList.remove('hidden'); }
   }catch(e){
-    document.getElementById('authMsg').textContent='Erro: '+e.message;
-    document.getElementById('authMsg').classList.remove('hidden');
+    const m = $('authMsg'); if(m){ m.textContent = 'Erro: ' + e.message; m.classList.remove('hidden'); }
   }finally{
-    if(btn){ btn.disabled=false; btn.textContent='Criar conta como '+role; }
+    if(btn){ btn.disabled = false; btn.textContent = 'Criar conta como ' + role; }
   }
 }
-
-document.getElementById('btnLogin').onclick=async()=>{
-  const btn=document.getElementById('btnLogin');
-  const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
-  if(!email||!password){ alert('Digite email e senha'); return; }
-  if(btn){ btn.disabled=true; btn.textContent='Entrando... Aguarde (até 10s)'; }
-  document.getElementById('authMsg').textContent='Entrando...'; document.getElementById('authMsg').classList.remove('hidden');
-  // Timeout anti-congelamento: se travar, volta o botão em 10s
-  const timeoutId=setTimeout(()=>{ if(btn){ btn.disabled=false; btn.textContent='Entrar'; } document.getElementById('authMsg').textContent='Demorou demais, tente de novo ou clique em Entrar direto'; }, 10000);
+if($('btnSignupUnico')) $('btnSignupUnico').onclick = () => doSignupUnico();
+if($('btnLogin')) $('btnLogin').onclick = async () => {
+  const btn = $('btnLogin');
+  const email = $('email')?.value.trim() || '', password = $('password')?.value || '';
+  if(!email || !password){ alert('Digite email e senha'); return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Entrando... Aguarde'; }
+  const m = $('authMsg'); if(m){ m.textContent = 'Entrando...'; m.classList.remove('hidden'); }
+  const timer = setTimeout(() => { if(btn){ btn.disabled = false; btn.textContent = 'Entrar'; } if(m) m.textContent = 'Demorou demais, tente de novo ou clique em Entrar direto'; }, 10000);
   try{
-    const { data, error } = await Promise.race([
-      supabase.auth.signInWithPassword({email,password}),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('Tempo esgotado - internet lenta ou Supabase fora. Tente de novo.')), 10000))
-    ]);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if(error) throw error;
-    clearTimeout(timeoutId);
+    clearTimeout(timer);
     localStorage.setItem('zapgarantia_role', roleLogin);
     localStorage.setItem('zapgarantia_email', email);
-    document.getElementById('authMsg').textContent='Logado! Entrando no RESOLVE...';
+    if(m) m.textContent = 'Logado! Entrando no RESOLVE...';
     await checkAuth();
   }catch(e){
-    clearTimeout(timeoutId);
-    document.getElementById('authMsg').textContent='Erro: '+e.message+' - Tente de novo ou clique em Entrar direto';
-    alert('Erro ao entrar: '+e.message+'\nSe você já está logado no ZapGarantia, clique em "Já estou logado - Entrar direto"');
+    clearTimeout(timer);
+    if(m) m.textContent = 'Erro: ' + e.message + ' - Tente de novo ou clique em Entrar direto';
+    alert('Erro ao entrar: ' + e.message + '\nSe você já está logado no ZapGarantia, clique em "Já estou logado - Entrar direto"');
   }finally{
-    clearTimeout(timeoutId);
-    if(btn){ btn.disabled=false; btn.textContent='Entrar'; }
+    clearTimeout(timer);
+    if(btn){ btn.disabled = false; btn.textContent = 'Entrar'; }
   }
 };
-document.getElementById('btnEntrarDireto').onclick=async()=>{
-  const btn=document.getElementById('btnEntrarDireto');
-  if(btn){ btn.disabled=true; btn.textContent='Verificando login do ZapGarantia...'; }
+if($('btnEntrarDireto')) $('btnEntrarDireto').onclick = async () => {
+  const btn = $('btnEntrarDireto');
+  if(btn){ btn.disabled = true; btn.textContent = 'Verificando login do ZapGarantia...'; }
   try{
-    // Tenta 3 jeitos: getSession, localStorage, e getUser
-    let ok=false;
-    try{ const { data:{session} } = await supabase.auth.getSession(); if(session?.user) ok=true; }catch{}
+    const ok = await checkAuth();
     if(!ok){
-      try{ const raw=localStorage.getItem('sb-gktfwlhvdnsezqcpjrpf-auth-token'); if(raw){ const p=JSON.parse(raw); if(p?.user) ok=true; } }catch{}
+      alert('Você ainda não está logado no ZapGarantia neste celular.\n\nFaça assim:\n1. Abra o ZapGarantia\n2. Faça login lá\n3. Clique no botão verde Resolva\nAí você cai aqui já logado.');
     }
-    if(ok){ await checkAuth(); }
-    else { alert('Você ainda não está logado no ZapGarantia neste celular.\n\nFaça assim:\n1. Abra o ZapGarantia\n2. Faça login lá\n3. Clique no botão verde Resolva\nAí você cai aqui já logado.'); }
-  }catch(e){ alert('Erro: '+e.message); }
-  finally{ if(btn){ btn.disabled=false; btn.textContent='✅ Já estou logado no ZapGarantia - Entrar direto'; } }
-}; document.getElementById('btnSignupUnico').onclick=()=>doSignupUnico();
-// CONTESTAÇÃO VINDA DO ZAPGARANTIA
-async function checkContestToken(){ const ct=new URLSearchParams(location.search).get('contest_token'); if(!ct) return; const banner=document.createElement('div'); banner.className='bg-red-50 border-2 border-red-300 rounded-2xl p-5 text-center space-y-2'; banner.innerHTML='<p class="font-black text-red-800">Você está contestando um serviço do ZapGarantia</p><p class="text-xs text-red-700">Preencha abaixo sua contestação. O profissional vai ver que você contestou no painel dele.</p>'; document.getElementById('app').prepend(banner); try{ const { data } = await supabase.from('contracts').select('*').eq('public_token', ct).single(); if(data){ document.getElementById('f_empresa').value=data.client_name||''; document.getElementById('f_nome').value=''; document.getElementById('f_relato').value='Contestação do serviço: '+(data.service||'')+' - Valor: R$ '+(data.total||'')+' - Motivo da contestação: '; document.getElementById('f_valor').value=data.total||''; const sel=document.getElementById('categoria'); if(sel){ let opt=document.createElement('option'); opt.value='contestacao'; opt.textContent='Contestação de serviço concluído'; sel.appendChild(opt); sel.value='contestacao'; } } }catch{} }
-
-checkAuth();
-setTimeout(checkContestToken, 1500);
-document.getElementById('btnLogout').onclick=async()=>{ await supabase.auth.signOut(); location.reload(); };
-document.getElementById('f_file').onchange=async(e)=>{ const file=e.target.files[0]; if(!file) return; const p=document.getElementById('previewImg'); p.src=URL.createObjectURL(file); p.classList.remove('hidden'); document.getElementById('uploadMsg').textContent='Enviando...'; try{ const name=currentUser.id+'/'+Date.now()+'-'+file.name; const { data } = await supabase.storage.from('comprovantes').upload(name,file); if(data){ uploadedKey=data.path; document.getElementById('uploadMsg').textContent='Enviado'; } }catch{ document.getElementById('uploadMsg').textContent='Preview OK'; uploadedKey=file.name; } };
-document.getElementById('btnGerar').onclick=async()=>{ if(!document.getElementById('aceiteTermos').checked){ alert('Você precisa aceitar os Termos de Uso e Política de Privacidade para gerar o documento.'); return; } const cat=document.getElementById('categoria').value; const t=templates[cat]; const dados={}; ['nome','cpf','empresa','valor','protocolo'].forEach(k=>{ const el=document.getElementById('f_'+k); if(el) dados[k]=el.value.trim(); }); dados.produto_nome=document.getElementById('f_produto_nome').value.trim(); dados.produto_codigo=document.getElementById('f_produto_codigo').value.trim(); dados.relato=document.getElementById('f_relato').value.trim(); dados.cep=document.getElementById('f_cep').value.trim(); dados.cidade=document.getElementById('f_cidade').value.trim(); dados.end_contratante=document.getElementById('f_endereco_contratante').value.trim(); dados.end_contratado=document.getElementById('f_endereco_contratado').value.trim(); if(!dados.nome||!dados.empresa||!dados.relato){ alert('Preencha nome, empresa e o que aconteceu'); return; } let texto='DOCUMENTO RESOLVE - ZapGarantia\\n\\nEu, '+dados.nome+' (CPF '+(dados.cpf||'não informado')+'), na qualidade de '+roleForm.toUpperCase()+', venho formalizar reclamação contra '+dados.empresa+'.\\n\\nCategoria: '+cat+'\\nProduto: '+(dados.produto_nome||'')+' Código: '+(dados.produto_codigo||'')+'\\nValor: R$ '+(dados.valor||'')+' Protocolo: '+(dados.protocolo||'')+'\\n\\nRelato: '+dados.relato+'\\n'; if(t && t.corpo){ texto=t.corpo; for(const k in dados) texto=texto.split('{{'+k+'}}').join(dados[k]||''); } if(dados.end_contratante) texto+='\\nEndereço do Contratante: '+dados.end_contratante; if(dados.end_contratado) texto+='\\nEndereço do Contratado: '+dados.end_contratado; if(dados.cep) texto+='\\nCEP: '+dados.cep; if(dados.cidade) texto+='\\nCidade: '+dados.cidade; const perfil=JSON.parse(localStorage.getItem('zapgarantia_perfil_unico')||'{}'); if(perfil.nome) texto+='\\n\\nPerfil ZapGarantia: '+perfil.nome+' '+(perfil.insta||'')+' '+(perfil.whats||''); texto+='\\n\\nData: '+new Date().toLocaleDateString('pt-BR')+' - '+dados.nome+' ('+roleForm+')'; ultimaPeticao=texto; const { data, error } = await supabase.from('casos').insert({professional_id:currentUser.id, categoria:cat, empresa:dados.empresa, valor:dados.valor, relato:dados.relato, peticao:texto, image_key:uploadedKey, cliente_nome:dados.nome}).select('public_token').single(); if(error){ alert('Erro: '+error.message); return; } ultimoToken=data.public_token; document.getElementById('peticaoTexto').textContent=texto; const link='https://zapgarantia.alibr.com.br/r/?token='+data.public_token; document.getElementById('linkPublico').innerHTML='Link: <a href="'+link+'" target="_blank" class="underline font-black">'+link+'</a>'; document.getElementById('resultado').classList.remove('hidden'); document.getElementById('resultado').scrollIntoView({behavior:'smooth'}); await loadCasos(); };
-document.getElementById('btnCopiar').onclick=()=>{ navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/r/?token='+ultimoToken+'\\n\\n'+ultimaPeticao); alert('Copiado!'); };
-document.getElementById('btnWa').onclick=()=>{ if(!ultimoToken) return; window.open('https://wa.me/?text='+encodeURIComponent('Documento RESOLVE: https://zapgarantia.alibr.com.br/r/?token='+ultimoToken),'_blank'); };
-document.getElementById('btnVisitar').onclick=()=>{ if(!ultimoToken) return; window.open('/r/?token='+ultimoToken,'_blank'); };
-document.getElementById('btnPdf').onclick=()=>{ const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao,180),10,15); doc.save('RESOLVE.pdf'); };
-let synth=window.speechSynthesis; document.getElementById('btnOuvirResolve').onclick=()=>{ synth.cancel(); const u=new SpeechSynthesisUtterance(ultimaPeticao); u.lang='pt-BR'; synth.speak(u); };
-document.getElementById('btnPararResolve').onclick=()=>synth.cancel();
-async function loadCasos(){ const { data } = await supabase.from('casos').select('*').eq('professional_id',currentUser.id).order('created_at',{ascending:false}).limit(30);
-  // Atualizar cartões do painel bonito
+  }catch(e){ alert('Erro: ' + e.message); }
+  finally{ if(btn){ btn.disabled = false; btn.textContent = '✅ Já estou logado no ZapGarantia - Entrar direto'; } }
+};
+if($('btnLogout')) $('btnLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
+if($('f_file')) $('f_file').onchange = async (e) => {
+  const file = e.target.files[0]; if(!file || !currentUser) return;
+  const p = $('previewImg'); if(p){ p.src = URL.createObjectURL(file); p.classList.remove('hidden'); }
+  const um = $('uploadMsg'); if(um) um.textContent = 'Enviando...';
   try{
-    const total=data?.length||0;
-    const pendente=(data||[]).filter(c=>!c.status_assinatura||c.status_assinatura==='Aguardando'||c.status_assinatura==='Pendente').length;
-    const assinado=(data||[]).filter(c=>c.status_assinatura==='Assinado').length;
-    const contestado=(data||[]).filter(c=>c.status_assinatura==='Contestado'||c.status_assinatura==='Rejeitado').length;
-    const el=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
-    el('countTotal', total); el('countPendente', pendente); el('countAssinado', assinado); el('countContestado', contestado);
+    const name = currentUser.id + '/' + Date.now() + '-' + file.name;
+    const { data } = await supabase.storage.from('comprovantes').upload(name, file);
+    if(data){ uploadedKey = data.path; if(um) um.textContent = 'Enviado'; }
+  }catch{ if(um) um.textContent = 'Preview OK'; uploadedKey = file.name; }
+};
+if($('btnGerar')) $('btnGerar').onclick = async () => {
+  if(!$('aceiteTermos')?.checked){ alert('Você precisa aceitar os Termos de Uso e Política de Privacidade para gerar o documento.'); return; }
+  const cat = $('categoria')?.value || 'cliente_nao_pagou';
+  const t = templates[cat];
+  const get = (id) => $(id)?.value.trim() || '';
+  const dados = { nome: get('f_nome'), cpf: get('f_cpf'), empresa: get('f_empresa'), valor: get('f_valor'), protocolo: get('f_protocolo'), produto_nome: get('f_produto_nome'), produto_codigo: get('f_produto_codigo'), endereco_contratante: get('f_endereco_contratante'), endereco_contratado: get('f_endereco_contratado'), cep: get('f_cep'), cidade: get('f_cidade') };
+  const relato = get('f_relato');
+  if(!dados.nome || !dados.empresa || !relato){ alert('Preencha nome, empresa e relato'); return; }
+  let texto = (t?.corpo || 'Notificação - {{empresa}} - {{nome}} - {{relato}}');
+  Object.entries(dados).forEach(([k, v]) => { texto = texto.split('{{' + k + '}}').join(v); });
+  texto = texto.split('{{relato}}').join(relato);
+  texto = 'Você é: ' + roleForm + '\n\n' + texto;
+  if(dados.endereco_contratante) texto += '\n\nEndereço do Contratante: ' + dados.endereco_contratante;
+  if(dados.endereco_contratado) texto += '\n\nEndereço do Contratado: ' + dados.endereco_contratado;
+  ultimaPeticao = texto;
+  const pt = $('peticaoTexto'); if(pt) pt.textContent = texto;
+  const res = $('resultado'); if(res) res.classList.remove('hidden');
+  const token = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  ultimoToken = token;
+  try{
+    const { data } = await supabase.from('casos').insert({ professional_id: currentUser.id, categoria: cat, empresa: dados.empresa, valor: dados.valor, relato, peticao: texto, cliente_nome: dados.nome, public_token: token, image_keys: uploadedKey ? [uploadedKey] : [] }).select('public_token').single();
+    if(data) ultimoToken = data.public_token;
   }catch{}
- const lista=document.getElementById('listaCasos'); lista.innerHTML=''; if(!data||!data.length){ lista.innerHTML='<p class=text-sm text-center py-8> Nenhum documento ainda</p>'; return; } data.forEach(c=>{ let badge='', cor='border-amber-200 bg-amber-50/50'; if(c.status_assinatura==='Assinado'){ badge='<span class="bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full">✅ '+(c.cliente_nome||'Cliente')+' assinou e concordou</span>'; cor='border-emerald-300 bg-emerald-50/50'; } else if(c.status_assinatura==='Rejeitado' || c.status_assinatura==='Contestado'){ badge='<span class="bg-red-500 text-white text-[11px] font-black px-3 py-1 rounded-full">❌ '+(c.cliente_nome||'Cliente')+' NÃO concordou</span>'; cor='border-red-200 bg-red-50/50'; } else { badge='<span class="bg-amber-400 text-amber-900 text-[11px] font-black px-3 py-1 rounded-full">⏳ Aguardando assinatura</span>'; } const d=document.createElement('div'); d.className='border-2 '+cor+' rounded-2xl p-4 flex flex-col sm:flex-row justify-between gap-3'; d.innerHTML='<div><p class="font-black text-sm">'+c.categoria+' - '+(c.empresa||'')+'</p><p class="text-[11px] text-slate-600 mt-1">R$ '+(c.valor||'')+' - '+new Date(c.created_at).toLocaleDateString('pt-BR')+'</p><div class="mt-2">'+badge+'</div></div><div class="flex gap-2"><a href="/r/?token='+c.public_token+'" target="_blank" class="bg-blue-600 text-white font-black px-4 py-2 rounded-full text-xs">Abrir</a><button onclick="navigator.clipboard.writeText(\'https://zapgarantia.alibr.com.br/r/?token='+c.public_token+'\');alert(\'Copiado!\')" class="bg-white border-2 border-slate-200 font-bold px-3 py-2 rounded-full text-xs">Copiar</button></div>'; lista.appendChild(d); }); }
-
-// CONTESTAÇÃO VINDA DO ZAPGARANTIA
-async function checkContestToken(){ const ct=new URLSearchParams(location.search).get('contest_token'); if(!ct) return; const banner=document.createElement('div'); banner.className='bg-red-50 border-2 border-red-300 rounded-2xl p-5 text-center space-y-2'; banner.innerHTML='<p class="font-black text-red-800">Você está contestando um serviço do ZapGarantia</p><p class="text-xs text-red-700">Preencha abaixo sua contestação. O profissional vai ver que você contestou no painel dele.</p>'; document.getElementById('app').prepend(banner); try{ const { data } = await supabase.from('contracts').select('*').eq('public_token', ct).single(); if(data){ document.getElementById('f_empresa').value=data.client_name||''; document.getElementById('f_nome').value=''; document.getElementById('f_relato').value='Contestação do serviço: '+(data.service||'')+' - Valor: R$ '+(data.total||'')+' - Motivo da contestação: '; document.getElementById('f_valor').value=data.total||''; const sel=document.getElementById('categoria'); if(sel){ let opt=document.createElement('option'); opt.value='contestacao'; opt.textContent='Contestação de serviço concluído'; sel.appendChild(opt); sel.value='contestacao'; } } }catch{} }
-
+  const lp = $('linkPublico'); if(lp) lp.textContent = 'Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
+  await loadCasos();
+};
+if($('btnCopiar')) $('btnCopiar').onclick = () => { navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken + '\n\n' + ultimaPeticao); alert('Copiado!'); };
+if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Documento RESOLVE: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken), '_blank'); };
+if($('btnVisitar')) $('btnVisitar').onclick = () => { if(!ultimoToken) return; window.open('/r/?token=' + ultimoToken, '_blank'); };
+if($('btnPdf')) $('btnPdf').onclick = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao, 180), 10, 15); doc.save('RESOLVE.pdf'); };
+let synth = window.speechSynthesis;
+if($('btnOuvirResolve')) $('btnOuvirResolve').onclick = () => { synth.cancel(); const u = new SpeechSynthesisUtterance(ultimaPeticao); u.lang = 'pt-BR'; synth.speak(u); };
+if($('btnPararResolve')) $('btnPararResolve').onclick = () => synth.cancel();
+async function checkContestToken(){
+  const ct = new URLSearchParams(location.search).get('contest_token'); if(!ct) return;
+  const banner = document.createElement('div');
+  banner.className = 'bg-red-50 border-2 border-red-300 rounded-2xl p-5 text-center space-y-2';
+  banner.innerHTML = '<p class="font-black text-red-800">Você está contestando um serviço do ZapGarantia</p><p class="text-xs text-red-700">Preencha abaixo sua contestação.</p>';
+  const app = $('app'); if(app) app.prepend(banner);
+  try{
+    const { data } = await supabase.from('contracts').select('*').eq('public_token', ct).single();
+    if(data){
+      if($('f_empresa')) $('f_empresa').value = data.client_name || '';
+      if($('f_relato')) $('f_relato').value = 'Contestação do serviço: ' + (data.service || '') + ' - Valor: R$ ' + (data.total || '') + ' - Motivo: ';
+      if($('f_valor')) $('f_valor').value = data.total || '';
+    }
+  }catch{}
+}
+// Se veio do ZapGarantia com ?from_zap=1, tenta entrar direto
+const fromZap = new URLSearchParams(location.search).get('from_zap');
+if(fromZap){ setTimeout(() => { checkAuth(); }, 300); }
 checkAuth();
 setTimeout(checkContestToken, 1500);
 </script>
