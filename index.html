@@ -1,118 +1,112 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ZapGarantia - Orçamento com Garantia</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-body{font-family:Inter,sans-serif;background:#f1f5f9}
-input,select,textarea{color:#0f172a !important}
-label{color:#0f172a !important; font-weight:800 !important; font-size:13px !important; display:block; margin-bottom:6px; letter-spacing:0.2px}
-.card{background:white; border:1.5px solid #e2e8f0; border-radius:18px; box-shadow:0 4px 20px rgba(0,0,0,0.04)}
-</style>
+<style>body{font-family:Inter,sans-serif} input,select,textarea{color:#0f172a !important} label{color:#1e293b !important; font-weight:700 !important; font-size:13px !important; display:block; margin-bottom:6px}</style>
 </head>
-<body>
-<header class="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg sticky top-0 z-40">
-<div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
-<div class="flex items-center gap-3"><div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow"><i class="fa-solid fa-file-shield text-blue-600 text-lg"></i></div><div class="leading-none"><p class="font-black text-[18px]">ZapGarantia</p><p class="text-[10px] font-bold text-blue-100 tracking-widest">ORÇAMENTO COM GARANTIA</p></div></div>
+<body class="bg-slate-50">
+<header class="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow sticky top-0 z-40">
+<div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+<div class="flex items-center gap-2"><div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center"><i class="fa-solid fa-file-shield text-blue-600"></i></div><div class="leading-none"><p class="font-black text-[17px]">ZapGarantia</p><p class="text-[10px] font-bold text-blue-100">ORÇAMENTO COM GARANTIA</p></div></div>
 <div class="flex items-center gap-2">
-<button id="btnIrResolve" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black px-4 py-2 rounded-full shadow-lg" title="Vai para o RESOLVE já logado">Resolva →</button>
-<button id="btnLogout" class="hidden bg-white text-blue-600 font-black px-4 py-2 rounded-full text-xs">Sair</button>
+<a href="/resolve/" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black px-3.5 py-2 rounded-full shadow">Resolva</a>
+<span id="planoBadge" class="hidden bg-white/20 text-white text-[11px] font-bold px-3 py-1.5 rounded-full">Plano Gratuito</span>
+<button id="btnLogout" class="hidden bg-white text-blue-600 font-bold px-3.5 py-2 rounded-full text-xs">Sair</button>
 </div>
 </div>
 </header>
-<main class="max-w-4xl mx-auto p-4 space-y-5 pb-28">
-<div id="authBox" class="card p-7 max-w-md mx-auto mt-10">
-<h1 class="font-black text-2xl text-slate-900">Entrar na sua conta</h1>
-<p class="text-sm text-slate-500 mt-1">Seus orçamentos ficam salvos</p>
-<input id="email" type="email" placeholder="seu@email.com" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 mt-5 text-sm bg-slate-50 outline-none focus:border-blue-600">
-<input id="password" type="password" placeholder="Sua senha" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 mt-3 text-sm bg-slate-50 outline-none focus:border-blue-600">
+
+<main class="max-w-4xl mx-auto p-4 space-y-4 pb-24">
+<!-- AUTH -->
+<div id="authBox" class="bg-white p-6 rounded-2xl border shadow-sm max-w-md mx-auto mt-8">
+<h1 class="font-black text-xl">Entrar</h1>
+<input id="email" type="email" placeholder="seu@email.com" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 mt-4 text-sm bg-slate-50">
+<input id="password" type="password" placeholder="senha" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 mt-3 text-sm bg-slate-50">
 <p id="authMsg" class="text-xs text-red-600 mt-3 font-bold hidden"></p>
-<div class="flex gap-3 mt-5"><button id="btnLogin" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-xl">Entrar</button><button id="btnSignup" class="flex-1 bg-slate-200 font-bold py-3.5 rounded-xl">Criar conta</button></div>
+<div class="flex gap-3 mt-4"><button id="btnLogin" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl">Entrar</button><button id="btnSignup" class="flex-1 bg-slate-200 font-bold py-3 rounded-xl">Criar conta</button></div>
 </div>
 
-<div id="app" class="hidden space-y-5">
-<div class="card p-4 flex justify-between items-center">
-<div><p id="userEmail" class="text-sm font-black text-slate-900"></p><p id="contagem" class="text-[11px] text-slate-500 font-medium"></p></div>
-<div class="flex gap-2"><span id="planoBadge" class="bg-blue-50 text-blue-700 text-[11px] font-black px-3 py-1.5 rounded-full border border-blue-100">Plano Gratuito - 2 orçamentos</span><button id="btnPro" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white font-black px-4 py-2 rounded-full text-xs shadow">Virar PRO R$12</button></div>
-</div>
+<!-- APP -->
+<div id="app" class="hidden space-y-4">
+<div class="bg-white p-4 rounded-2xl border flex justify-between items-center"><div><p id="userEmail" class="text-sm font-bold"></p><p id="contagem" class="text-[11px] text-slate-500"></p></div><button id="btnPro" class="bg-gradient-to-r from-amber-400 to-amber-500 text-white font-black px-4 py-2 rounded-full text-xs">Virar PRO R$12</button></div>
 
+<div class="bg-white p-6 rounded-2xl border shadow-sm space-y-5">
+<h2 class="font-black text-lg flex items-center gap-2"><i class="fa-solid fa-file-invoice text-blue-600"></i> Novo Orçamento</h2>
 
-<div class="card p-7 space-y-6">
-<div class="flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center"><i class="fa-solid fa-file-invoice text-blue-600"></i></div><div><h2 class="font-black text-[18px] text-slate-900">Novo Orçamento</h2><p class="text-[11px] text-slate-500 font-medium">Preencha com letra legível - cliente vai receber bonito</p></div></div>
-
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-<div><label>Nome completo do cliente *</label><input id="f_cliente_nome" placeholder="Ex: Maria Silva" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3.5 text-sm outline-none bg-white"></div>
-<div><label>WhatsApp / Contato do cliente *</label><input id="f_cliente_contato" placeholder="Ex: (11) 99999-9999" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3.5 text-sm outline-none bg-white"></div>
-<div class="sm:col-span-2"><label>Título do serviço / O que foi feito *</label><input id="f_servico" placeholder="Ex: Instalação de jardim completo com grama esmeralda" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3.5 text-sm outline-none bg-white font-bold"></div>
-<div><label>Categoria do serviço</label><select id="f_categoria" class="w-full border-2 border-slate-200 bg-white rounded-xl px-4 py-3.5 text-sm outline-none focus:border-blue-600 font-medium">
-<option value="jardineiro">🌿 Jardineiro</option><option value="encanador">🚿 Encanador</option><option value="eletricista">💡 Eletricista</option><option value="pintor">🎨 Pintor</option><option value="pedreiro">🧱 Pedreiro</option><option value="ar_condicionado">❄️ Ar condicionado</option><option value="outro">🔧 Outro</option>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div><label>Nome do cliente *</label><input id="f_cliente_nome" placeholder="Ex: Maria Silva" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3 text-sm outline-none"></div>
+<div><label>Contato / WhatsApp *</label><input id="f_cliente_contato" placeholder="Ex: (11) 99999-9999" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3 text-sm outline-none"></div>
+<div class="sm:col-span-2"><label>Serviço feito / Título do orçamento *</label><input id="f_servico" placeholder="Ex: Instalação de jardim, Troca de vazamento" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3 text-sm outline-none font-bold"></div>
+<div><label>Categoria</label><select id="f_categoria" class="w-full border-2 border-slate-200 bg-white rounded-xl px-4 py-3 text-sm outline-none">
+<option value="jardineiro">Jardineiro</option>
+<option value="encanador">Encanador</option>
+<option value="eletricista">Eletricista</option>
+<option value="pintor">Pintor</option>
+<option value="pedreiro">Pedreiro</option>
+<option value="ar_condicionado">Ar condicionado</option>
+<option value="outro">Outro</option>
 </select></div>
-<div><label>Valor total do orçamento R$ *</label><input id="f_valor" placeholder="Ex: 350,00" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3.5 text-sm outline-none bg-white font-black"></div>
+<div><label>Valor total R$ *</label><input id="f_valor" placeholder="Ex: 350,00" class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3 text-sm outline-none"></div>
 </div>
 
-<div><label>Descrição detalhada do que foi feito</label><textarea id="f_desc" rows="4" placeholder="Ex: Foi feito poda, limpeza, adubação, plantio de 20m² de grama esmeralda..." class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3.5 text-sm outline-none resize-none bg-white"></textarea></div>
+<div><label>Descrição detalhada do serviço</label><textarea id="f_desc" rows="4" placeholder="Ex: Foi feito poda, limpeza, adubação..." class="w-full border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3 text-sm outline-none resize-none"></textarea></div>
 
-<div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-5 space-y-3">
-<div class="flex justify-between items-center"><label class="mb-0 text-[13px]">Materiais e produtos usados no serviço</label><button id="btnAddMat" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-4 py-2 rounded-full shadow">+ Adicionar material</button></div>
-<div id="listaMateriais" class="space-y-3"></div>
-<p class="text-[11px] text-slate-500 font-medium">Nome + código do produto + valor. Aparece no PDF e pro cliente.</p>
+<!-- MATERIAIS COM NOME + CODIGO DO PRODUTO - DE VOLTA -->
+<div class="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 space-y-3">
+<div class="flex justify-between items-center"><label class="mb-0">Materiais / Produtos usados</label><button id="btnAddMat" class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">+ Adicionar material</button></div>
+<div id="listaMateriais" class="space-y-2"></div>
+<p class="text-[11px] text-slate-500">Adicione nome, código do produto e valor. Isso aparece no PDF e no link do cliente.</p>
 </div>
 
-<div class="bg-blue-50 border-2 border-dashed border-blue-300 rounded-2xl p-5">
-<label class="flex items-center gap-2 text-blue-800 text-[13px]"><i class="fa-solid fa-camera"></i> Fotos do serviço (antes, durante, depois)</label>
-<input id="f_fotos" type="file" accept="image/*" multiple class="w-full text-sm mt-3 file:mr-3 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white">
-<p id="uploadMsg" class="text-xs text-slate-600 mt-2 font-bold">Pode selecionar várias fotos - vai aparecer preview</p>
-<div id="previewFotos" class="grid grid-cols-3 gap-3 mt-3"></div>
+<!-- UPLOAD FOTOS -->
+<div class="bg-blue-50 border-2 border-dashed border-blue-300 rounded-xl p-4">
+<label class="flex items-center gap-2 text-blue-700"><i class="fa-solid fa-camera"></i> Fotos do serviço (antes/depois)</label>
+<input id="f_fotos" type="file" accept="image/*" multiple class="w-full text-sm mt-2 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white">
+<p id="uploadMsg" class="text-xs text-slate-600 mt-2">Pode selecionar várias fotos.</p>
+<div id="previewFotos" class="grid grid-cols-3 gap-2 mt-3"></div>
 </div>
 
-
-<!-- NOVO: FOTOS DEPOIS + SERVIÇOS EXTRAS - NÃO MUDA NADA DO ANTES -->
-<div class="card p-6 space-y-5 border-2 border-emerald-100 bg-emerald-50/20">
-<div class="flex items-center gap-3"><div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-check-double text-white"></i></div><div><h3 class="font-black text-[16px]">Etapa 2 - Serviço Concluído (depois do trabalho)</h3><p class="text-[11px] text-slate-500">Quando terminar o serviço, tire foto do DEPOIS e adicione extras</p></div></div>
-
-<div class="bg-white border-2 border-dashed border-emerald-300 rounded-xl p-4">
-<label class="flex items-center gap-2 text-emerald-800">Fotos do serviço CONCLUÍDO / DEPOIS</label>
-<input id="f_fotos_depois" type="file" accept="image/*" multiple class="w-full text-sm mt-2 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white">
-<p id="msgFotosDepois" class="text-xs text-slate-600 mt-2">Fotos do trabalho terminado - cliente vai comparar ANTES x DEPOIS</p>
-<div id="previewDepois" class="grid grid-cols-3 gap-2 mt-3"></div>
+<button id="btnGerarOrc" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black py-4 rounded-xl text-sm shadow-lg">Gerar link do orçamento</button>
 </div>
 
-<div class="bg-white border-2 border-slate-200 rounded-xl p-4 space-y-3">
-<div class="flex justify-between items-center"><label class="mb-0">Serviços extras que aumentaram o valor (opcional)</label><button id="btnAddExtra" type="button" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-black px-3 py-1.5 rounded-full">+ Adicionar extra</button></div>
-<div id="listaExtras" class="space-y-2"></div>
-<p class="text-[11px] text-slate-500">Ex: Troca de 2 caixinhas - R$ 80,00 - tire foto e coloque o valor</p>
-<div class="flex justify-between bg-amber-50 border border-amber-200 rounded-xl p-3"><span class="text-xs font-bold">Valor total dos extras:</span><span id="totalExtras" class="text-sm font-black text-amber-700">R$ 0,00</span></div>
+<div id="resultadoOrc" class="hidden bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+<h3 class="font-black">Orçamento gerado ✅</h3>
+<p id="linkOrc" class="text-xs text-blue-600 break-all bg-blue-50 p-3 rounded-xl"></p>
+<div class="grid grid-cols-2 gap-2"><button id="btnCopiarOrc" class="bg-slate-900 text-white font-bold py-3 rounded-xl text-xs">Copiar link</button><button id="btnPdfOrc" class="bg-slate-200 font-bold py-3 rounded-xl text-xs">Baixar PDF</button></div>
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<button id="btnEnviarConclusao" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-sm shadow">Enviar fotos do DEPOIS + Extras p/ cliente</button>
-<button id="btnVerConclusao" class="bg-white border-2 border-slate-200 font-black py-3.5 rounded-xl text-sm">Ver como cliente vai ver</button>
-</div>
-<p class="text-[11px] text-slate-500 text-center">Isso atualiza o último orçamento gerado e muda status para Concluído</p>
-</div>
-<button id="btnGerarOrc" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-black py-4 rounded-xl text-[15px] shadow-xl">Gerar link do orçamento →</button>
-</div>
-
-<div id="resultadoOrc" class="hidden card p-6 space-y-4 border-2 border-emerald-100 bg-emerald-50/30">
-<h3 class="font-black text-emerald-900 flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-600"></i> Orçamento gerado com sucesso!</h3>
-<p id="linkOrc" class="text-xs text-blue-700 break-all bg-white p-4 rounded-xl border-2 border-blue-100 font-medium"></p>
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-<button id="btnCopiarOrc" class="bg-slate-900 hover:bg-black text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1"><i class="fa-solid fa-link"></i> Copiar link</button>
-<button id="btnWaOrc" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1"><i class="fa-brands fa-whatsapp text-lg"></i> Compartilhar</button>
-<button id="btnVisitarOrc" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1"><i class="fa-solid fa-eye"></i> Visitar</button>
-<button id="btnPdfOrc" class="bg-white border-2 border-slate-200 hover:bg-slate-50 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 text-slate-800"><i class="fa-solid fa-file-pdf text-red-500"></i> Baixar PDF</button>
-</div>
-</div>
-
-<div class="card p-6">
-<div class="flex justify-between items-center"><h3 class="font-black text-[16px] text-slate-900">Seus orçamentos - status da assinatura</h3><span class="text-[11px] text-slate-500">Atualiza automático</span></div>
-<div id="listaContracts" class="space-y-3 mt-5"></div>
+<div class="bg-white p-5 rounded-2xl border shadow-sm">
+<h3 class="font-black text-sm">Seus orçamentos</h3>
+<div id="listaContracts" class="space-y-2 mt-4"></div>
 </div>
 </div>
 </main>
+
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
@@ -121,23 +115,24 @@ const supabase = createClient(SB_URL, SB_KEY);
 let currentUser=null, materiais=[], fotosKeys=[];
 
 function addMaterialRow(nome='', codigo='', valor=''){
-  materiais.push({id: Date.now()+Math.random(), nome, codigo, valor});
+  const id=Date.now()+Math.random();
+  materiais.push({id, nome, codigo, valor});
   renderMateriais();
 }
 function renderMateriais(){
   const div=document.getElementById('listaMateriais'); div.innerHTML='';
   materiais.forEach((m,i)=>{
-    const row=document.createElement('div'); row.className='bg-white border-2 border-slate-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end shadow-sm';
+    const row=document.createElement('div'); row.className='bg-white border border-slate-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-12 gap-2 items-end';
     row.innerHTML=`
-      <div class="sm:col-span-5"><label class="text-[11px]">Nome do produto / material</label><input data-i="${i}" data-k="nome" value="${m.nome}" placeholder="Ex: Cimento Votoran 50kg" class="w-full border-2 border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-600 font-medium"></div>
-      <div class="sm:col-span-3"><label class="text-[11px]">Código do produto</label><input data-i="${i}" data-k="codigo" value="${m.codigo}" placeholder="Ex: CIM-50-001" class="w-full border-2 border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-600 font-mono"></div>
-      <div class="sm:col-span-2"><label class="text-[11px]">Valor R$</label><input data-i="${i}" data-k="valor" value="${m.valor}" placeholder="45,00" class="w-full border-2 border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-600 font-bold"></div>
-      <div class="sm:col-span-2"><button data-del="${i}" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border-2 border-red-200 font-black py-2.5 rounded-lg text-xs">Remover</button></div>
+      <div class="sm:col-span-5"><label class="text-[11px]">Nome do produto</label><input data-i="${i}" data-k="nome" value="${m.nome}" placeholder="Ex: Grama Esmeralda" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"></div>
+      <div class="sm:col-span-3"><label class="text-[11px]">Código do produto</label><input data-i="${i}" data-k="codigo" value="${m.codigo}" placeholder="Ex: GRM-001" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"></div>
+      <div class="sm:col-span-2"><label class="text-[11px]">Valor R$</label><input data-i="${i}" data-k="valor" value="${m.valor}" placeholder="50,00" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"></div>
+      <div class="sm:col-span-2"><button data-del="${i}" class="w-full bg-red-50 text-red-600 border border-red-200 font-bold py-2 rounded-lg text-xs">Remover</button></div>
     `;
     div.appendChild(row);
   });
-  div.querySelectorAll('input[data-i]').forEach(inp=>{ inp.oninput=e=>{ const i=parseInt(e.target.dataset.i); const k=e.target.dataset.k; materiais[i][k]=e.target.value; } });
-  div.querySelectorAll('button[data-del]').forEach(btn=>{ btn.onclick=e=>{ materiais.splice(parseInt(e.target.dataset.del),1); renderMateriais(); } });
+  div.querySelectorAll('input[data-i]').forEach(inp=>{ inp.oninput=(e)=>{ const i=parseInt(e.target.dataset.i); const k=e.target.dataset.k; materiais[i][k]=e.target.value; } });
+  div.querySelectorAll('button[data-del]').forEach(btn=>{ btn.onclick=(e)=>{ const i=parseInt(e.target.dataset.del); materiais.splice(i,1); renderMateriais(); } });
 }
 document.getElementById('btnAddMat').onclick=()=>addMaterialRow();
 addMaterialRow();
@@ -145,114 +140,17 @@ addMaterialRow();
 async function checkAuth(){
   const { data:{user} } = await supabase.auth.getUser();
   if(!user){ document.getElementById('authBox').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); return; }
-  currentUser=user; window.currentUserForPerfil=user; localStorage.setItem('zapgarantia_role', localStorage.getItem('zapgarantia_role')||'Contratante'); document.getElementById('authBox').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); document.getElementById('userEmail').textContent=user.email; loadContracts();
+  currentUser=user;
+  document.getElementById('authBox').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');
+  document.getElementById('userEmail').textContent=user.email;
+  document.getElementById('planoBadge').classList.remove('hidden');
+  document.getElementById('btnLogout').classList.remove('hidden');
+  loadContracts();
 }
 document.getElementById('btnLogin').onclick=async()=>{
   const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
   const { error } = await supabase.auth.signInWithPassword({email,password});
-  if(error){ document.getElementById('authMsg').textContent='Erro: '+error.message; document.getElementById('authMsg').classList.remove('hidden'); } else 
-let extras=[], fotosDepoisKeys=[];
-function renderExtras(){ const div=document.getElementById('listaExtras'); if(!div) return; div.innerHTML=''; let total=0; extras.forEach((e,i)=>{ total+=parseFloat((e.valor||'0').replace(',','.'))||0; const row=document.createElement('div'); row.className='bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-12 gap-2'; row.innerHTML=`<div class="sm:col-span-6"><label class="text-[11px]">O que aumentou? Descreva</label><input data-extra-i="${i}" data-extra-k="descricao" value="${e.descricao}" placeholder="Ex: Troca de 2 caixinhas" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"></div><div class="sm:col-span-3"><label class="text-[11px]">Valor extra R$</label><input data-extra-i="${i}" data-extra-k="valor" value="${e.valor}" placeholder="80,00" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold"></div><div class="sm:col-span-3"><button data-extra-del="${i}" class="w-full bg-red-50 text-red-600 border border-red-200 font-bold py-2 rounded-lg text-xs mt-4">Remover</button></div>`; div.appendChild(row); }); document.getElementById('totalExtras').textContent='R$ '+total.toFixed(2).replace('.',','); div.querySelectorAll('input[data-extra-i]').forEach(inp=>{ inp.oninput=(e)=>{ const i=parseInt(e.target.dataset.extraI); const k=e.target.dataset.extraK; extras[i][k]=e.target.value; renderExtras(); } }); div.querySelectorAll('button[data-extra-del]').forEach(b=>{ b.onclick=(e)=>{ extras.splice(parseInt(e.target.dataset.extraDel),1); renderExtras(); } }); }
-document.getElementById('btnAddExtra').onclick=()=>{ extras.push({descricao:'', valor:''}); renderExtras(); };
-renderExtras();
-document.getElementById('f_fotos_depois').onchange=async(e)=>{ const files=e.target.files; if(!files.length) return; document.getElementById('msgFotosDepois').textContent='Enviando '+files.length+' fotos do DEPOIS...'; for(let file of files){ const img=document.createElement('img'); img.src=URL.createObjectURL(file); img.className='w-full h-20 object-cover rounded-lg border'; document.getElementById('previewDepois').appendChild(img); try{ const name=currentUser.id+'/'+Date.now()+'-depois-'+file.name.replace(/[^a-zA-Z0-9.-]/g,'_'); const { data } = await supabase.storage.from('comprovantes').upload(name,file); if(data) fotosDepoisKeys.push(data.path); }catch{} } document.getElementById('msgFotosDepois').textContent='✅ '+fotosDepoisKeys.length+' fotos do DEPOIS prontas'; };
-document.getElementById('btnEnviarConclusao').onclick=async()=>{ if(!ultimoToken){ alert('Primeiro gere o orçamento inicial (ANTES) e depois envie a conclusão'); return; } const btn=document.getElementById('btnEnviarConclusao'); btn.textContent='Enviando conclusão...'; const { data:atual } = await supabase.from('contracts').select('*').eq('public_token', ultimoToken).single(); let materiaisAtuais=atual?.materiais||[]; let imageKeysAtuais=atual?.image_keys||[]; let novoConteudo=(atual?.content||'')+'\n\n--- SERVIÇO CONCLUÍDO ---\nFotos do DEPOIS enviadas: '+fotosDepoisKeys.length+' fotos\n'; extras.forEach(ex=>{ novoConteudo+='Extra: '+ex.descricao+' - R$ '+ex.valor+'\n'; materiaisAtuais.push({nome:'EXTRA: '+ex.descricao, codigo:'EXTRA', valor:ex.valor}); }); const { error } = await supabase.from('contracts').update({content:novoConteudo, materiais:materiaisAtuais, image_keys:[...imageKeysAtuais, ...fotosDepoisKeys], status:'Concluído', total:(parseFloat((atual?.total||'0').replace(',','.')) + extras.reduce((s,ex)=>s+(parseFloat((ex.valor||'0').replace(',','.'))||0),0)).toFixed(2).replace('.',',')}).eq('public_token', ultimoToken); btn.textContent='Enviar fotos do DEPOIS + Extras p/ cliente'; if(error){ alert('Erro: '+error.message); return; } alert('✅ Conclusão enviada! Cliente vai ver fotos do DEPOIS + extras e pode Assinar ou Contestar. Link: https://zapgarantia.alibr.com.br/c/?token='+ultimoToken); loadContracts(); };
-document.getElementById('btnVerConclusao').onclick=()=>{ if(!ultimoToken){ alert('Gere o orçamento primeiro'); return; } window.open('/c/?token='+ultimoToken,'_blank'); };
-
-
-// ACIONAR GARANTIA - QUANDO CLIENTE VACILA
-async function acionarGarantia(token, cliente){
-  if(!confirm('Acionar a Garantia ZapGarantia para '+cliente+'? Isso vai criar um documento no RESOLVE com todas as provas (fotos ANTES/DEPOIS + valores) e avisar que o cliente vacilou (não pagou / não respondeu / não assinou conclusão). Deseja continuar?')) return;
-  try{
-    const { data:contrato } = await supabase.from('contracts').select('*').eq('public_token', token).single();
-    if(!contrato){ alert('Orçamento não encontrado'); return; }
-    const textoGarantia = 'GARANTIA ZAPGARANTIA ACIONADA - Cliente vacilou (não pagou / não respondeu / não assinou conclusão). Orçamento: '+(contrato.service||'')+' - Cliente: '+(contrato.client_name||'')+' - Valor: R$ '+(contrato.total||'')+' - Conteúdo: '+(contrato.content||'')+' - Link provas: https://zapgarantia.alibr.com.br/c/?token='+token;
-    const { data, error } = await supabase.from('casos').insert({professional_id: currentUser.id, categoria:'garantia_acionada', empresa: contrato.client_name||'Cliente', valor: contrato.total||'', relato: 'Cliente vacilou - garantia acionada', peticao: textoGarantia, cliente_nome: contrato.client_name||''}).select('public_token').single();
-    if(error) throw error;
-    await supabase.from('contracts').update({status:'Garantia Acionada'}).eq('public_token', token);
-    alert('Garantia acionada! Documento criado no RESOLVE: https://zapgarantia.alibr.com.br/r/?token='+data.public_token);
-    window.open('/resolve/?token='+data.public_token, '_blank');
-    loadContracts();
-  }catch(e){ alert('Erro ao acionar garantia: '+e.message); }
-}
-document.addEventListener('click', (e)=>{
-  const b = e.target.closest('[data-garantia]');
-  if(b){ acionarGarantia(b.dataset.garantia, b.dataset.cliente); }
-});
-
-
-// PERFIL ÚNICO ZAPGARANTIA - MESMA TABELA DO RESOLVE
-async function loadPerfilUnico(){
-  if(window.currentUserForPerfil){
-    try{
-      const { data } = await supabase.from('profiles').select('*').eq('user_id', window.currentUserForPerfil.id).single();
-      if(data && data.nome_exibicao){
-        const p={nome:data.nome_exibicao, insta:data.insta||'', whats:data.whats||'', cidade:data.cidade||'', bio:data.bio||''};
-        preencherPerfilUnico(p); localStorage.setItem('zapgarantia_perfil_unico', JSON.stringify(p)); return;
-      }
-    }catch(e){}
-  }
-  const p=JSON.parse(localStorage.getItem('zapgarantia_perfil_unico')||'{}');
-  if(p.nome) preencherPerfilUnico(p);
-}
-function preencherPerfilUnico(p){
-  const el=(id)=>document.getElementById(id); if(el('perfil_nome')) el('perfil_nome').value=p.nome||''; if(el('perfil_insta')) el('perfil_insta').value=p.insta||''; if(el('perfil_whats')) el('perfil_whats').value=p.whats||''; if(el('perfil_cidade')) el('perfil_cidade').value=p.cidade||''; if(el('perfil_bio')) el('perfil_bio').value=p.bio||''; showPerfilPreviewUnico(p);
-}
-function showPerfilPreviewUnico(p){ if(!p.nome) return; const pv=document.getElementById('perfilPreview'); if(!pv) return; pv.classList.remove('hidden'); document.getElementById('perfilLetra').textContent=p.nome.charAt(0).toUpperCase(); document.getElementById('perfilPreviewNome').textContent=p.nome+' - '+(p.cidade||''); document.getElementById('perfilPreviewInsta').textContent=p.insta||''; document.getElementById('perfilPreviewBio').textContent=(p.bio||'')+' • Perfil único ZapGarantia'; }
-async function salvarPerfilUnico(){
-  const p={nome:document.getElementById('perfil_nome').value.trim(), insta:document.getElementById('perfil_insta').value.trim(), whats:document.getElementById('perfil_whats').value.trim(), cidade:document.getElementById('perfil_cidade').value.trim(), bio:document.getElementById('perfil_bio').value.trim()};
-  if(!p.nome){ alert('Digite seu nome de exibição'); return; }
-  localStorage.setItem('zapgarantia_perfil_unico', JSON.stringify(p));
-  if(window.currentUserForPerfil){ try{ await supabase.from('profiles').upsert({user_id: window.currentUserForPerfil.id, email: window.currentUserForPerfil.email, nome_exibicao: p.nome, insta: p.insta, whats: p.whats, cidade: p.cidade, bio: p.bio}, {onConflict:'user_id'}); }catch(e){} }
-  document.getElementById('perfilMsg').classList.remove('hidden'); showPerfilPreviewUnico(p);
-}
-
-supabase.auth.onAuthStateChange((event, session)=>{ if(event==='SIGNED_IN' && session?.user) 
-// BOTÃO RESOLVA - LEVA JÁ LOGADO, SEM PEDIR LOGIN DE NOVO
-document.addEventListener('click', async (e)=>{
-  const b = e.target.closest('#btnIrResolve');
-  if(!b) return;
-  b.disabled=true; b.textContent='Abrindo RESOLVE já logado...';
-  try{
-    const { data:{session} } = await supabase.auth.getSession();
-    if(session?.user){
-      localStorage.setItem('zapgarantia_email', session.user.email);
-      localStorage.setItem('zapgarantia_role', localStorage.getItem('zapgarantia_role')||'Contratante');
-      // Sessão já está no localStorage, mesmo domínio, RESOLVE vai ler direto
-      window.location.href='/resolve/';
-    } else {
-      alert('Você precisa estar logado no ZapGarantia primeiro. Faça login e depois clique em Resolva.');
-      b.disabled=false; b.textContent='Resolva →';
-    }
-  }catch{
-    window.location.href='/resolve/';
-  }
-});
-
-checkAuth(); });
-
-// BOTÃO RESOLVA - LEVA JÁ LOGADO, SEM PEDIR LOGIN DE NOVO
-document.addEventListener('click', async (e)=>{
-  const b = e.target.closest('#btnIrResolve');
-  if(!b) return;
-  b.disabled=true; b.textContent='Abrindo RESOLVE já logado...';
-  try{
-    const { data:{session} } = await supabase.auth.getSession();
-    if(session?.user){
-      localStorage.setItem('zapgarantia_email', session.user.email);
-      localStorage.setItem('zapgarantia_role', localStorage.getItem('zapgarantia_role')||'Contratante');
-      // Sessão já está no localStorage, mesmo domínio, RESOLVE vai ler direto
-      window.location.href='/resolve/';
-    } else {
-      alert('Você precisa estar logado no ZapGarantia primeiro. Faça login e depois clique em Resolva.');
-      b.disabled=false; b.textContent='Resolva →';
-    }
-  }catch{
-    window.location.href='/resolve/';
-  }
-});
-
-checkAuth();
+  if(error){ document.getElementById('authMsg').textContent='Erro: '+error.message; document.getElementById('authMsg').classList.remove('hidden'); } else checkAuth();
 };
 document.getElementById('btnSignup').onclick=async()=>{
   const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
@@ -266,13 +164,16 @@ document.getElementById('f_fotos').onchange=async(e)=>{
   document.getElementById('uploadMsg').textContent='Enviando '+files.length+' fotos...';
   document.getElementById('previewFotos').innerHTML='';
   for(let file of files){
-    const img=document.createElement('img'); img.src=URL.createObjectURL(file); img.className='w-full h-24 object-cover rounded-xl border-2 border-blue-200 shadow'; document.getElementById('previewFotos').appendChild(img);
-    try{ const name=`${currentUser.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g,'_')}`; const { data } = await supabase.storage.from('comprovantes').upload(name,file); if(data) fotosKeys.push(data.path); }catch{}
+    const preview=document.createElement('img'); preview.src=URL.createObjectURL(file); preview.className='w-full h-20 object-cover rounded-lg border'; document.getElementById('previewFotos').appendChild(preview);
+    try{
+      const name=`${currentUser.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g,'_')}`;
+      const { data, error } = await supabase.storage.from('comprovantes').upload(name, file);
+      if(!error) fotosKeys.push(data.path);
+    }catch(err){ console.log(err); }
   }
-  document.getElementById('uploadMsg').textContent='✅ '+fotosKeys.length+' fotos prontas';
+  document.getElementById('uploadMsg').textContent='✅ '+fotosKeys.length+' fotos enviadas';
 };
 
-let ultimoToken=null;
 document.getElementById('btnGerarOrc').onclick=async()=>{
   const cliente_nome=document.getElementById('f_cliente_nome').value.trim();
   const cliente_contato=document.getElementById('f_cliente_contato').value.trim();
@@ -281,144 +182,38 @@ document.getElementById('btnGerarOrc').onclick=async()=>{
   const valor=document.getElementById('f_valor').value.trim();
   const desc=document.getElementById('f_desc').value.trim();
   if(!cliente_nome || !servico){ alert('Preencha nome do cliente e serviço'); return; }
-  document.getElementById('btnGerarOrc').textContent='Gerando link...';
-  const { data, error } = await supabase.from('contracts').insert({professional_id:currentUser.id, client_name:cliente_nome, client_contact:cliente_contato, service:servico, categoria, total:valor, content:desc, materiais, image_keys:fotosKeys, status:'Pendente'}).select('public_token').single();
-  document.getElementById('btnGerarOrc').textContent='Gerar link do orçamento →';
-  if(error){ alert(error.message); return; }
-  ultimoToken=data.public_token;
+  document.getElementById('btnGerarOrc').textContent='Gerando...';
+  const { data, error } = await supabase.from('contracts').insert({
+    professional_id: currentUser.id,
+    client_name: cliente_nome,
+    client_contact: cliente_contato,
+    service: servico,
+    categoria: categoria,
+    total: valor,
+    content: desc,
+    materiais: materiais,
+    image_keys: fotosKeys,
+    status: 'Pendente'
+  }).select('public_token').single();
+  document.getElementById('btnGerarOrc').textContent='Gerar link do orçamento';
+  if(error){ alert('Erro: '+error.message); return; }
   const link=`https://zapgarantia.alibr.com.br/c/?token=${data.public_token}`;
-  document.getElementById('linkOrc').innerHTML=`🔗 Link público do cliente:<br><a href="${link}" target="_blank" class="underline font-black text-blue-700 text-sm">${link}</a><br><br><span class="text-[11px] text-slate-600">Envie esse link pro cliente no WhatsApp. Ele pode assinar, rejeitar ou contestar.</span>`;
-  document.getElementById('resultadoOrc').classList.remove('hidden'); document.getElementById('resultadoOrc').scrollIntoView({behavior:'smooth'}); loadContracts();
+  document.getElementById('linkOrc').innerHTML=`🔗 <a href="${link}" target="_blank" class="underline font-bold">${link}</a>`;
+  document.getElementById('resultadoOrc').classList.remove('hidden');
+  loadContracts();
 };
-document.getElementById('btnCopiarOrc').onclick=()=>{ if(!ultimoToken) return; navigator.clipboard.writeText(`https://zapgarantia.alibr.com.br/c/?token=${ultimoToken}`); alert('Link copiado!'); };
-document.getElementById('btnWaOrc').onclick=()=>{ if(!ultimoToken) return; window.open('https://wa.me/?text='+encodeURIComponent('Seu orçamento ZapGarantia: https://zapgarantia.alibr.com.br/c/?token='+ultimoToken),'_blank'); };
-document.getElementById('btnVisitarOrc').onclick=()=>{ if(!ultimoToken) return; window.open('/c/?token='+ultimoToken,'_blank'); };
-document.getElementById('btnPdfOrc').onclick=()=>{ const { jsPDF }=window.jspdf; const doc=new jsPDF(); const cliente=document.getElementById('f_cliente_nome').value; const serv=document.getElementById('f_servico').value; const val=document.getElementById('f_valor').value; doc.setFontSize(16); doc.text('Orçamento ZapGarantia',10,15); doc.setFontSize(12); doc.text(`Cliente: ${cliente}`,10,25); doc.text(`Serviço: ${serv}`,10,32); doc.text(`Valor: R$ ${val}`,10,39); doc.text(doc.splitTextToSize(document.getElementById('f_desc').value,180),10,50); doc.save('orcamento-'+cliente+'.pdf'); };
 
 async function loadContracts(){
-  const { data } = await supabase.from('contracts').select('*').eq('professional_id',currentUser.id).order('created_at',{ascending:false}).limit(30);
+  const { data } = await supabase.from('contracts').select('*').eq('professional_id', currentUser.id).order('created_at',{ascending:false}).limit(20);
   const lista=document.getElementById('listaContracts'); lista.innerHTML='';
-  if(!data||!data.length){ lista.innerHTML='<p class="text-sm text-slate-500 text-center py-8 font-medium">Nenhum orçamento ainda. Crie seu primeiro acima!</p>'; return; }
+  if(!data||!data.length){ lista.innerHTML='<p class="text-xs text-slate-500 text-center py-4">Nenhum orçamento ainda</p>'; return; }
   data.forEach(c=>{
-    let badge='', cor='border-amber-200 bg-amber-50';
-    if(c.status==='Assinado' || c.status==='Assinado' || c.signed_name){
-      badge=`<span class="bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1"><i class="fa-solid fa-check"></i> ${c.signed_name||'Cliente'} assinou e concordou</span>`;
-      cor='border-emerald-200 bg-emerald-50/50';
-    } else if(c.status==='Rejeitado' || c.status==='Contestado'){
-      badge=`<span class="bg-red-500 text-white text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1"><i class="fa-solid fa-xmark"></i> ${c.signed_name||'Cliente'} NÃO concordou - ${c.rejection_reason||c.status}</span>`;
-      cor='border-red-200 bg-red-50/50';
-    } else {
-      badge=`<span class="bg-amber-400 text-amber-900 text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1"><i class="fa-solid fa-clock"></i> Aguardando assinatura</span>`;
-      cor='border-amber-200 bg-amber-50/50';
-    }
-    const d=document.createElement('div'); d.className=`border-2 ${cor} rounded-2xl p-4 flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center shadow-sm`;
-    d.innerHTML=`<div class="flex-1"><p class="font-black text-slate-900 text-sm">${c.client_name} - ${c.service||''}</p><p class="text-[11px] text-slate-600 font-medium mt-1">R$ ${c.total||'-'} • ${new Date(c.created_at).toLocaleDateString('pt-BR')} • ${c.categoria||''}</p><div class="mt-2">${badge}</div></div><div class="flex gap-2"><a href="/c/?token=${c.public_token}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-black px-4 py-2 rounded-full text-xs">Abrir</a><button data-garantia="${c.public_token}" data-cliente="${c.client_name}" class="bg-red-600 hover:bg-red-700 text-white font-black px-3 py-2 rounded-full text-xs">Garantia</button><button onclick="navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/c/?token=${c.public_token}');alert('Copiado!')" class="bg-white border-2 border-slate-200 font-bold px-3 py-2 rounded-full text-xs">Copiar</button></div>`;
+    const d=document.createElement('div'); d.className='border-2 border-slate-100 rounded-xl p-3 text-xs flex justify-between items-center';
+    d.innerHTML=`<div><p class="font-bold">${c.client_name} - ${c.service||''}</p><p class="text-[11px] text-slate-500">${c.status||'Pendente'} • R$ ${c.total||''} • ${new Date(c.created_at).toLocaleDateString('pt-BR')}</p></div><a href="/c/?token=${c.public_token}" class="bg-blue-50 text-blue-600 font-bold px-3 py-1.5 rounded-full">Abrir</a>`;
     lista.appendChild(d);
   });
 }
-
-let extras=[], fotosDepoisKeys=[];
-function renderExtras(){ const div=document.getElementById('listaExtras'); if(!div) return; div.innerHTML=''; let total=0; extras.forEach((e,i)=>{ total+=parseFloat((e.valor||'0').replace(',','.'))||0; const row=document.createElement('div'); row.className='bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-12 gap-2'; row.innerHTML=`<div class="sm:col-span-6"><label class="text-[11px]">O que aumentou? Descreva</label><input data-extra-i="${i}" data-extra-k="descricao" value="${e.descricao}" placeholder="Ex: Troca de 2 caixinhas" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs"></div><div class="sm:col-span-3"><label class="text-[11px]">Valor extra R$</label><input data-extra-i="${i}" data-extra-k="valor" value="${e.valor}" placeholder="80,00" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold"></div><div class="sm:col-span-3"><button data-extra-del="${i}" class="w-full bg-red-50 text-red-600 border border-red-200 font-bold py-2 rounded-lg text-xs mt-4">Remover</button></div>`; div.appendChild(row); }); document.getElementById('totalExtras').textContent='R$ '+total.toFixed(2).replace('.',','); div.querySelectorAll('input[data-extra-i]').forEach(inp=>{ inp.oninput=(e)=>{ const i=parseInt(e.target.dataset.extraI); const k=e.target.dataset.extraK; extras[i][k]=e.target.value; renderExtras(); } }); div.querySelectorAll('button[data-extra-del]').forEach(b=>{ b.onclick=(e)=>{ extras.splice(parseInt(e.target.dataset.extraDel),1); renderExtras(); } }); }
-document.getElementById('btnAddExtra').onclick=()=>{ extras.push({descricao:'', valor:''}); renderExtras(); };
-renderExtras();
-document.getElementById('f_fotos_depois').onchange=async(e)=>{ const files=e.target.files; if(!files.length) return; document.getElementById('msgFotosDepois').textContent='Enviando '+files.length+' fotos do DEPOIS...'; for(let file of files){ const img=document.createElement('img'); img.src=URL.createObjectURL(file); img.className='w-full h-20 object-cover rounded-lg border'; document.getElementById('previewDepois').appendChild(img); try{ const name=currentUser.id+'/'+Date.now()+'-depois-'+file.name.replace(/[^a-zA-Z0-9.-]/g,'_'); const { data } = await supabase.storage.from('comprovantes').upload(name,file); if(data) fotosDepoisKeys.push(data.path); }catch{} } document.getElementById('msgFotosDepois').textContent='✅ '+fotosDepoisKeys.length+' fotos do DEPOIS prontas'; };
-document.getElementById('btnEnviarConclusao').onclick=async()=>{ if(!ultimoToken){ alert('Primeiro gere o orçamento inicial (ANTES) e depois envie a conclusão'); return; } const btn=document.getElementById('btnEnviarConclusao'); btn.textContent='Enviando conclusão...'; const { data:atual } = await supabase.from('contracts').select('*').eq('public_token', ultimoToken).single(); let materiaisAtuais=atual?.materiais||[]; let imageKeysAtuais=atual?.image_keys||[]; let novoConteudo=(atual?.content||'')+'\n\n--- SERVIÇO CONCLUÍDO ---\nFotos do DEPOIS enviadas: '+fotosDepoisKeys.length+' fotos\n'; extras.forEach(ex=>{ novoConteudo+='Extra: '+ex.descricao+' - R$ '+ex.valor+'\n'; materiaisAtuais.push({nome:'EXTRA: '+ex.descricao, codigo:'EXTRA', valor:ex.valor}); }); const { error } = await supabase.from('contracts').update({content:novoConteudo, materiais:materiaisAtuais, image_keys:[...imageKeysAtuais, ...fotosDepoisKeys], status:'Concluído', total:(parseFloat((atual?.total||'0').replace(',','.')) + extras.reduce((s,ex)=>s+(parseFloat((ex.valor||'0').replace(',','.'))||0),0)).toFixed(2).replace('.',',')}).eq('public_token', ultimoToken); btn.textContent='Enviar fotos do DEPOIS + Extras p/ cliente'; if(error){ alert('Erro: '+error.message); return; } alert('✅ Conclusão enviada! Cliente vai ver fotos do DEPOIS + extras e pode Assinar ou Contestar. Link: https://zapgarantia.alibr.com.br/c/?token='+ultimoToken); loadContracts(); };
-document.getElementById('btnVerConclusao').onclick=()=>{ if(!ultimoToken){ alert('Gere o orçamento primeiro'); return; } window.open('/c/?token='+ultimoToken,'_blank'); };
-
-
-// ACIONAR GARANTIA - QUANDO CLIENTE VACILA
-async function acionarGarantia(token, cliente){
-  if(!confirm('Acionar a Garantia ZapGarantia para '+cliente+'? Isso vai criar um documento no RESOLVE com todas as provas (fotos ANTES/DEPOIS + valores) e avisar que o cliente vacilou (não pagou / não respondeu / não assinou conclusão). Deseja continuar?')) return;
-  try{
-    const { data:contrato } = await supabase.from('contracts').select('*').eq('public_token', token).single();
-    if(!contrato){ alert('Orçamento não encontrado'); return; }
-    const textoGarantia = 'GARANTIA ZAPGARANTIA ACIONADA - Cliente vacilou (não pagou / não respondeu / não assinou conclusão). Orçamento: '+(contrato.service||'')+' - Cliente: '+(contrato.client_name||'')+' - Valor: R$ '+(contrato.total||'')+' - Conteúdo: '+(contrato.content||'')+' - Link provas: https://zapgarantia.alibr.com.br/c/?token='+token;
-    const { data, error } = await supabase.from('casos').insert({professional_id: currentUser.id, categoria:'garantia_acionada', empresa: contrato.client_name||'Cliente', valor: contrato.total||'', relato: 'Cliente vacilou - garantia acionada', peticao: textoGarantia, cliente_nome: contrato.client_name||''}).select('public_token').single();
-    if(error) throw error;
-    await supabase.from('contracts').update({status:'Garantia Acionada'}).eq('public_token', token);
-    alert('Garantia acionada! Documento criado no RESOLVE: https://zapgarantia.alibr.com.br/r/?token='+data.public_token);
-    window.open('/resolve/?token='+data.public_token, '_blank');
-    loadContracts();
-  }catch(e){ alert('Erro ao acionar garantia: '+e.message); }
-}
-document.addEventListener('click', (e)=>{
-  const b = e.target.closest('[data-garantia]');
-  if(b){ acionarGarantia(b.dataset.garantia, b.dataset.cliente); }
-});
-
-
-// PERFIL ÚNICO ZAPGARANTIA - MESMA TABELA DO RESOLVE
-async function loadPerfilUnico(){
-  if(window.currentUserForPerfil){
-    try{
-      const { data } = await supabase.from('profiles').select('*').eq('user_id', window.currentUserForPerfil.id).single();
-      if(data && data.nome_exibicao){
-        const p={nome:data.nome_exibicao, insta:data.insta||'', whats:data.whats||'', cidade:data.cidade||'', bio:data.bio||''};
-        preencherPerfilUnico(p); localStorage.setItem('zapgarantia_perfil_unico', JSON.stringify(p)); return;
-      }
-    }catch(e){}
-  }
-  const p=JSON.parse(localStorage.getItem('zapgarantia_perfil_unico')||'{}');
-  if(p.nome) preencherPerfilUnico(p);
-}
-function preencherPerfilUnico(p){
-  const el=(id)=>document.getElementById(id); if(el('perfil_nome')) el('perfil_nome').value=p.nome||''; if(el('perfil_insta')) el('perfil_insta').value=p.insta||''; if(el('perfil_whats')) el('perfil_whats').value=p.whats||''; if(el('perfil_cidade')) el('perfil_cidade').value=p.cidade||''; if(el('perfil_bio')) el('perfil_bio').value=p.bio||''; showPerfilPreviewUnico(p);
-}
-function showPerfilPreviewUnico(p){ if(!p.nome) return; const pv=document.getElementById('perfilPreview'); if(!pv) return; pv.classList.remove('hidden'); document.getElementById('perfilLetra').textContent=p.nome.charAt(0).toUpperCase(); document.getElementById('perfilPreviewNome').textContent=p.nome+' - '+(p.cidade||''); document.getElementById('perfilPreviewInsta').textContent=p.insta||''; document.getElementById('perfilPreviewBio').textContent=(p.bio||'')+' • Perfil único ZapGarantia'; }
-async function salvarPerfilUnico(){
-  const p={nome:document.getElementById('perfil_nome').value.trim(), insta:document.getElementById('perfil_insta').value.trim(), whats:document.getElementById('perfil_whats').value.trim(), cidade:document.getElementById('perfil_cidade').value.trim(), bio:document.getElementById('perfil_bio').value.trim()};
-  if(!p.nome){ alert('Digite seu nome de exibição'); return; }
-  localStorage.setItem('zapgarantia_perfil_unico', JSON.stringify(p));
-  if(window.currentUserForPerfil){ try{ await supabase.from('profiles').upsert({user_id: window.currentUserForPerfil.id, email: window.currentUserForPerfil.email, nome_exibicao: p.nome, insta: p.insta, whats: p.whats, cidade: p.cidade, bio: p.bio}, {onConflict:'user_id'}); }catch(e){} }
-  document.getElementById('perfilMsg').classList.remove('hidden'); showPerfilPreviewUnico(p);
-}
-
-supabase.auth.onAuthStateChange((event, session)=>{ if(event==='SIGNED_IN' && session?.user) 
-// BOTÃO RESOLVA - LEVA JÁ LOGADO, SEM PEDIR LOGIN DE NOVO
-document.addEventListener('click', async (e)=>{
-  const b = e.target.closest('#btnIrResolve');
-  if(!b) return;
-  b.disabled=true; b.textContent='Abrindo RESOLVE já logado...';
-  try{
-    const { data:{session} } = await supabase.auth.getSession();
-    if(session?.user){
-      localStorage.setItem('zapgarantia_email', session.user.email);
-      localStorage.setItem('zapgarantia_role', localStorage.getItem('zapgarantia_role')||'Contratante');
-      // Sessão já está no localStorage, mesmo domínio, RESOLVE vai ler direto
-      window.location.href='/resolve/';
-    } else {
-      alert('Você precisa estar logado no ZapGarantia primeiro. Faça login e depois clique em Resolva.');
-      b.disabled=false; b.textContent='Resolva →';
-    }
-  }catch{
-    window.location.href='/resolve/';
-  }
-});
-
-checkAuth(); });
-
-// BOTÃO RESOLVA - LEVA JÁ LOGADO, SEM PEDIR LOGIN DE NOVO
-document.addEventListener('click', async (e)=>{
-  const b = e.target.closest('#btnIrResolve');
-  if(!b) return;
-  b.disabled=true; b.textContent='Abrindo RESOLVE já logado...';
-  try{
-    const { data:{session} } = await supabase.auth.getSession();
-    if(session?.user){
-      localStorage.setItem('zapgarantia_email', session.user.email);
-      localStorage.setItem('zapgarantia_role', localStorage.getItem('zapgarantia_role')||'Contratante');
-      // Sessão já está no localStorage, mesmo domínio, RESOLVE vai ler direto
-      window.location.href='/resolve/';
-    } else {
-      alert('Você precisa estar logado no ZapGarantia primeiro. Faça login e depois clique em Resolva.');
-      b.disabled=false; b.textContent='Resolva →';
-    }
-  }catch{
-    window.location.href='/resolve/';
-  }
-});
-
 checkAuth();
 </script>
-</body>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
