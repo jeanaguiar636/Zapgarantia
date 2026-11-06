@@ -21,6 +21,27 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
+</style><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
 </style>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RESOLVE - Boletim do Problema | ZapGarantia</title>
@@ -115,6 +136,7 @@ input,select,textarea{color:#0f172a !important}
 <label class="flex items-start gap-2 text-[11px] font-normal text-slate-600"><input id="aceiteTermos" type="checkbox" class="mt-0.5"> Li e aceito os <a href="/termos/" class="text-blue-600 underline font-bold">Termos</a> e <a href="/privacidade/" class="text-blue-600 underline font-bold">Privacidade</a>. Entendo que o ZapGarantia é só uma ferramenta, não é advogado e não é parte do acordo.</label>
 
 <button id="btnGerar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-sm">📋 Gerar Boletim / Notificação</button>
+<p id="saveMsg" class="text-center text-[12px] font-bold hidden"></p>
 </div>
 
 <div id="resultado" class="hidden card p-5 sm:p-6 space-y-3">
@@ -126,7 +148,11 @@ input,select,textarea{color:#0f172a !important}
 <button id="btnWa" class="flex-1 bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs">WhatsApp</button>
 <button id="btnVisitar" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg text-xs">Visitar</button>
 </div>
-<p id="linkPublico" class="text-[11px] text-blue-600 break-all"></p>
+<div class="bg-slate-50 border rounded-xl p-3">
+<p class="text-[11px] font-bold text-slate-600 mb-1">Link - copie só este link para abrir no navegador:</p>
+<a id="linkPublico" href="#" target="_blank" class="text-[11px] text-blue-600 break-all underline" style="word-break:break-all; overflow-wrap:anywhere;"></a>
+</div>
+<p class="text-[11px] text-slate-500">O botão Copiar agora copia só o link. O WhatsApp manda o texto + link.</p>
 </div>
 
 <div class="card p-4 sm:p-5">
@@ -147,6 +173,12 @@ const supabase = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, au
 let currentUser=null, uploadedKey="", ultimoToken="", ultimaPeticao="";
 
 function $(id){ return document.getElementById(id); }
+function getLink(token){ return 'https://zapgarantia.alibr.com.br/r/?token=' + token; }
+function showSaveMsg(text, isError){
+  const el = $('saveMsg'); if(!el) return;
+  el.textContent = text; el.classList.remove('hidden');
+  el.style.color = isError ? '#dc2626' : '#059669';
+}
 
 async function checkAuth(){
   const notLogged = $('notLogged'), appBox = $('app');
@@ -182,35 +214,99 @@ if($('btnGerar')) $('btnGerar').onclick = async () => {
   const profissional = $('f_profissional')?.value.trim() || '';
   const quem = $('f_quem_registra')?.value.trim() || '';
   const contato = $('f_contato')?.value.trim() || '';
-  const valor = $('f_valor')?.value.trim() || '';
+  const valorRaw = $('f_valor')?.value.trim() || '';
   const dataServ = $('f_data')?.value || '';
   const combinado = $('f_combinado')?.value.trim() || '';
   const problema = $('f_problema')?.value.trim() || '';
   if(!profissional || !quem || !problema){ alert('Preencha quem fez o serviço, quem está registrando e o que deu errado'); return; }
+
+  // CORREÇÃO 1: confirmar que está logado ANTES de tentar salvar. Se não estiver, não gera link falso.
+  const { data: { session } } = await supabase.auth.getSession();
+  if(!session?.user){
+    showSaveMsg('Você precisa estar logado no ZapGarantia para salvar. Volta para o ZapGarantia, entra, e clica em Resolva de novo.', true);
+    alert('Você precisa estar logado no ZapGarantia para salvar o boletim. Volta lá, entra, e clica em Resolva de novo.');
+    return;
+  }
+  currentUser = session.user;
+
   const catTxt = $('categoria').options[$('categoria').selectedIndex].text;
-  let texto = `BOLETIM RESOLVE - ZAPGARANTIA\n\nProblema: ${catTxt}\nQuem fez o serviço: ${profissional}\nQuem está registrando: ${quem}\nContato: ${contato}\nValor do serviço: R$ ${valor}\nData do serviço: ${dataServ}\n\nO QUE FOI COMBINADO:\n${combinado}\n\nO QUE DEU ERRADO / O QUE ESTRAGOU:\n${problema}\n\nEste boletim é um registro do problema, feito pela parte que se sentiu prejudicada, para servir como prova e tentar resolver. O ZapGarantia é só a ferramenta, não é advogado e não é parte do acordo.`;
+  let texto = `BOLETIM RESOLVE - ZAPGARANTIA\n\nProblema: ${catTxt}\nQuem fez o serviço: ${profissional}\nQuem está registrando: ${quem}\nContato: ${contato}\nValor do serviço: R$ ${valorRaw}\nData do serviço: ${dataServ}\n\nO QUE FOI COMBINADO:\n${combinado}\n\nO QUE DEU ERRADO / O QUE ESTRAGOU:\n${problema}\n\nEste boletim é um registro do problema, feito pela parte que se sentiu prejudicada, para servir como prova e tentar resolver. O ZapGarantia é só a ferramenta, não é advogado e não é parte do acordo.`;
   ultimaPeticao = texto;
+
+  const btn = $('btnGerar');
+  const btnOriginal = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvando... aguarde';
+  showSaveMsg('Salvando boletim...', false);
+  $('resultado').classList.add('hidden');
+
+  // token seguro
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(12))).map(b=>b.toString(36)).join('').replace(/[^a-z0-9]/g,'').slice(0,16) + Date.now().toString(36);
+  // valor: se for número, manda número. Se vazio, manda null para não quebrar o banco.
+  let valorParaBanco = null;
+  if(valorRaw){
+    const v = parseFloat(valorRaw.replace('R$','').replace(/\./g,'').replace(',','.').trim());
+    if(!isNaN(v)) valorParaBanco = v;
+  }
+
+  // CORREÇÃO 2: o erro antigo era o catch{} vazio. Ele escondia o erro e mostrava link mesmo sem salvar.
+  // Agora: se der erro, NÃO mostra link, mostra o erro de verdade.
+  const { data, error } = await supabase.from('casos').insert({
+    professional_id: currentUser.id,
+    categoria: cat,
+    empresa: profissional,
+    valor: valorParaBanco,
+    relato: problema + ' | Combinado: ' + combinado,
+    peticao: texto,
+    cliente_nome: quem,
+    cliente_contato: contato,
+    servico_feito: combinado,
+    public_token: token,
+    status:'Pendente',
+    status_assinatura:'Pendente'
+  }).select('public_token').single();
+
+  btn.disabled = false; btn.textContent = btnOriginal;
+
+  if(error){
+    console.error('Erro ao salvar boletim:', error);
+    ultimoToken = "";
+    showSaveMsg('NÃO SALVOU. Erro: ' + (error.message || 'erro no banco') + ' - Tenta de novo. Se continuar, me manda print deste erro.', true);
+    alert('NÃO SALVOU! O boletim não foi salvo no banco.\n\nErro: ' + error.message + '\n\nNão adianta copiar o link, ele vai dar "documento não encontrado". Tenta de novo. Se continuar, tira print deste erro.');
+    return;
+  }
+  if(!data || !data.public_token){
+    showSaveMsg('NÃO SALVOU. O banco não devolveu o token. Tenta de novo.', true);
+    alert('NÃO SALVOU. Tenta de novo.');
+    return;
+  }
+
+  // CORREÇÃO 3: só agora, depois de confirmar que salvou, mostra o resultado e o link
+  ultimoToken = data.public_token;
   const pt = $('peticaoTexto'); if(pt) pt.textContent = texto;
   const res = $('resultado'); if(res) res.classList.remove('hidden');
-  const token = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  ultimoToken = token;
-  try{
-    const { data } = await supabase.from('casos').insert({ professional_id: currentUser.id, categoria: cat, empresa: profissional, valor: valor, relato: problema + ' | Combinado: ' + combinado, peticao: texto, cliente_nome: quem, cliente_contato: contato, servico_feito: combinado, public_token: token, status:'Pendente', status_assinatura:'Pendente' }).select('public_token').single();
-    if(data) ultimoToken = data.public_token;
-  }catch{}
-  const lp = $('linkPublico'); if(lp) lp.textContent = 'Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
+  const lp = $('linkPublico');
+  if(lp){ lp.textContent = getLink(ultimoToken); lp.href = getLink(ultimoToken); }
+  showSaveMsg('Salvo! Agora pode copiar o link, ele vai abrir.', false);
   await loadCasos();
+  res.scrollIntoView({behavior:'smooth'});
 };
 
-if($('btnCopiar')) $('btnCopiar').onclick = () => { navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken + '\n\n' + ultimaPeticao); alert('Copiado!'); };
-if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Boletim RESOLVE: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken), '_blank'); };
-if($('btnVisitar')) $('btnVisitar').onclick = () => { if(!ultimoToken) return; window.open('/r/?token=' + ultimoToken, '_blank'); };
+// CORREÇÃO 4: Copiar agora copia SÓ o link puro. Antes copiava link + texto junto, e quando colava no navegador o token ficava gigante com o texto todo grudado (foto 3).
+if($('btnCopiar')) $('btnCopiar').onclick = async () => {
+  if(!ultimoToken){ alert('Gere o boletim primeiro e espere aparecer "Salvo!"'); return; }
+  const link = getLink(ultimoToken);
+  try{ await navigator.clipboard.writeText(link); alert('Link copiado! Cola só ele no navegador ou no WhatsApp.'); }
+  catch(e){ prompt('Copia este link:', link); }
+};
+if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Boletim RESOLVE - ZapGarantia\n\n' + ultimaPeticao + '\n\nLink: ' + getLink(ultimoToken)), '_blank'); };
+if($('btnVisitar')) $('btnVisitar').onclick = () => { if(!ultimoToken) return; window.open(getLink(ultimoToken), '_blank'); };
 if($('btnPdf')) $('btnPdf').onclick = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao, 180), 10, 15); doc.save('RESOLVE-boletim.pdf'); };
 
 async function loadCasos(){
   if(!currentUser) return;
   try{
-    const { data } = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at',{ascending:false}).limit(20);
+    const { data, error } = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at',{ascending:false}).limit(20);
+    if(error){ console.error('Erro ao carregar lista:', error); return; }
     const lista = $('listaCasos'); if(!lista) return; lista.innerHTML='';
     let tot=0, pend=0, ass=0, rec=0;
     (data||[]).forEach(c=>{
@@ -221,7 +317,7 @@ async function loadCasos(){
     if($('countPendente')) $('countPendente').textContent = pend;
     if($('countAssinado')) $('countAssinado').textContent = ass;
     if($('countRecusado')) $('countRecusado').textContent = rec;
-  }catch{}
+  }catch(e){ console.error(e); }
 }
 
 async function tryLoginFromZapLink(){
@@ -252,5 +348,5 @@ async function startResolve(){
 }
 startResolve();
 </script>
-</body>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
