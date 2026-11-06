@@ -23,7 +23,7 @@
 }
 </style>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RESOLVE - Boletim do Problema | ZapGarantia</title>
+<title>RESOLVE | ZapGarantia</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,6 +32,8 @@ body{font-family:Inter,sans-serif;background:#f1f5f9}
 label{color:#0f172a !important; font-weight:800 !important; font-size:13.5px !important; display:block; margin-bottom:7px}
 input,select,textarea{color:#0f172a !important}
 .card{background:white; border-radius:20px; border:1.5px solid #e2e8f0; box-shadow:0 8px 30px rgba(0,0,0,0.05)}
+.btn-role{transition:all .2s}
+.btn-role.selected{transform:scale(1.02); box-shadow:0 8px 20px rgba(0,0,0,0.15); border-width:3px !important}
 </style>
 </head>
 <body>
@@ -41,216 +43,426 @@ input,select,textarea{color:#0f172a !important}
 <div class="flex gap-2"><a href="/" class="bg-white text-blue-600 font-black px-5 py-2.5 rounded-full text-xs shadow">Voltar</a></div>
 </div>
 </header>
-
 <main class="max-w-3xl mx-auto p-4 space-y-5 pb-32">
 
-<!-- EXPLICAÇÃO CURTA - PROPÓSITO CERTO -->
 <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 text-center">
 <p class="font-black text-[14px] text-amber-900">⚠️ RESOLVE NÃO É ORÇAMENTO</p>
-<p class="text-[12px] text-amber-800 mt-1"><b>ZapGarantia</b> = orçamento → cliente aprova ou não → faz o serviço → foto do pronto → cliente aprova ou não.<br><b>RESOLVE</b> = já deu problema → faz como se fosse um <b>boletim</b> → conta o que foi feito, o que estragou, o que deu errado.</p>
+<p class="text-[12px] text-amber-800 mt-1"><b>ZapGarantia</b> = orçamento → cliente aceita → faz o serviço → foto do pronto → cliente assina.<br><b>RESOLVE</b> = já deu problema → escolhe o problema na lista → conta o que aconteceu → gera notificação / documento pra usar como prova.</p>
 </div>
 
-<!-- CARTÕES BONITOS QUE ESTAVAM BONS -->
-<div class="space-y-4 mt-2">
+<div id="authLoading" class="card p-5 max-w-md mx-auto mt-8 text-center hidden"><p class="text-sm font-bold">Verificando login do ZapGarantia...</p><p class="text-[11px] text-slate-500">Se você já está logado no ZapGarantia, vai entrar direto.</p></div>
+
+<!-- PAINEL BONITÃO SEMPRE VISÍVEL - MESMO SEM LOGAR -->
+<div class="space-y-4 mt-4">
 <div class="text-center">
-<p class="font-black text-[18px] text-slate-900">Seu painel RESOLVE</p>
-<p class="text-[12px] text-slate-500">Boletins registrados, aguardando, resolvidos e contestados</p>
+<p class="font-black text-[18px] text-slate-900">RESOLVE - Resolver o problema</p>
+<p class="text-[12px] text-slate-500">Aqui não é orçamento. Aqui é pra resolver o que já deu errado no serviço.</p>
 </div>
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-<div class="card p-4 text-center bg-gradient-to-br from-blue-600 to-blue-500 text-white border-0"><p class="text-[11px] font-bold opacity-80">BOLETINS ABERTOS</p><p id="countTotal" class="text-[28px] font-black leading-none mt-1">0</p><p class="text-[10px] opacity-70 mt-1">Total de boletins</p></div>
-<div class="card p-4 text-center border-2 border-amber-200 bg-amber-50"><p class="text-[11px] font-bold text-amber-700">AGUARDANDO RESPOSTA</p><p id="countPendente" class="text-[28px] font-black text-amber-600 leading-none mt-1">0</p><p class="text-[10px] text-amber-600 mt-1">Sem resposta</p></div>
-<div class="card p-4 text-center border-2 border-emerald-200 bg-emerald-50"><p class="text-[11px] font-bold text-emerald-700">RESOLVIDO / ASSINADO</p><p id="countAssinado" class="text-[28px] font-black text-emerald-600 leading-none mt-1">0</p><p class="text-[10px] text-emerald-600 mt-1">Resolvido</p></div>
-<div class="card p-4 text-center border-2 border-red-200 bg-red-50"><p class="text-[11px] font-bold text-red-700">CONTESTADO / RECUSADO</p><p id="countRecusado" class="text-[28px] font-black text-red-600 leading-none mt-1">0</p><p class="text-[10px] text-red-600 mt-1">Contestou</p></div>
+<div class="card p-4 text-center bg-gradient-to-br from-blue-600 to-blue-500 text-white border-0"><p class="text-[11px] font-bold opacity-80">CASOS ABERTOS</p><p id="countTotalPreview" class="text-[28px] font-black leading-none mt-1">0</p><p class="text-[10px] opacity-70 mt-1">Problemas pra resolver</p></div>
+<div class="card p-4 text-center border-2 border-amber-200 bg-amber-50"><p class="text-[11px] font-bold text-amber-700">AGUARDANDO RESPOSTA</p><p id="countPendentePreview" class="text-[28px] font-black text-amber-600 leading-none mt-1">0</p><p class="text-[10px] text-amber-600 mt-1">Sem resposta</p></div>
+<div class="card p-4 text-center border-2 border-emerald-200 bg-emerald-50"><p class="text-[11px] font-bold text-emerald-700">RESOLVIDO / ASSINADO</p><p id="countAssinadoPreview" class="text-[28px] font-black text-emerald-600 leading-none mt-1">0</p><p class="text-[10px] text-emerald-600 mt-1">Cliente aceitou</p></div>
+<div class="card p-4 text-center border-2 border-red-200 bg-red-50"><p class="text-[11px] font-bold text-red-700">CONTESTADO / RECUSADO</p><p id="countRecusadoPreview" class="text-[28px] font-black text-red-600 leading-none mt-1">0</p><p class="text-[10px] text-red-600 mt-1">Cliente recusou</p></div>
 </div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<div class="card p-4 border-2 border-emerald-200"><div class="flex justify-between"><p class="font-black text-sm">Exemplo: Cliente não pagou</p><span class="bg-emerald-500 text-white text-[10px] font-black px-2 py-1 rounded-full">✅ RESOLVIDO / ASSINADO</span></div><p class="text-[11px] text-slate-500 mt-1">Pedreiro fez o serviço - R$ 2.500 • Cliente não pagou, gerou notificação</p></div>
+<div class="card p-4 border-2 border-amber-200"><div class="flex justify-between"><p class="font-black text-sm">Exemplo: Sem resposta</p><span class="bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-1 rounded-full">⏳ NÃO RESOLVIDO / ASSINADO</span></div><p class="text-[11px] text-slate-500 mt-1">Cliente diz que o serviço ficou errado - R$ 800 • Aguardando resposta</p></div>
+<div class="card p-4 border-2 border-red-200"><div class="flex justify-between"><p class="font-black text-sm">Exemplo: Serviço incompleto</p><span class="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-full">❌ CONTESTADO / RECUSADO</span></div><p class="text-[11px] text-slate-500 mt-1">Eletricista não terminou - R$ 1.200 • Cliente contestou</p></div>
 </div>
-
-<!-- SEM LOGIN AQUI - SÓ AVISO SE NÃO TIVER LOGADO NO ZAPGARANTIA -->
-<div id="notLogged" class="card p-6 max-w-md mx-auto text-center hidden">
-<div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-lock text-amber-600 text-2xl"></i></div>
-<h2 class="font-black text-lg">Você precisa estar logado no ZapGarantia</h2>
-<p class="text-[13px] text-slate-500 mt-1">O RESOLVE não tem login. Login, conta e perfil é só no ZapGarantia.</p>
-<a href="/" class="block w-full bg-blue-600 text-white font-black py-3.5 rounded-xl mt-4 text-sm">Ir para o ZapGarantia para entrar →</a>
-<p class="text-[11px] text-slate-400 mt-2">Depois de entrar lá, clica no botão verde <b>Resolva</b> que você volta pra cá já logado.</p>
+<p class="text-center text-[11px] font-bold text-slate-400 tracking-widest">ZAPGARANTIA • RESOLVE • NÃO É ORÇAMENTO, É RESOLVER PROBLEMA</p>
 </div>
 
-<!-- APP - SÓ APARECE SE ESTIVER LOGADO NO ZAPGARANTIA -->
+<div id="notLogged" class="card p-7 sm:p-8 max-w-md mx-auto mt-8 text-center hidden">
+<div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-lock text-amber-600 text-2xl"></i></div>
+<h1 class="font-black text-xl">Você precisa estar logado no ZapGarantia</h1>
+<p class="text-[13px] text-slate-500 mt-2">O RESOLVE não tem login. O login, criar conta e perfil é tudo só no ZapGarantia.</p>
+<p class="text-[13px] font-bold text-slate-700 mt-3">Já logado lá, você cai aqui direto usando o RESOLVE.</p>
+<a href="/" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-sm mt-5">Ir para o ZapGarantia para entrar →</a>
+<p class="text-[11px] text-slate-400 mt-3">Depois de entrar lá, clique no botão verde <b>Resolva</b> que você volta pra cá já logado.</p>
+</div>
+
 <div id="app" class="hidden space-y-5">
 
-<!-- FORMULÁRIO BOLETIM - NÃO É ORÇAMENTO -->
-<div class="card p-5 sm:p-6 space-y-4">
-<div class="flex items-center gap-2"><div class="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-red-600"></i></div><div><h2 class="font-black text-[16px]">Registrar problema - Fazer boletim</h2><p class="text-[11px] text-slate-500">Exemplo: pedreiro fez o serviço, ficou ruim, o que você faz? Registra aqui.</p></div></div>
+<!-- PAINEL BONITO - CARTÕES DE SERVIÇOS -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<div class="card p-4 text-center bg-gradient-to-br from-blue-600 to-blue-500 text-white border-0"><p class="text-[11px] font-bold opacity-80">SERVIÇOS CONTRATADOS</p><p id="countTotal" class="text-[28px] font-black leading-none mt-1">0</p><p class="text-[10px] opacity-70 mt-1">Problemas pra resolver</p></div>
+<div class="card p-4 text-center border-2 border-amber-200 bg-amber-50"><p class="text-[11px] font-bold text-amber-700">SERVIÇO PENDENTE</p><p id="countPendente" class="text-[28px] font-black text-amber-600 leading-none mt-1">0</p><p class="text-[10px] text-amber-600 mt-1">Sem resposta assinatura</p></div>
+<div class="card p-4 text-center border-2 border-emerald-200 bg-emerald-50"><p class="text-[11px] font-bold text-emerald-700">CONCLUÍDO / RESOLVIDO / ASSINADO</p><p id="countAssinado" class="text-[28px] font-black text-emerald-600 leading-none mt-1">0</p><p class="text-[10px] text-emerald-600 mt-1">Cliente assinou</p></div>
+<div class="card p-4 text-center border-2 border-red-200 bg-red-50"><p class="text-[11px] font-bold text-red-700">CONTESTADO</p><p id="countCliente recusou" class="text-[28px] font-black text-red-600 leading-none mt-1">0</p><p class="text-[10px] text-red-600 mt-1">Precisa resolver</p></div>
+</div>
+<div class="text-center"><p class="text-[11px] font-bold text-slate-400 tracking-widest">ZAPGARANTIA • RESOLVE • SEU PAINEL BONITO</p></div>
+
+<div class="card p-4 flex justify-between items-center">
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"><i class="fa-solid fa-user text-blue-600"></i></div><div><p id="userEmail" class="text-sm font-black"></p><p id="perfilTipoTop" class="text-[11px] font-bold text-blue-600"></p></div></div>
+<button id="btnLogout" class="bg-slate-100 px-4 py-2 rounded-full text-xs font-black">Sair</button>
+</div>
+
+<div class="card p-6 space-y-4">
+<div class="flex justify-between items-center"><h3 class="font-black text-[16px] flex items-center gap-2"><i class="fa-solid fa-share-nodes text-blue-600"></i> Seu perfil do ZapGarantia</h3><span class="text-[10px] bg-emerald-100 text-emerald-800 font-black px-3 py-1 rounded-full">PÚBLICO</span></div>
+<p class="text-[12px] text-slate-500 font-medium">Este é o mesmo perfil que você já criou no ZapGarantia. Aqui no RESOLVE a gente só MOSTRA ele, não cria outro. Para criar ou editar seu perfil, use o ZapGarantia.</p>
+<div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center space-y-3">
+<p class="text-[13px] font-bold text-blue-900">Seu perfil é criado no ZapGarantia, não aqui.</p>
+<p class="text-[12px] text-blue-800">Se você ainda não tem perfil, cria lá no ZapGarantia que ele aparece aqui automaticamente.</p>
+<a href="/" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-6 rounded-xl text-xs shadow">Criar / Editar meu perfil no ZapGarantia →</a>
+</div>
+<input type="hidden" id="perfil_nome"><input type="hidden" id="perfil_insta"><input type="hidden" id="perfil_whats"><input type="hidden" id="perfil_cidade"><input type="hidden" id="perfil_bio">
+<p id="perfilMsg" class="text-xs font-bold text-emerald-600 hidden"></p>
+<div id="perfilPreview" class="hidden bg-slate-50 border-2 border-slate-200 rounded-xl p-4 flex items-center gap-3">
+<div class="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center text-white font-black text-lg" id="perfilLetra">J</div>
+<div><p id="perfilPreviewNome" class="font-black text-sm"></p><p id="perfilPreviewInsta" class="text-xs text-blue-600 font-bold"></p><p id="perfilPreviewBio" class="text-[11px] text-slate-600"></p></div>
+</div>
+</div>
+
+<div class="card p-7 space-y-6">
+<div class="flex items-center gap-3 pb-2 border-b border-slate-100"><div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow"><i class="fa-solid fa-file-circle-plus text-white text-xl"></i></div><div><h2 class="font-black text-[20px]">Nova reclamação / documento</h2><p class="text-[12px] text-slate-500">Escolha seu papel e preencha</p></div></div>
 
 <div>
-<label>Qual foi o problema? *</label>
-<select id="categoria" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50">
-<option value="servico_mal_feito">Serviço mal feito / ficou ruim</option>
-<option value="servico_incompleto">Serviço incompleto / não terminou</option>
-<option value="servico_errado">Fez o serviço errado</option>
-<option value="atraso_obra">Atraso na obra / não entregou no prazo</option>
-<option value="cliente_nao_pagou">Cliente não pagou</option>
-<option value="cliente_sumiu">Cliente sumiu / não responde</option>
-<option value="material_ruim">Usou material ruim / diferente do combinado</option>
-<option value="outro">Outro problema</option>
-</select>
+<label>Você é quem neste documento? *</label>
+<div class="grid grid-cols-2 gap-3">
+<button type="button" id="btnSouContratante" class="btn-role selected bg-blue-600 text-white font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5 border-[3px] border-blue-600 shadow-lg"><i class="fa-solid fa-user-tie text-2xl"></i> Sou Contratante<span class="text-[10px] font-medium opacity-80">Quem contratou o serviço</span></button>
+<button type="button" id="btnSouContratado" class="btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-4 rounded-2xl text-sm flex flex-col items-center gap-1.5"><i class="fa-solid fa-hard-hat text-2xl"></i> Sou Contratado<span class="text-[10px] font-medium opacity-70">Quem fez o serviço</span></button>
+</div>
+<p id="roleFormTxt" class="text-[11px] font-bold text-blue-700 mt-2">Você selecionou: Contratante - vai aparecer no documento</p>
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-<div><label>Quem fez o serviço? *</label><input id="f_profissional" placeholder="Ex: João pedreiro" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50"></div>
-<div><label>Quem está registrando o boletim? *</label><input id="f_quem_registra" placeholder="Ex: Maria, cliente" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50"></div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+<div class="sm:col-span-2"><label>Tipo de problema / Categoria</label><select id="categoria" class="w-full border-2 border-slate-200 bg-white rounded-xl px-4 py-3.5 text-sm font-medium"></select></div>
+<div><label>Seu nome completo *</label><input id="f_nome" placeholder="Ex: João Silva" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm"></div>
+<div><label>Seu CPF</label><input id="f_cpf" placeholder="000.000.000-00" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm"></div>
+<div class="sm:col-span-2"><label>Empresa / Cia aérea / Banco / Oficina reclamada *</label><input id="f_empresa" placeholder="Ex: LATAM, Banco Itaú" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold"></div>
+<div><label>Nome do produto / serviço</label><input id="f_produto_nome" placeholder="Ex: Cimento Votoran" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm"></div>
+<div><label>Código do produto / Nº pedido</label><input id="f_produto_codigo" placeholder="Ex: CIM-50-001" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm font-mono"></div>
+<div><label>Valor envolvido R$</label><input id="f_valor" placeholder="Ex: 350,00" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm font-black"></div>
+<div><label>Nº voo / protocolo / placa</label><input id="f_protocolo" placeholder="Ex: LA1234" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm"></div>
+<div class="sm:col-span-2 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 space-y-4">
+<p class="font-black text-[13px] flex items-center gap-2"><i class="fa-solid fa-location-dot text-blue-600"></i> Endereços - Opcional</p>
+<div><label>Endereço do Contratante (opcional)</label><input id="f_endereco_contratante" placeholder="Ex: Rua das Flores, 123 - São Paulo - SP" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-white"></div>
+<div><label>Endereço do Contratado (opcional)</label><input id="f_endereco_contratado" placeholder="Ex: Av Sapopemba, 456 - São Paulo - SP" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-white"></div>
+<div class="grid grid-cols-2 gap-3">
+<div><label>CEP (opcional)</label><input id="f_cep" placeholder="Ex: 01310-100" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm bg-white"></div>
+<div><label>Cidade (opcional)</label><input id="f_cidade" placeholder="Ex: São Paulo" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm bg-white"></div>
+</div>
+<p class="text-[11px] text-slate-500">Pode deixar em branco se não quiser informar</p>
+</div>
+<div class="sm:col-span-2"><label>O que aconteceu? Descreva *</label><textarea id="f_relato" rows="4" placeholder="Ex: Voo atrasou 5 horas..." class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm resize-none"></textarea></div>
+</div>
+<div class="bg-blue-50 border-2 border-dashed border-blue-300 rounded-2xl p-5">
+<label class="flex items-center gap-2 text-blue-800">Foto do comprovante</label>
+<input id="f_file" type="file" accept="image/*" class="w-full text-sm mt-3 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white">
+<p id="uploadMsg" class="text-xs text-slate-600 mt-2 font-bold">Pode gerar sem foto também</p>
+<img id="previewImg" class="hidden w-full mt-3 rounded-xl border-2 border-blue-200 max-h-72 object-contain bg-white">
 </div>
 
-<div><label>WhatsApp de quem registra</label><input id="f_contato" placeholder="Ex: (11) 99999-9999" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50"></div>
-
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-<div><label>Valor do serviço R$</label><input id="f_valor" placeholder="Ex: 2500" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50"></div>
-<div><label>Data do serviço</label><input id="f_data" type="date" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-sm bg-slate-50"></div>
+<div class="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 flex gap-3 items-start">
+<input type="checkbox" id="aceiteTermos" checked class="w-5 h-5 mt-0.5 accent-blue-600">
+<label for="aceiteTermos" class="!mb-0 !text-[12px] !font-medium !text-slate-700 leading-relaxed">Li e concordo com os <a href="/termos/" target="_blank" class="text-blue-600 underline font-bold">Termos de Uso</a> e <a href="/privacidade/" target="_blank" class="text-blue-600 underline font-bold">Política de Privacidade</a>. Entendo que o ZapGarantia é apenas uma ferramenta e que todo acordo é entre Contratante e Contratado.</label>
+</div>
+<button id="btnGerar" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black py-4 rounded-2xl text-[16px] shadow-xl">Gerar petição pronta</button>
 </div>
 
-<div><label>O que foi combinado? *</label><textarea id="f_combinado" rows="2" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm bg-slate-50" placeholder="Ex: Combinamos rebocar a parede toda e pintar de branco por R$ 2.500"></textarea></div>
-
-<div><label>O que deu errado? O que estragou? *</label><textarea id="f_problema" rows="4" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm bg-slate-50" placeholder="Ex: O reboco ficou torto, a tinta descascou em 2 dias, o pedreiro não voltou pra arrumar..."></textarea></div>
-
-<div><label>Foto da prova - foto do defeito, do que estragou</label><input id="f_file" type="file" accept="image/*" class="w-full text-xs mt-1"><img id="previewImg" class="hidden w-full rounded-xl mt-2 border"><p id="uploadMsg" class="text-[11px] text-slate-500"></p></div>
-
-<label class="flex items-start gap-2 text-[11px] font-normal text-slate-600"><input id="aceiteTermos" type="checkbox" class="mt-0.5"> Li e aceito os <a href="/termos/" class="text-blue-600 underline font-bold">Termos</a> e <a href="/privacidade/" class="text-blue-600 underline font-bold">Privacidade</a>. Entendo que o ZapGarantia é só uma ferramenta, não é advogado e não é parte do acordo.</label>
-
-<button id="btnGerar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-sm">📋 Gerar Boletim / Notificação</button>
+<div id="resultado" class="hidden card p-7 space-y-5 border-2 border-emerald-200">
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center"><i class="fa-solid fa-check text-white"></i></div><h3 class="font-black text-emerald-900 text-lg">Documento gerado!</h3></div>
+<div class="flex gap-2"><button id="btnOuvirResolve" class="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl text-xs">Ouvir documento</button><button id="btnPararResolve" class="bg-slate-900 text-white font-black px-4 py-3 rounded-xl text-xs">Parar</button></div>
+<pre id="peticaoTexto" class="text-[13px] whitespace-pre-wrap bg-slate-50 p-4 rounded-xl border max-h-80 overflow-auto"></pre>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+<button id="btnCopiar" class="bg-slate-900 text-white font-black py-3.5 rounded-xl text-xs">Copiar link</button>
+<button id="btnWa" class="bg-emerald-600 text-white font-black py-3.5 rounded-xl text-xs">Compartilhar</button>
+<button id="btnVisitar" class="bg-blue-600 text-white font-black py-3.5 rounded-xl text-xs">Visitar</button>
+<button id="btnPdf" class="bg-white border-2 border-slate-200 font-black py-3.5 rounded-xl text-xs">Baixar PDF</button>
+</div>
+<p id="linkPublico" class="text-[11px] text-blue-700 break-all bg-blue-50 p-3 rounded-xl"></p>
 </div>
 
-<div id="resultado" class="hidden card p-5 sm:p-6 space-y-3">
-<h3 class="font-black">Boletim gerado - envie pra outra parte</h3>
-<pre id="peticaoTexto" class="text-xs whitespace-pre-wrap bg-slate-50 p-3 rounded border max-h-96 overflow-auto"></pre>
-<div class="flex gap-2">
-<button id="btnCopiar" class="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs">Copiar</button>
-<button id="btnPdf" class="flex-1 bg-slate-200 font-bold py-2.5 rounded-lg text-xs">PDF</button>
-<button id="btnWa" class="flex-1 bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs">WhatsApp</button>
-<button id="btnVisitar" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg text-xs">Visitar</button>
-</div>
-<p id="linkPublico" class="text-[11px] text-blue-600 break-all"></p>
+<div class="card p-7">
+<div class="flex justify-between items-center"><h3 class="font-black text-[17px]">Seus casos - problemas pra resolver - status da assinatura</h3></div>
+<div id="listaCasos" class="space-y-3 mt-5"></div>
 </div>
 
-<div class="card p-4 sm:p-5">
-<h3 class="font-black text-sm">Seus boletins</h3>
-<div id="listaCasos" class="space-y-2 mt-3"></div>
+
+<!-- RODAPÉ PRIVACIDADE E TERMOS -->
+<div class="card p-5 text-center space-y-3">
+<p class="text-[12px] text-slate-600 font-medium">Ao usar o RESOLVE você concorda com nossos termos. O ZapGarantia é apenas uma ferramenta - todo acordo é entre Contratante e Contratado.</p>
+<div class="flex justify-center gap-4 text-[12px] font-bold">
+<a href="/privacidade/" class="text-blue-600 underline">Política de Privacidade</a>
+<a href="/termos/" class="text-blue-600 underline">Termos de Uso</a>
+</div>
+<p class="text-[10px] text-slate-400">ZapGarantia - zapgarantia.alibr.com.br - © 2026</p>
 </div>
 
 </div>
 </main>
-
-<footer class="text-center pb-8"><p class="text-[11px] font-bold text-slate-400 tracking-widest">ZAPGARANTIA • RESOLVE • BOLETIM DO PROBLEMA</p><p class="text-[10px] text-slate-400 mt-1"><a href="/termos/" class="underline">Termos</a> • <a href="/privacidade/" class="underline">Privacidade</a></p></footer>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
 const SB_KEY = "sb_publishable_haJ8eg8OciGN6cK8GGg3ig_bGOKUAud";
 const supabase = createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'sb-gktfwlhvdnsezqcpjrpf-auth-token' } });
-let currentUser=null, uploadedKey="", ultimoToken="", ultimaPeticao="";
+const $ = (id) => document.getElementById(id);
+let currentUser = null, uploadedKey = "", templates = {}, ultimoToken = null, ultimaPeticao = "", roleForm = "Contratante", roleLogin = "Contratante";
 
-function $(id){ return document.getElementById(id); }
+function setRoleForm(role){
+  roleForm = role;
+  const c = $('btnSouContratante'), d = $('btnSouContratado');
+  if(!c || !d) return;
+  if(role === 'Contratante'){
+    c.className = 'btn-role selected bg-blue-600 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 border-[2.5px] border-blue-600';
+    d.className = 'btn-role bg-white border-2 border-emerald-300 text-emerald-700 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1';
+  } else {
+    d.className = 'btn-role selected bg-emerald-600 text-white font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1 border-[2.5px] border-emerald-600';
+    c.className = 'btn-role bg-white border-2 border-blue-300 text-blue-700 font-black py-3 rounded-xl text-xs flex flex-col items-center gap-1';
+  }
+  const t = $('roleFormTxt'); if(t) t.textContent = 'Você selecionou: ' + role + ' - vai aparecer no documento';
+}
 
+if($('btnSouContratante')) $('btnSouContratante').onclick = () => setRoleForm('Contratante');
+if($('btnSouContratado')) $('btnSouContratado').onclick = () => setRoleForm('Contratado');
+
+
+
+async function loadPerfil(){
+  let p = null;
+  if(currentUser){
+    try{
+      const { data } = await supabase.from('profiles').select('*').eq('user_id', currentUser.id).single();
+      if(data && data.nome_exibicao) p = { nome: data.nome_exibicao, insta: data.insta || '', cidade: data.cidade || '', bio: data.bio || '' };
+    }catch{}
+  }
+  if(!p){
+    try{ p = JSON.parse(localStorage.getItem('zapgarantia_perfil_unico') || '{}'); }catch{ p = {}; }
+  }
+  if(p && p.nome) showPerfilPreview(p);
+}
+function showPerfilPreview(p){
+  if(!p || !p.nome) return;
+  const pv = $('perfilPreview'); if(!pv) return;
+  pv.classList.remove('hidden');
+  const l = $('perfilLetra'); if(l) l.textContent = p.nome.charAt(0).toUpperCase();
+  const n = $('perfilPreviewNome'); if(n) n.textContent = p.nome + ' - ' + (p.cidade || '');
+  const i = $('perfilPreviewInsta'); if(i) i.textContent = p.insta || '';
+  const b = $('perfilPreviewBio'); if(b) b.textContent = (p.bio || '') + ' • Perfil do ZapGarantia';
+}
+async function loadTemplates(){
+  const sel = $('categoria'); if(!sel) return;
+  const fallback = [{ categoria: 'cliente_nao_pagou', titulo: 'Cliente não pagou' }, { categoria: 'atraso_obra', titulo: 'Notificação - Atraso de Obra' }, { categoria: 'voo_atraso', titulo: 'Voo atrasado' }, { categoria: 'banco', titulo: 'Banco / Cobrança' }];
+  try{
+    const { data } = await supabase.from('resolve_templates').select('*').order('categoria');
+    const list = (data && data.length) ? data : fallback;
+    sel.innerHTML = '';
+    list.forEach(t => { templates[t.categoria] = t; const o = document.createElement('option'); o.value = t.categoria; o.textContent = t.titulo || t.categoria; sel.appendChild(o); });
+  }catch{
+    sel.innerHTML = '';
+    fallback.forEach(t => { templates[t.categoria] = t; const o = document.createElement('option'); o.value = t.categoria; o.textContent = t.titulo; sel.appendChild(o); });
+  }
+}
+async function loadCasos(){
+  if(!currentUser) return;
+  let data = [];
+  try{
+    const r = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at', { ascending: false }).limit(30);
+    data = r.data || [];
+  }catch{}
+  const total = data.length;
+  const pendente = data.filter(c => !c.status_assinatura || c.status_assinatura === 'Sem resposta' || c.status_assinatura === 'Pendente').length;
+  const assinado = data.filter(c => c.status_assinatura === 'Assinado').length;
+  const contestado = data.filter(c => c.status_assinatura === 'Cliente recusou' || c.status_assinatura === 'Rejeitado' || c.status_assinatura === 'Recusado').length;
+  const recusado = contestado;
+  const set = (id, v) => { const e = $(id); if(e) e.textContent = v; };
+  set('countTotal', total); set('countPendente', pendente); set('countAssinado', assinado); set('countCliente recusou', contestado); set('countRecusado', recusado); set('countTotalPreview', total); set('countPendentePreview', pendente); set('countAssinadoPreview', assinado); set('countRecusadoPreview', recusado); set('countCliente recusouPreview', contestado);
+  const lista = $('listaCasos'); if(!lista) return;
+  lista.innerHTML = '';
+  if(!data.length){ lista.innerHTML = '<p class="text-sm text-center py-8">Nenhum documento ainda</p>'; return; }
+  data.forEach(c => {
+    let badge = '', cor = 'border-amber-200 bg-amber-50/50';
+    if(c.status_assinatura === 'Assinado'){ badge = '<span class="bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full">✅ Assinado</span>'; cor = 'border-emerald-200 bg-emerald-50/50'; }
+    else if(c.status_assinatura === 'Cliente recusou' || c.status_assinatura === 'Recusado' || c.status_assinatura === 'Rejeitado'){ badge = '<span class="bg-red-500 text-white text-[11px] font-black px-3 py-1 rounded-full">❌ Recusado / Cliente recusou</span>'; cor = 'border-red-200 bg-red-50/50'; }
+    else { badge = '<span class="bg-amber-400 text-amber-900 text-[11px] font-black px-3 py-1 rounded-full">⏳ Não assinado / Pendente</span>'; }
+    const d = document.createElement('div');
+    d.className = 'border-2 rounded-xl p-3 flex justify-between items-center ' + cor;
+    d.innerHTML = '<div><p class="font-black text-sm">' + (c.empresa || 'Documento') + '</p><p class="text-[11px] text-slate-500">' + new Date(c.created_at).toLocaleDateString('pt-BR') + ' • R$ ' + (c.valor || '-') + '</p></div><div class="flex gap-2 items-center">' + badge + '<a href="/r/?token=' + c.public_token + '" target="_blank" class="bg-blue-600 text-white font-black px-3 py-1.5 rounded-full text-xs">Abrir</a></div>';
+    lista.appendChild(d);
+  });
+}
 async function checkAuth(){
-  const notLogged = $('notLogged'), appBox = $('app');
+  const notLogged = $('notLogged'), appBox = $('app'), loading = $('authLoading');
+  if(loading) loading.classList.remove('hidden');
   try{
     const { data: { session } } = await supabase.auth.getSession();
-    if(!session?.user){
+    const usuario = session?.user || null;
+    if(!usuario){
       if(notLogged) notLogged.classList.remove('hidden');
       if(appBox) appBox.classList.add('hidden');
+      if(loading) loading.classList.add('hidden');
       return false;
     }
-    currentUser = session.user;
+    currentUser = usuario;
     if(notLogged) notLogged.classList.add('hidden');
     if(appBox) appBox.classList.remove('hidden');
+    if(loading) loading.classList.add('hidden');
+    const ue = $('userEmail'); if(ue) ue.textContent = usuario.email;
+    const pt = $('perfilTipoTop'); if(pt) pt.textContent = 'Logado no ZapGarantia • Pode usar o RESOLVE';
+    await loadTemplates();
     await loadCasos();
+    loadPerfil();
     return true;
   }catch(e){
+    if(loading) loading.classList.add('hidden');
     if(notLogged) notLogged.classList.remove('hidden');
     if(appBox) appBox.classList.add('hidden');
     return false;
   }
 }
+supabase.auth.onAuthStateChange((event, session) => {
+  if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user){ checkAuth(); }
+  if(event === 'SIGNED_OUT'){
+    const a = $('notLogged'), b = $('app');
+    if(a) a.classList.remove('hidden');
+    if(b) b.classList.add('hidden');
+  }
+});
 
-if($('f_file')) $('f_file').onchange = async (e) => {
-  const file = e.target.files[0]; if(!file) return;
-  const p = $('previewImg'); if(p){ p.src = URL.createObjectURL(file); p.classList.remove('hidden'); }
-  const um = $('uploadMsg'); if(um) um.textContent = 'Foto pronta pra enviar junto com o boletim';
-  uploadedKey = file.name;
+  const email = $('email')?.value.trim() || '', password = $('password')?.value || '';
+  if(!email || !password){ alert('Digite email e senha'); return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Entrando... Aguarde'; }
+  const timer = setTimeout(() => { if(btn){ btn.disabled = false; btn.textContent = 'Entrar'; } if(m) m.textContent = 'Demorou demais, tente de novo ou clique em Entrar direto'; }, 10000);
+  try{
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    clearTimeout(timer);
+    localStorage.setItem('zapgarantia_role', roleLogin);
+    localStorage.setItem('zapgarantia_email', email);
+    if(m) m.textContent = 'Logado! Entrando no RESOLVE...';
+    await checkAuth();
+  }catch(e){
+    clearTimeout(timer);
+    if(m) m.textContent = 'Erro: ' + e.message + ' - Tente de novo ou clique em Entrar direto';
+    alert('Erro ao entrar: ' + e.message + '\nSe você já está logado no ZapGarantia, clique em "Já estou logado - Entrar direto"');
+  }finally{
+    clearTimeout(timer);
+    if(btn){ btn.disabled = false; btn.textContent = 'Entrar'; }
+  }
 };
-
+  if(btn){ btn.disabled = true; btn.textContent = 'Verificando login do ZapGarantia...'; }
+  try{
+    const ok = await checkAuth();
+    if(!ok){
+      alert('Você ainda não está logado no ZapGarantia neste celular.\n\nFaça assim:\n1. Abra o ZapGarantia\n2. Faça login lá\n3. Clique no botão verde Resolva\nAí você cai aqui já logado.');
+    }
+  }catch(e){ alert('Erro: ' + e.message); }
+  finally{ if(btn){ btn.disabled = false; btn.textContent = '✅ Já estou logado no ZapGarantia - Entrar direto'; } }
+};
+if($('btnLogout')) $('btnLogout').onclick = async () => { await supabase.auth.signOut(); location.reload(); };
+if($('f_file')) $('f_file').onchange = async (e) => {
+  const file = e.target.files[0]; if(!file || !currentUser) return;
+  const p = $('previewImg'); if(p){ p.src = URL.createObjectURL(file); p.classList.remove('hidden'); }
+  const um = $('uploadMsg'); if(um) um.textContent = 'Enviando...';
+  try{
+    const name = currentUser.id + '/' + Date.now() + '-' + file.name;
+    const { data } = await supabase.storage.from('comprovantes').upload(name, file);
+    if(data){ uploadedKey = data.path; if(um) um.textContent = 'Enviado'; }
+  }catch{ if(um) um.textContent = 'Preview OK'; uploadedKey = file.name; }
+};
 if($('btnGerar')) $('btnGerar').onclick = async () => {
-  if(!$('aceiteTermos')?.checked){ alert('Você precisa aceitar os Termos e Privacidade para gerar o boletim.'); return; }
-  const cat = $('categoria')?.value || 'servico_mal_feito';
-  const profissional = $('f_profissional')?.value.trim() || '';
-  const quem = $('f_quem_registra')?.value.trim() || '';
-  const contato = $('f_contato')?.value.trim() || '';
-  const valor = $('f_valor')?.value.trim() || '';
-  const dataServ = $('f_data')?.value || '';
-  const combinado = $('f_combinado')?.value.trim() || '';
-  const problema = $('f_problema')?.value.trim() || '';
-  if(!profissional || !quem || !problema){ alert('Preencha quem fez o serviço, quem está registrando e o que deu errado'); return; }
-  const catTxt = $('categoria').options[$('categoria').selectedIndex].text;
-  let texto = `BOLETIM RESOLVE - ZAPGARANTIA\n\nProblema: ${catTxt}\nQuem fez o serviço: ${profissional}\nQuem está registrando: ${quem}\nContato: ${contato}\nValor do serviço: R$ ${valor}\nData do serviço: ${dataServ}\n\nO QUE FOI COMBINADO:\n${combinado}\n\nO QUE DEU ERRADO / O QUE ESTRAGOU:\n${problema}\n\nEste boletim é um registro do problema, feito pela parte que se sentiu prejudicada, para servir como prova e tentar resolver. O ZapGarantia é só a ferramenta, não é advogado e não é parte do acordo.`;
+  if(!$('aceiteTermos')?.checked){ alert('Você precisa aceitar os Termos de Uso e Política de Privacidade para gerar o documento.'); return; }
+  const cat = $('categoria')?.value || 'cliente_nao_pagou';
+  const t = templates[cat];
+  const get = (id) => $(id)?.value.trim() || '';
+  const dados = { nome: get('f_nome'), cpf: get('f_cpf'), empresa: get('f_empresa'), valor: get('f_valor'), protocolo: get('f_protocolo'), produto_nome: get('f_produto_nome'), produto_codigo: get('f_produto_codigo'), endereco_contratante: get('f_endereco_contratante'), endereco_contratado: get('f_endereco_contratado'), cep: get('f_cep'), cidade: get('f_cidade') };
+  const relato = get('f_relato');
+  if(!dados.nome || !dados.empresa || !relato){ alert('Preencha nome, empresa e relato'); return; }
+  let texto = (t?.corpo || 'Notificação - {{empresa}} - {{nome}} - {{relato}}');
+  Object.entries(dados).forEach(([k, v]) => { texto = texto.split('{{' + k + '}}').join(v); });
+  texto = texto.split('{{relato}}').join(relato);
+  texto = 'Você é: ' + roleForm + '\n\n' + texto;
+  if(dados.endereco_contratante) texto += '\n\nEndereço do Contratante: ' + dados.endereco_contratante;
+  if(dados.endereco_contratado) texto += '\n\nEndereço do Contratado: ' + dados.endereco_contratado;
   ultimaPeticao = texto;
   const pt = $('peticaoTexto'); if(pt) pt.textContent = texto;
   const res = $('resultado'); if(res) res.classList.remove('hidden');
+  // Gera token UMA vez e tenta salvar de verdade - se falhar, avisa e salva backup no celular
   const token = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   ultimoToken = token;
+  // Backup no celular pra Visitar funcionar mesmo se o banco falhar
   try{
-    const { data } = await supabase.from('casos').insert({ professional_id: currentUser.id, categoria: cat, empresa: profissional, valor: valor, relato: problema + ' | Combinado: ' + combinado, peticao: texto, cliente_nome: quem, cliente_contato: contato, servico_feito: combinado, public_token: token, status:'Pendente', status_assinatura:'Pendente' }).select('public_token').single();
-    if(data) ultimoToken = data.public_token;
+    localStorage.setItem('boletim_' + token, JSON.stringify({ empresa: dados.empresa, categoria: cat, valor: dados.valor, peticao: texto, relato: relato, cliente_nome: dados.nome, created_at: new Date().toISOString(), public_token: token, status_assinatura: 'Pendente' }));
+    localStorage.setItem('resolve_boletim_' + token, JSON.stringify({ empresa: dados.empresa, categoria: cat, valor: dados.valor, peticao: texto, relato: relato, cliente_nome: dados.nome, created_at: new Date().toISOString(), public_token: token, status_assinatura: 'Pendente' }));
   }catch{}
+  try{
+    // CORRETO: usa image_key (singular) que existe no banco, não image_keys
+    const { data, error } = await supabase.from('casos').insert({ professional_id: currentUser.id, categoria: cat, empresa: dados.empresa, valor: dados.valor, relato, peticao: texto, cliente_nome: dados.nome, public_token: token, image_key: uploadedKey || null, status: 'Pendente', status_assinatura: 'Pendente' }).select('public_token').single();
+    if(error){
+      console.log('Salvar no banco falhou, mas backup no celular salva o Visitar:', error.message);
+      // Não bloqueia - o Visitar vai abrir pelo backup do celular
+      const lp2 = $('linkPublico'); if(lp2) lp2.textContent = 'Link (salvo no seu celular): https://zapgarantia.alibr.com.br/r/?token=' + token + ' - Se abrir em outro celular, peça pra gerar de novo';
+    } else {
+      if(data) ultimoToken = data.public_token;
+    }
+  }catch(e){
+    console.log('Erro ao salvar boletim:', e);
+  }
   const lp = $('linkPublico'); if(lp) lp.textContent = 'Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
   await loadCasos();
 };
-
 if($('btnCopiar')) $('btnCopiar').onclick = () => { navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken + '\n\n' + ultimaPeticao); alert('Copiado!'); };
-if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Boletim RESOLVE: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken), '_blank'); };
+if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Documento RESOLVE: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken), '_blank'); };
 if($('btnVisitar')) $('btnVisitar').onclick = () => { if(!ultimoToken) return; window.open('/r/?token=' + ultimoToken, '_blank'); };
-if($('btnPdf')) $('btnPdf').onclick = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao, 180), 10, 15); doc.save('RESOLVE-boletim.pdf'); };
-
-async function loadCasos(){
-  if(!currentUser) return;
+if($('btnPdf')) $('btnPdf').onclick = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao, 180), 10, 15); doc.save('RESOLVE.pdf'); };
+let synth = window.speechSynthesis;
+if($('btnOuvirResolve')) $('btnOuvirResolve').onclick = () => { synth.cancel(); const u = new SpeechSynthesisUtterance(ultimaPeticao); u.lang = 'pt-BR'; synth.speak(u); };
+if($('btnPararResolve')) $('btnPararResolve').onclick = () => synth.cancel();
+async function checkContestToken(){
+  const ct = new URLSearchParams(location.search).get('contest_token'); if(!ct) return;
+  const banner = document.createElement('div');
+  banner.className = 'bg-red-50 border-2 border-red-300 rounded-2xl p-5 text-center space-y-2';
+  banner.innerHTML = '<p class="font-black text-red-800">Você está contestando um serviço do ZapGarantia</p><p class="text-xs text-red-700">Preencha abaixo sua contestação.</p>';
+  const app = $('app'); if(app) app.prepend(banner);
   try{
-    const { data } = await supabase.from('casos').select('*').eq('professional_id', currentUser.id).order('created_at',{ascending:false}).limit(20);
-    const lista = $('listaCasos'); if(!lista) return; lista.innerHTML='';
-    let tot=0, pend=0, ass=0, rec=0;
-    (data||[]).forEach(c=>{
-      tot++; if(c.status_assinatura==='Assinado') ass++; else if(c.status_assinatura==='Rejeitado' || c.status_assinatura==='Contestado') rec++; else pend++;
-      const d=document.createElement('div'); d.className='border rounded-xl p-3 text-xs flex justify-between items-center'; d.innerHTML=`<div><p class="font-bold">${c.categoria} - ${c.empresa||''}</p><p>${c.status_assinatura} - ${new Date(c.created_at).toLocaleDateString('pt-BR')}</p></div><a href="/r/?token=${c.public_token}" class="text-blue-600 font-bold">Abrir</a>`; lista.appendChild(d);
-    });
-    if($('countTotal')) $('countTotal').textContent = tot;
-    if($('countPendente')) $('countPendente').textContent = pend;
-    if($('countAssinado')) $('countAssinado').textContent = ass;
-    if($('countRecusado')) $('countRecusado').textContent = rec;
+    const { data } = await supabase.from('contracts').select('*').eq('public_token', ct).single();
+    if(data){
+      if($('f_empresa')) $('f_empresa').value = data.client_name || '';
+      if($('f_relato')) $('f_relato').value = 'Contestação do serviço: ' + (data.service || '') + ' - Valor: R$ ' + (data.total || '') + ' - Motivo: ';
+      if($('f_valor')) $('f_valor').value = data.total || '';
+    }
   }catch{}
 }
-
+// Se veio do ZapGarantia com ?from_zap=1, tenta entrar direto
+const fromZap = new URLSearchParams(location.search).get('from_zap');
+if(fromZap){ setTimeout(() => { checkAuth(); }, 300); }
+// INTEGRAÇÃO REAL ZAP -> RESOLVE: se veio token no link, usa ele pra logar direto
 async function tryLoginFromZapLink(){
   try{
+    // Token pode vir no # (hash) ou no ? (query) - ZapGarantia manda no #
     let hash = window.location.hash || '';
     let search = window.location.search || '';
-    let at=null, rt=null;
+    let at = null, rt = null;
+    // Ler do hash: #access_token=...&refresh_token=...
     if(hash.includes('access_token')){
       const params = new URLSearchParams(hash.replace('#','?'));
       at = params.get('access_token'); rt = params.get('refresh_token');
     }
+    // Ler da query: ?at=...&rt=...
     if(!at && search.includes('at=')){
       const params = new URLSearchParams(search);
       at = params.get('at'); rt = params.get('rt');
     }
     if(at && rt){
+      // Limpa o link pra não ficar o token aparecendo
       try{ history.replaceState(null, '', '/resolve/'); }catch{}
       const { data, error } = await supabase.auth.setSession({ access_token: at, refresh_token: rt });
-      if(!error && data?.session) return true;
+      if(!error && data?.session){ return true; }
     }
-  }catch(e){}
+  }catch(e){ console.log('login via link falhou', e); }
   return false;
 }
-
 async function startResolve(){
-  await tryLoginFromZapLink();
+  // 1) Primeiro tenta o token que veio do ZapGarantia no link (jeito que sempre funciona)
+  const viaLink = await tryLoginFromZapLink();
+  // 2) Depois tenta a sessão que já tá no celular (mesmo domínio)
   await checkAuth();
+  if(viaLink){
+  }
 }
 startResolve();
+setTimeout(checkContestToken, 1500);
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
