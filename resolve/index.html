@@ -95,7 +95,7 @@ label{color:#1e293b !important; font-weight:700 !important; font-size:13px !impo
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTk2MDgsImV4cCI6MjEwNzM5NTYwOH0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGZ3bGh2ZG5zZXpxY3BqcnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTA2MTIsImV4cCI6MjA3ODU4NjYxMn0.D2V2wuRVYi67AsOU6vLLt2lH5sV1oxWIwyU4iQJy9bo";
 const WORKER_URL = "https://SEU_WORKER.workers.dev";
 const supabase = createClient(SB_URL, SB_KEY);
 let currentUser=null, uploadedKey="", templates={}, currentToken=null;
@@ -105,6 +105,8 @@ async function loadTemplates(){
   const fallback=[
     {categoria:'voo_atraso',titulo:'Voo atrasado +4h - ANAC 400 Art.21',corpo:'À {{empresa}}, Eu {{nome}} CPF {{cpf}} voo {{protocolo}} valor {{valor}}. Relato: {{relato}}',campos:['nome','cpf','empresa','valor','protocolo','relato']},
     {categoria:'cliente_nao_pagou',titulo:'Cliente não pagou serviço',corpo:'Ao Sr(a) {{cliente_nome}} - Serviço: {{servico_feito}} Valor: {{valor}}. Eu {{nome}} realizei conforme {{relato}}.',campos:['nome','cpf','cliente_nome','valor','protocolo','relato']},
+    {categoria:'jardineiro',titulo:'Jardineiro - serviço não concluído',corpo:'Ao Sr(a) {{empresa}} - Serviço de jardinagem no valor {{valor}} - {{relato}} - Contratante: {{nome}} CPF {{cpf}}',campos:['nome','cpf','empresa','valor','protocolo','relato']},
+    {categoria:'encanador',titulo:'Encanador - vazamento / serviço mal feito',corpo:'À {{empresa}} - Serviço encanador {{valor}} - {{relato}} - {{nome}}',campos:['nome','cpf','empresa','valor','protocolo','relato']},
   ];
   const list = (data && data.length) ? data : fallback;
   list.forEach(t=>{ templates[t.categoria]=t; const o=document.createElement('option'); o.value=t.categoria; o.textContent=t.titulo; sel.appendChild(o); });
@@ -149,7 +151,7 @@ async function loadCasos(){
   if(!data||!data.length){ lista.innerHTML='<p class="text-xs text-slate-500 text-center py-4">Nenhum documento ainda</p>'; return; }
   data.forEach(c=>{
     const d=document.createElement('div'); d.className='border-2 border-slate-100 rounded-xl p-3 text-xs flex justify-between items-center';
-    d.innerHTML=`<div><p class="font-bold">${c.categoria} - ${c.empresa||c.cliente_nome||''}</p><p class="text-[11px] text-slate-500">${c.status_assinatura} • ${new Date(c.created_at).toLocaleDateString('pt-BR')}</p></div><a href="/r/${c.public_token}" class="bg-blue-50 text-blue-600 font-bold px-3 py-1.5 rounded-full">Abrir</a>`;
+    d.innerHTML=`<div><p class="font-bold">${c.categoria} - ${c.empresa||c.cliente_nome||''}</p><p class="text-[11px] text-slate-500">${c.status_assinatura} • ${new Date(c.created_at).toLocaleDateString('pt-BR')}</p></div><a href="/r/?token=${c.public_token}" class="bg-blue-50 text-blue-600 font-bold px-3 py-1.5 rounded-full">Abrir</a>`;
     lista.appendChild(d);
   });
 }
