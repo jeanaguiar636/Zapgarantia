@@ -112,7 +112,7 @@ input,select,textarea{color:#0f172a !important; font-weight:500 !important}
 <div class="flex items-center gap-3"><div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center"><i class="fa-solid fa-check text-white"></i></div><h3 class="font-black text-emerald-900 text-lg">Documento gerado com sucesso!</h3></div>
 <div class="bg-white border-2 border-slate-200 rounded-xl p-1"><pre id="peticaoTexto" class="text-[13px] whitespace-pre-wrap bg-slate-50 p-4 rounded-lg max-h-80 overflow-auto font-medium leading-relaxed"></pre></div>
 
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<div class="flex gap-2 mb-3"><button id="btnOuvirResolve" class="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl text-xs"><i class="fa-solid fa-volume-high mr-1"></i> 🔊 Ouvir documento</button><button id="btnPararResolve" class="bg-slate-900 text-white font-black px-4 py-3 rounded-xl text-xs">Parar</button></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 <button id="btnCopiar" class="bg-slate-900 hover:bg-black text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1.5 shadow"><i class="fa-solid fa-link text-base"></i> Copiar link</button>
 <button id="btnWa" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1.5 shadow"><i class="fa-brands fa-whatsapp text-lg"></i> Compartilhar</button>
 <button id="btnVisitar" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-xl text-xs flex flex-col items-center gap-1.5 shadow"><i class="fa-solid fa-eye text-base"></i> Visitar</button>
@@ -220,8 +220,6 @@ document.getElementById('btnGerar').onclick=async()=>{
     peticao:texto,
     image_key:uploadedKey,
     cliente_nome:dados.nome,
-    cliente_cpf:dados.cpf,
-    protocolo:dados.protocolo
   }).select('public_token').single();
   document.getElementById('btnGerar').innerHTML='<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Gerar petição pronta →';
   if(error){ alert('Erro: '+error.message); return; }
@@ -239,7 +237,7 @@ document.getElementById('btnWa').onclick=()=>{ if(!ultimoToken) return; window.o
 document.getElementById('btnVisitar').onclick=()=>{ if(!ultimoToken) return; window.open('/r/?token='+ultimoToken,'_blank'); };
 document.getElementById('btnPdf').onclick=()=>{ const { jsPDF }=window.jspdf; const doc=new jsPDF(); const lines=doc.splitTextToSize(ultimaPeticao,180); doc.setFontSize(11); doc.text(lines,10,15); doc.save('RESOLVE-'+(document.getElementById('f_empresa').value||'documento')+'.pdf'); };
 
-async function loadCasos(){
+let synthResolve=window.speechSynthesis; let uttResolve=null; document.addEventListener('click',e=>{ if(e.target.id==='btnOuvirResolve' || e.target.closest('#btnOuvirResolve')){ if(uttResolve) synthResolve.cancel(); uttResolve=new SpeechSynthesisUtterance(document.getElementById('peticaoTexto').textContent); uttResolve.lang='pt-BR'; const voices=synthResolve.getVoices(); const br=voices.find(v=>v.lang.includes('pt-BR')); if(br) uttResolve.voice=br; synthResolve.speak(uttResolve);} if(e.target.id==='btnPararResolve' || e.target.closest('#btnPararResolve')){ synthResolve.cancel(); } }); async function loadCasos(){
   const { data } = await supabase.from('casos').select('*').eq('professional_id',currentUser.id).order('created_at',{ascending:false}).limit(30);
   const lista=document.getElementById('listaCasos'); lista.innerHTML='';
   if(!data||!data.length){ lista.innerHTML='<div class="text-center py-10"><div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-folder-open text-slate-400 text-2xl"></i></div><p class="text-sm text-slate-500 font-medium">Nenhum documento ainda</p><p class="text-[11px] text-slate-400">Crie sua primeira reclamação acima</p></div>'; return; }
