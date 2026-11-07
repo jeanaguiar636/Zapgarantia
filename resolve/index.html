@@ -221,6 +221,14 @@ if($('f_file')) $('f_file').onchange = async (e) => {
 
 if($('btnGerar')) $('btnGerar').onclick = async () => {
   if(!$('aceiteTermos')?.checked){ alert('Você precisa aceitar os Termos e Privacidade para gerar o boletim.'); return; }
+  // Se não estiver logado, não gera documento falso - pede pra logar no ZapGarantia
+  if(!currentUser){
+    try{
+      const { data: { session } } = await supabase.auth.getSession();
+      if(session?.user) currentUser = session.user;
+    }catch{}
+    if(!currentUser){ alert('Você precisa estar logado no ZapGarantia para gerar o BO. Clique em Voltar, entre no ZapGarantia e depois volte aqui pelo botão Resolva.'); return; }
+  }
   const cat = $('categoria')?.value || 'servico_mal_feito';
   const profissional = $('f_profissional')?.value.trim() || '';
   const quem = $('f_quem_registra')?.value.trim() || '';
@@ -231,7 +239,7 @@ if($('btnGerar')) $('btnGerar').onclick = async () => {
   const problema = $('f_problema')?.value.trim() || '';
   if(!profissional || !quem || !problema){ alert('Preencha quem fez o serviço, quem está registrando e o que deu errado'); return; }
   const catTxt = $('categoria').options[$('categoria').selectedIndex].text;
-  let texto = `BOLETIM RESOLVE - ZAPGARANTIA\n\nProblema: ${catTxt}\nQuem fez o serviço: ${profissional}\nQuem está registrando: ${quem}\nContato: ${contato}\nValor do serviço: R$ ${valor}\nData do serviço: ${dataServ}\n\nO QUE FOI COMBINADO:\n${combinado}\n\nO QUE DEU ERRADO / O QUE ESTRAGOU:\n${problema}\n\nFotos anexadas neste boletim: ' + fotosBase64.length + ' foto(s) de prova.\n\nEste boletim é um registro do problema, feito pela parte que se sentiu prejudicada, para servir como prova e tentar resolver. O ZapGarantia é só a ferramenta, não é advogado e não é parte do acordo.`;
+  let texto = `BOLETIM RESOLVE - ZAPGARANTIA\n\nProblema: ${catTxt}\nQuem fez o serviço: ${profissional}\nQuem está registrando: ${quem}\nContato: ${contato}\nValor do serviço: R$ ${valor}\nData do serviço: ${dataServ}\n\nO QUE FOI COMBINADO:\n${combinado}\n\nO QUE DEU ERRADO / O QUE ESTRAGOU:\n${problema}\n\nFotos anexadas neste boletim: ${fotosBase64.length} foto(s) de prova.\n\nEste boletim é um registro do problema, feito pela parte que se sentiu prejudicada, para servir como prova e tentar resolver. O ZapGarantia é só a ferramenta, não é advogado e não é parte do acordo.`;
   ultimaPeticao = texto;
   const pt = $('peticaoTexto'); if(pt) pt.textContent = texto;
   const res = $('resultado'); if(res) res.classList.remove('hidden');
@@ -256,32 +264,21 @@ if($('btnGerar')) $('btnGerar').onclick = async () => {
       else { console.log('Tentativa 2 falhou também:', r2.error?.message); }
     } else if(data){ salvouNoBanco = true; ultimoToken = data.public_token; }
   }catch(e){ console.log('Erro ao salvar boletim:', e); }
-  // Mostra se salvou ou não, sem esconder
-  const lpStatus = $('linkPublico');
-  if(!salvouNoBanco){
-    if(lpStatus) lpStatus.innerHTML = '<span style="color:#b45309;font-weight:bold">⚠️ Não salvou no banco, mas o Visitar vai abrir o documento direto daqui mesmo. Pra compartilhar com outra pessoa, gere de novo depois de rodar o SQL de correção.</span><br>Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
+  // Mostra se salvou ou não - SEM sobrescrever o aviso
+  const lp = $('linkPublico');
+  if(salvouNoBanco){
+    if(lp) lp.innerHTML = '<span style="color:#15803d;font-weight:bold">✅ Salvo com sucesso no banco!</span><br>Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
+  } else {
+    if(lp) lp.innerHTML = '<span style="color:#b45309;font-weight:bold">⚠️ Salvo só no seu celular, não salvou no banco. O Visitar abre aqui, mas pra mandar no WhatsApp e abrir em outro celular, rode o SQL V4 no Supabase e gere de novo.</span><br>Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
   }
-  const lp = $('linkPublico'); if(lp) lp.textContent = 'Link: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken;
   await loadCasos();
 };
 
 if($('btnCopiar')) $('btnCopiar').onclick = () => { navigator.clipboard.writeText('https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken + '\n\n' + ultimaPeticao); alert('Copiado!'); };
 if($('btnWa')) $('btnWa').onclick = () => { if(!ultimoToken) return; window.open('https://wa.me/?text=' + encodeURIComponent('Boletim RESOLVE: https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken), '_blank'); };
 if($('btnVisitar')) $('btnVisitar').onclick = () => {
-  if(!ultimaPeticao){ alert('Gere o boletim primeiro'); return; }
-  // VISITAR À PROVA DE FALHA: abre o documento DIRETO daqui, sem depender do banco/token
-  // 1) Primeiro tenta abrir o link normal /r/?token= (pra quem já salvou no banco)
-  // 2) Se o banco falhou, abre o documento gerado na hora em uma nova aba
-  const w = window.open('', '_blank');
-  if(!w){ window.open('/r/?token=' + ultimoToken, '_blank'); return; }
-  let fotosHtml = '';
-  if(fotosBase64 && fotosBase64.length){
-    fotosHtml = '<div style="margin-top:20px"><h3 style="font-weight:900">Fotos de prova - ' + fotosBase64.length + ' foto(s)</h3><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">';
-    fotosBase64.forEach(src=>{ if(src) fotosHtml += '<img src="' + src + '" style="width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid #ddd">'; });
-    fotosHtml += '</div></div>';
-  }
-  const htmlDoc = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BOLETIM RESOLVE - ' + (document.getElementById('f_profissional')?.value || '') + '</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="bg-slate-100 p-4"><div class="max-w-2xl mx-auto bg-white rounded-2xl shadow p-6 space-y-4"><div class="bg-slate-900 text-white p-4 rounded-xl"><p class="text-[11px] tracking-widest">DOCUMENTO OFICIAL RESOLVE</p><p class="font-black">' + (document.getElementById('categoria')?.options[document.getElementById('categoria')?.selectedIndex]?.text || '') + '</p></div><pre style="font-family:Georgia,serif;white-space:pre-wrap;line-height:1.7;font-size:15px">' + ultimaPeticao.replace(/</g,'&lt;') + '</pre>' + fotosHtml + '<div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 text-center"><p class="font-black text-sm">Link oficial para compartilhar:</p><p class="text-blue-600 break-all text-xs mt-1">https://zapgarantia.alibr.com.br/r/?token=' + ultimoToken + '</p><p class="text-[11px] text-slate-500 mt-2">Se esse link não abrir em outro celular, é porque o banco não salvou. Gere de novo depois de rodar o SQL de correção.</p></div><div class="grid grid-cols-2 gap-3"><button onclick="window.print()" class="bg-slate-900 text-white font-black py-3 rounded-xl">Baixar / Imprimir PDF</button><button onclick="navigator.clipboard.writeText(document.body.innerText);alert(\'Copiado!\')" class="bg-blue-600 text-white font-black py-3 rounded-xl">Copiar</button></div></div></body></html>';
-  w.document.write(htmlDoc); w.document.close();
+  if(!ultimoToken){ alert('Gere o boletim primeiro'); return; }
+  window.open('/r/?token=' + ultimoToken, '_blank');
 };
 if($('btnPdf')) $('btnPdf').onclick = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text(doc.splitTextToSize(ultimaPeticao, 180), 10, 15); doc.save('RESOLVE-boletim.pdf'); };
 
@@ -327,17 +324,6 @@ async function loadCasos(){
     if($('countAssinado')) $('countAssinado').textContent = ass;
     if($('countRecusado')) $('countRecusado').textContent = rec;
     return;
-    const { data: _unused } = _fake;
-    const lista = $('listaCasos'); if(!lista) return; lista.innerHTML='';
-    let tot=0, pend=0, ass=0, rec=0;
-    (data||[]).forEach(c=>{
-      tot++; if(c.status_assinatura==='Assinado') ass++; else if(c.status_assinatura==='Rejeitado' || c.status_assinatura==='Contestado') rec++; else pend++;
-      const d=document.createElement('div'); d.className='border rounded-xl p-3 text-xs flex justify-between items-center'; d.innerHTML=`<div><p class="font-bold">${c.categoria} - ${c.empresa||''}</p><p>${c.status_assinatura} - ${new Date(c.created_at).toLocaleDateString('pt-BR')}</p></div><a href="/r/?token=${c.public_token}" class="text-blue-600 font-bold">Abrir</a>`; lista.appendChild(d);
-    });
-    if($('countTotal')) $('countTotal').textContent = tot;
-    if($('countPendente')) $('countPendente').textContent = pend;
-    if($('countAssinado')) $('countAssinado').textContent = ass;
-    if($('countRecusado')) $('countRecusado').textContent = rec;
   }catch{}
 }
 
