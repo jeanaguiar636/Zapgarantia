@@ -235,7 +235,7 @@ if($('btnGerar')) $('btnGerar').onclick = async () => {
   ultimaPeticao = texto;
   const pt = $('peticaoTexto'); if(pt) pt.textContent = texto;
   const res = $('resultado'); if(res) res.classList.remove('hidden');
-  const token = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  const token = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 10) + Date.now().toString(36)); // UUID de verdade - o banco só aceita UUID
   ultimoToken = token;
   // Backup no celular pra Visitar abrir mesmo se o banco falhar - agora com até 15 fotos
   try{
