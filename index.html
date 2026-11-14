@@ -671,8 +671,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         const { createClient } = supabase;
         // sem trava entre abas: outra aba (ou o app instalado) parada em segundo plano não congela mais o login
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: { lock: async (name, acquireTimeout, fn) => await fn() }
-        });
+  auth: { lock: async (name, acquireTimeout, fn) => await fn(), persistSession: true, autoRefreshToken: true, storageKey: 'sb-gktfwlhvdnsezqcpjrpf-auth-token' }
+});
         _supabase.auth.onAuthStateChange((event) => { if (event === 'PASSWORD_RECOVERY') showRecovery(); });
 
         let currentUser = null;
