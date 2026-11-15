@@ -26,6 +26,21 @@
   #msg{text-align:center;font-size:14px;margin-top:10px;min-height:18px}
   .small{font-size:12px;color:#6b7280;text-align:center;line-height:1.5}
   #fotoOrcamento{width:100%;border-radius:12px;margin-top:10px;display:none}
+  /* Botão Ouvir - pisca quando está falando */
+  #btnOuvir{background:#2563eb;color:#fff;font-size:16px;padding:15px}
+  #btnOuvir.falando{animation:piscar 1s infinite;background:#1d4ed8}
+  @keyframes piscar{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
+  /* Botão Baixar PDF - bem aparente */
+  #btnPdf{background:#16a34a;color:#fff;font-size:17px;padding:16px}
+  /* Catálogo */
+  .catalogo-titulo{font-size:16px;font-weight:800;color:#1d4ed8;margin:0 0 12px;text-transform:uppercase}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .prod{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .prod img{width:100%;height:140px;object-fit:cover;background:#f3f4f6}
+  .prod-info{padding:10px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .prod-nome{font-size:13px;line-height:1.3;min-height:34px}
+  .prod-preco{font-size:16px;font-weight:800;color:#1d4ed8}
+  .btn-ver{background:#16a34a;color:#fff;padding:9px;border-radius:10px;font-size:14px;margin-top:auto}
 </style>
 </head>
 <body>
@@ -90,8 +105,15 @@
   </div>
 
   <div class="card">
-    <button class="btn-sec" id="btnOuvir">Ouvir orçamento</button>
-    <button class="btn-sec" id="btnImprimir">Imprimir orçamento</button>
+    <button id="btnOuvir">🔊 Ouvir orçamento</button>
+    <button id="btnPdf">📄 Baixar em PDF</button>
+    <button class="btn-sec" id="btnImprimir">🖨️ Imprimir orçamento</button>
+  </div>
+
+  <div class="card" id="boxCatalogo" style="display:none">
+    <p class="catalogo-titulo">Materiais para este serviço</p>
+    <div class="grade" id="gradeCatalogo"></div>
+    <p class="small" id="catalogoVazio" style="display:none">Nenhum produto do catálogo para esta categoria.</p>
   </div>
 </div>
 
@@ -104,8 +126,10 @@
   });
 
   const params = new URLSearchParams(window.location.search);
-const token = params.get('token') || params.get('c');
-let contratoAtual = null;
+  const token = params.get('token') || params.get('c');
+  let contratoAtual = null;
+  let falando = false;
+
   function formatarValor(v) {
     if (v === null || v === undefined || v === '') return '';
     const num = Number(String(v).replace('R$', '').replace(/\./g, '').replace(',', '.'));
@@ -118,11 +142,58 @@ let contratoAtual = null;
     try { return new Date(d).toLocaleString('pt-BR'); } catch(e) { return String(d); }
   }
 
+  function pararAudio() {
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+    falando = false;
+    const b = document.getElementById('btnOuvir');
+    b.classList.remove('falando');
+    b.textContent = '🔊 Ouvir orçamento';
+  }
+
+  function ouvirOrcamento() {
+    if (!contratoAtual) return;
+    if (falando) { pararAudio(); return; }
+    const texto = 'Orçamento ZapGarantia. Profissional: ' + (contratoAtual.professional_name || '') + '. Cliente: ' + (contratoAtual.client_name || '') + '. Serviço: ' + (contratoAtual.service_desc || '') + '. Valor: ' + (contratoAtual.service_value || '') + '. Garantia: ' + (contratoAtual.guarantee_text || '') + '. Obrigado.';
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+    const utter = new SpeechSynthesisUtterance(texto);
+    utter.lang = 'pt-BR';
+    utter.onstart = function() {
+      falando = true;
+      const b = document.getElementById('btnOuvir');
+      b.classList.add('falando');
+      b.textContent = '⏸️ Parar áudio - clique para parar';
+    };
+    utter.onend = function() { pararAudio(); };
+    utter.onerror = function() { pararAudio(); };
+    window.speechSynthesis.speak(utter);
+  }
+
+  async function carregarCatalogo() {
+    try {
+      const sug = await supabaseClient.rpc('get_material_suggestions', { p_token: token });
+      let itens = sug.data;
+      if (typeof itens === 'string') { try { itens = JSON.parse(itens); } catch(e) { itens = []; } }
+      if (!itens || !itens.length) return;
+      const box = document.getElementById('boxCatalogo');
+      const grade = document.getElementById('gradeCatalogo');
+      box.style.display = 'block';
+      grade.innerHTML = itens.map(function(it){
+        const nome = it.name || it.title || it.nome || it.descricao || it.description || 'Produto';
+        const preco = it.price || it.preco || it.valor || '';
+        const precoTxt = preco ? 'R$ ' + Number(preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+        const img = it.image_url || it.image || it.photo_url || it.img || it.picture || '';
+        const link = it.affiliate_url || it.link || it.url || it.product_url || '';
+        const imgHtml = img ? '<img src="' + img + '" alt="">' : '<div style="height:140px;background:#f3f4f6"></div>';
+        const btn = link ? '<button class="btn-ver" onclick="window.open(\'' + link + '\',\'_blank\')">Ver</button>' : '<button class="btn-ver" disabled>Ver</button>';
+        return '<div class="prod">' + imgHtml + '<div class="prod-info"><div class="prod-nome">' + nome + '</div><div class="prod-preco">' + precoTxt + '</div>' + btn + '</div></div>';
+      }).join('');
+    } catch(e) {}
+  }
+
   async function carregar() {
     const loadingEl = document.getElementById('loading');
     const erroEl = document.getElementById('erro');
     const conteudoEl = document.getElementById('conteudo');
-
     if (!token) {
       loadingEl.style.display = 'none';
       erroEl.style.display = 'block';
@@ -130,16 +201,12 @@ let contratoAtual = null;
       document.getElementById('codigo').textContent = '---';
       return;
     }
-
     try {
       const res = await supabaseClient.rpc('get_public_contract', { p_token: token });
       if (res.error) throw res.error;
-
       const contrato = Array.isArray(res.data) ? res.data[0] : res.data;
       if (!contrato) throw new Error('Orçamento não encontrado para esse link.');
-
       contratoAtual = contrato;
-
       const codigoCurto = String(contrato.public_token || contrato.id || '').slice(0, 8);
       document.getElementById('codigo').textContent = '#' + (codigoCurto || '---');
       document.getElementById('profissional').textContent = contrato.professional_name || contrato.profissional || '-';
@@ -149,7 +216,6 @@ let contratoAtual = null;
       document.getElementById('valor').textContent = formatarValor(contrato.service_value || contrato.total || contrato.valor || '');
       document.getElementById('garantia').textContent = contrato.guarantee_text || contrato.garantia || '';
       document.getElementById('dataCriacao').textContent = formatarData(contrato.created_at);
-
       const fotoEl = document.getElementById('fotoOrcamento');
       if (contrato.image_url) {
         fotoEl.src = contrato.image_url;
@@ -157,15 +223,12 @@ let contratoAtual = null;
       } else {
         fotoEl.style.display = 'none';
       }
-
       const status = contrato.status_assinatura || contrato.status || 'Pendente';
       const statusEl = document.getElementById('statusTexto');
       const boxAssinar = document.getElementById('boxAssinar');
       const boxAssinado = document.getElementById('boxAssinado');
-
       loadingEl.style.display = 'none';
       conteudoEl.style.display = 'block';
-
       if (status === 'Assinado' || status === 'Rejeitado' || status === 'Contestado') {
         statusEl.textContent = status + ' por ' + (contrato.signed_name || '') + ' em ' + formatarData(contrato.updated_at || contrato.created_at);
         boxAssinar.style.display = 'none';
@@ -176,7 +239,7 @@ let contratoAtual = null;
         boxAssinar.style.display = 'block';
         boxAssinado.style.display = 'none';
       }
-
+      carregarCatalogo();
     } catch (e) {
       loadingEl.style.display = 'none';
       erroEl.style.display = 'block';
@@ -189,13 +252,11 @@ let contratoAtual = null;
     const nome = document.getElementById('nomeAssina').value.trim();
     const motivo = document.getElementById('motivo').value.trim();
     const msg = document.getElementById('msg');
-
     if (!nome) { msg.textContent = 'Preencha seu nome completo'; return; }
     if ((status === 'Rejeitado' || status === 'Contestado') && !motivo) {
       msg.textContent = 'Para rejeitar ou contestar, informe o motivo';
       return;
     }
-
     msg.textContent = 'Enviando...';
     try {
       const res = await supabaseClient.rpc('sign_public_contract', {
@@ -216,13 +277,8 @@ let contratoAtual = null;
   document.getElementById('btnRejeitar').addEventListener('click', function(){ enviarAssinatura('Rejeitado'); });
   document.getElementById('btnContestar').addEventListener('click', function(){ enviarAssinatura('Contestado'); });
   document.getElementById('btnImprimir').addEventListener('click', function(){ window.print(); });
-  document.getElementById('btnOuvir').addEventListener('click', function(){
-    if (!contratoAtual) return;
-    const texto = 'Orçamento ZapGarantia. Profissional: ' + (contratoAtual.professional_name || '') + '. Cliente: ' + (contratoAtual.client_name || '') + '. Serviço: ' + (contratoAtual.service_desc || '') + '. Valor: ' + (contratoAtual.service_value || '') + '. Garantia: ' + (contratoAtual.guarantee_text || '');
-    const utter = new SpeechSynthesisUtterance(texto);
-    utter.lang = 'pt-BR';
-    window.speechSynthesis.speak(utter);
-  });
+  document.getElementById('btnPdf').addEventListener('click', function(){ window.print(); });
+  document.getElementById('btnOuvir').addEventListener('click', ouvirOrcamento);
 
   carregar();
 </script>
