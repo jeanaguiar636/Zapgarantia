@@ -25,6 +25,7 @@
   .btn-sec{background:#f1f5f9;color:#111827}
   #msg{text-align:center;font-size:14px;margin-top:10px;min-height:18px}
   .small{font-size:12px;color:#6b7280;text-align:center;line-height:1.5}
+  #fotoOrcamento{width:100%;border-radius:12px;margin-top:10px;display:none}
 </style>
 </head>
 <body>
@@ -59,6 +60,7 @@
         <p>Valor: <span id="valor"></span></p>
         <p>Garantia: <span id="garantia"></span></p>
         <p>Data: <span id="dataCriacao"></span></p>
+        <img id="fotoOrcamento" alt="Foto do serviço">
       </div>
 
       <div class="box">
@@ -147,6 +149,14 @@
       document.getElementById('valor').textContent = formatarValor(contrato.service_value || contrato.total || contrato.valor || '');
       document.getElementById('garantia').textContent = contrato.guarantee_text || contrato.garantia || '';
       document.getElementById('dataCriacao').textContent = formatarData(contrato.created_at);
+
+      const fotoEl = document.getElementById('fotoOrcamento');
+      if (contrato.image_url) {
+        fotoEl.src = contrato.image_url;
+        fotoEl.style.display = 'block';
+      } else {
+        fotoEl.style.display = 'none';
+      }
 
       const status = contrato.status_assinatura || contrato.status || 'Pendente';
       const statusEl = document.getElementById('statusTexto');
