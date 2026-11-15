@@ -1,80 +1,20 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+const token = new URLSearchParams(location.search).get('token');
+
+if(!token){
+  document.body.innerHTML = '<p>Link inválido, sem token.</p>';
+  throw new Error('sem token');
 }
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+
+const { data, error } = await supabase.rpc('get_public_contract', { p_token: token });
+
+if(error){
+  alert('Não achou o orçamento: ' + error.message);
+  throw error;
 }
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
+
+const contrato = Array.isArray(data) ? data[0] : data;
+
+if(!contrato){
+  document.body.innerHTML = '<p>Orçamento não encontrado para esse link.</p>';
+  throw new Error('nao encontrado');
 }
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orçamento | ZapGarantia</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>body{font-family:Inter,sans-serif} pre{white-space:pre-wrap}</style>
-</head>
-<body class="bg-slate-100">
-<header class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 sticky top-0">
-<div class="max-w-2xl mx-auto flex justify-between items-center">
-<a href="/" class="font-black flex items-center gap-2"><i class="fa-solid fa-file-shield"></i> ZapGarantia</a>
-<a href="/" class="bg-white text-blue-600 text-xs font-bold px-3 py-1.5 rounded-full">Voltar</a>
-</div>
-</header>
-<main class="max-w-2xl mx-auto p-4 space-y-4">
-<div id="loading" class="bg-white p-8 rounded-2xl border text-center"><p class="text-sm text-slate-600">Carregando orçamento...</p><p id="debug" class="text-[11px] text-slate-400 mt-2"></p></div>
-<div id="doc" class="hidden space-y-4">
-<div class="bg-white p-6 rounded-2xl border shadow-sm">
-<h1 id="titulo" class="font-black text-lg">Orçamento</h1>
-<p id="valor" class="text-sm text-slate-600 mt-1"></p>
-<div class="mt-4 bg-slate-50 border rounded-xl p-4"><pre id="conteudo" class="text-sm text-slate-800 leading-relaxed"></pre></div>
-<p id="data" class="text-[11px] text-slate-500 mt-3"></p>
-</div>
-<div id="assinaturaBox" class="bg-white p-6 rounded-2xl border shadow-sm space-y-3">
-<h2 class="font-black text-sm">Assinar orçamento</h2>
-<input id="nomeAssina" placeholder="Seu nome completo" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm">
-<textarea id="motivo" placeholder="Motivo se rejeitar/contestar" rows="3" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm resize-none"></textarea>
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-<button id="btnAssinar" class="bg-emerald-600 text-white font-black py-3 rounded-xl text-sm">Assinar</button>
-<button id="btnRejeitar" class="bg-red-50 border-2 border-red-200 text-red-700 font-bold py-3 rounded-xl text-sm">Rejeitar</button>
-<button id="btnContestar" class="bg-amber-50 border-2 border-amber-200 text-amber-800 font-bold py-3 rounded-xl text-sm">Contestar</button>
-</div>
-<p id="msg" class="text-xs text-center"></p>
-</div>
-<div id="assinadoBox" class="hidden bg-emerald-50 border-2 border-emerald-200 p-6 rounded-2xl text-center"><p class="font-black text-emerald-800">Já assinado</p><p id="assinadoInfo" class="text-xs text-emerald-700 mt-2"></p></div>
-</div>
-</main>
-<script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
-const SB_KEY = "sb_publishable_haJ8eg8OciGN6cK8GGg3ig_bGOKUAud";
-const supabase = createClient(SB_URL, SB_KEY);
-function getToken(){ let t=new URLSearchParams(location.search).get('token'); if(!t){ const p=location.pathname.split('/').filter(Boolean); if(p.length>=2) t=p[1]; } return t; }
-async function load(){
-  const token=getToken(); document.getElementById('debug').textContent='Token:'+(token||'NENHUM'); if(!token){ document.getElementById('loading').innerHTML='Link inválido'; return; }
-  let { data } = await supabase.from('contracts').select('*').eq('public_token', token).single();
-  if(!data){ let { data:rpc } = await supabase.rpc('get_public_contract',{p_token:token}); if(rpc&&rpc.length) data=rpc[0]; }
-  if(!data){ document.getElementById('loading').innerHTML='Orçamento não encontrado'; return; }
-  document.getElementById('loading').classList.add('hidden'); document.getElementById('doc').classList.remove('hidden');
-  document.getElementById('titulo').textContent=data.client_name||'Orçamento'; document.getElementById('valor').textContent=data.total?`Valor: R$ ${data.total}`:''; document.getElementById('conteudo').textContent=data.content||data.description||''; document.getElementById('data').textContent=new Date(data.created_at).toLocaleString('pt-BR');
-  async function atualizar(s){ const nome=document.getElementById('nomeAssina').value, motivo=document.getElementById('motivo').value; document.getElementById('msg').textContent='Enviando...'; await supabase.from('contracts').update({status:s,signed_name:nome,rejection_reason:motivo}).eq('public_token',token); document.getElementById('msg').textContent='✅ '+s; setTimeout(()=>location.reload(),1000); }
-  document.getElementById('btnAssinar').onclick=()=>atualizar('Assinado'); document.getElementById('btnRejeitar').onclick=()=>atualizar('Rejeitado'); document.getElementById('btnContestar').onclick=()=>atualizar('Contestado');
-}
-load();
-</script>
-<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
-</html>
