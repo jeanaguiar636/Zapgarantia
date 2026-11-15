@@ -26,13 +26,10 @@
   #msg{text-align:center;font-size:14px;margin-top:10px;min-height:18px}
   .small{font-size:12px;color:#6b7280;text-align:center;line-height:1.5}
   #fotoOrcamento{width:100%;border-radius:12px;margin-top:10px;display:none}
-  /* Botão Ouvir - pisca quando está falando */
   #btnOuvir{background:#2563eb;color:#fff;font-size:16px;padding:15px}
   #btnOuvir.falando{animation:piscar 1s infinite;background:#1d4ed8}
   @keyframes piscar{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
-  /* Botão Baixar PDF - bem aparente */
   #btnPdf{background:#16a34a;color:#fff;font-size:17px;padding:16px}
-  /* Catálogo */
   .catalogo-titulo{font-size:16px;font-weight:800;color:#1d4ed8;margin:0 0 12px;text-transform:uppercase}
   .grade{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .prod{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
@@ -62,13 +59,11 @@
         <b>PROFISSIONAL EMITENTE</b>
         <p id="profissional">-</p>
       </div>
-
       <div class="box">
         <b>DADOS DO CLIENTE</b>
         <p>Cliente: <span id="cliente"></span></p>
         <p>Contato: <span id="clienteContato"></span></p>
       </div>
-
       <div class="box">
         <b>DETALHES DO ATENDIMENTO</b>
         <p>Serviço: <span id="servico"></span></p>
@@ -77,12 +72,10 @@
         <p>Data: <span id="dataCriacao"></span></p>
         <img id="fotoOrcamento" alt="Foto do serviço">
       </div>
-
       <div class="box">
         <b>ASSINATURA DO ORÇAMENTO (INÍCIO DO SERVIÇO)</b>
         <p id="statusTexto">Aguardando assinatura do cliente</p>
       </div>
-
       <p class="small">Documento emitido via ZapGarantia. A assinatura eletrônica registra o nome digitado, a data e a hora do aceite.</p>
     </div>
   </div>
@@ -129,6 +122,7 @@
   const token = params.get('token') || params.get('c');
   let contratoAtual = null;
   let falando = false;
+  let nomeProfissionalAtual = 'Jean Aguiar';
 
   function formatarValor(v) {
     if (v === null || v === undefined || v === '') return '';
@@ -136,12 +130,10 @@
     if (isNaN(num)) return String(v);
     return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
-
   function formatarData(d) {
     if (!d) return '';
     try { return new Date(d).toLocaleString('pt-BR'); } catch(e) { return String(d); }
   }
-
   function pararAudio() {
     try { window.speechSynthesis.cancel(); } catch(e) {}
     falando = false;
@@ -149,11 +141,10 @@
     b.classList.remove('falando');
     b.textContent = '🔊 Ouvir orçamento';
   }
-
   function ouvirOrcamento() {
     if (!contratoAtual) return;
     if (falando) { pararAudio(); return; }
-    const texto = 'Orçamento ZapGarantia. Profissional: ' + (contratoAtual.professional_name || '') + '. Cliente: ' + (contratoAtual.client_name || '') + '. Serviço: ' + (contratoAtual.service_desc || '') + '. Valor: ' + (contratoAtual.service_value || '') + '. Garantia: ' + (contratoAtual.guarantee_text || '') + '. Obrigado.';
+    const texto = 'Orçamento ZapGarantia. Profissional: ' + nomeProfissionalAtual + '. Cliente: ' + (contratoAtual.client_name || '') + '. Serviço: ' + (contratoAtual.service_desc || '') + '. Valor: ' + (contratoAtual.service_value || '') + '. Garantia: ' + (contratoAtual.guarantee_text || '') + '. Obrigado.';
     try { window.speechSynthesis.cancel(); } catch(e) {}
     const utter = new SpeechSynthesisUtterance(texto);
     utter.lang = 'pt-BR';
@@ -209,7 +200,14 @@
       contratoAtual = contrato;
       const codigoCurto = String(contrato.public_token || contrato.id || '').slice(0, 8);
       document.getElementById('codigo').textContent = '#' + (codigoCurto || '---');
-      document.getElementById('profissional').textContent = contrato.professional_name || contrato.profissional || '-';
+
+      // AQUI ESTÁ O CONSERTO DO NOME - se vier vazio do banco, mostra Jean Aguiar
+      let nomeProf = contrato.professional_name || contrato.profissional || contrato.professional || contrato.professionalName || '';
+      nomeProf = String(nomeProf).trim();
+      if (!nomeProf || nomeProf === '-') nomeProf = 'Jean Aguiar';
+      nomeProfissionalAtual = nomeProf;
+      document.getElementById('profissional').textContent = nomeProf;
+
       document.getElementById('cliente').textContent = contrato.client_name || contrato.cliente || '';
       document.getElementById('clienteContato').textContent = contrato.client_contact || contrato.cliente_contato || contrato.contato || contrato.telefone || '';
       document.getElementById('servico').textContent = contrato.service_desc || contrato.service || contrato.descricao || '';
@@ -279,7 +277,6 @@
   document.getElementById('btnImprimir').addEventListener('click', function(){ window.print(); });
   document.getElementById('btnPdf').addEventListener('click', function(){ window.print(); });
   document.getElementById('btnOuvir').addEventListener('click', ouvirOrcamento);
-
   carregar();
 </script>
 </body>
