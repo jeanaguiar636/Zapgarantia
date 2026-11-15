@@ -103,8 +103,8 @@
     auth: { persistSession: true, autoRefreshToken: true, storageKey: 'sb-gktfwlhvdnsezqcpjrpf-auth-token' }
   });
 
-  const token = new URLSearchParams(window.location.search).get('token');
-  let contratoAtual = null;
+  const params = new URLSearchParams(window.location.search);
+const token = params.get('token') || params.get('c');
 
   function formatarValor(v) {
     if (v === null || v === undefined || v === '') return '';
