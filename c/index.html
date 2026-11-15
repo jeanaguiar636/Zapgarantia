@@ -1,20 +1,233 @@
-const token = new URLSearchParams(location.search).get('token');
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orçamento - ZapGarantia</title>
+<style>
+  body{margin:0;font-family:Arial,sans-serif;background:#eef2f7;color:#1f2937}
+  header{background:#2563eb;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+  header .logo{font-size:20px;font-weight:800}
+  header .badge{background:#22c55e;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .wrap{max-width:620px;margin:0 auto;padding:14px}
+  .card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  h1{font-size:22px;text-align:center;margin:0 0 6px}
+  .codigo{text-align:center;color:#6b7280;margin:0 0 14px}
+  .box{background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:12px}
+  .box b{font-size:13px;letter-spacing:.3px}
+  .box p{margin:6px 0;font-size:15px}
+  label{display:block;font-size:13px;font-weight:700;margin:10px 0 4px}
+  input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:15px;box-sizing:border-box}
+  button{width:100%;padding:13px;border:0;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px}
+  .btn-assinar{background:#2563eb;color:#fff}
+  .btn-rejeitar{background:#fff;color:#dc2626;border:1px solid #fecaca}
+  .btn-contestar{background:#fff;color:#b45309;border:1px solid #fde68a}
+  .btn-sec{background:#f1f5f9;color:#111827}
+  #msg{text-align:center;font-size:14px;margin-top:10px;min-height:18px}
+  .small{font-size:12px;color:#6b7280;text-align:center;line-height:1.5}
+  .oferta{display:flex;gap:12px;align-items:center}
+  .oferta b{font-size:15px}
+  .oferta span{color:#2563eb;font-weight:800;font-size:18px}
+</style>
+</head>
+<body>
 
-if(!token){
-  document.body.innerHTML = '<p>Link inválido, sem token.</p>';
-  throw new Error('sem token');
-}
+<header>
+  <div class="logo">ZapGarantia</div>
+  <span class="badge">Resolva</span>
+</header>
 
-const { data, error } = await supabase.rpc('get_public_contract', { p_token: token });
+<div class="wrap">
+  <div class="card">
+    <h1>Orçamento e Termo de Serviço</h1>
+    <p class="codigo">Código: <span id="codigo">Carregando...</span></p>
+    <p id="loading" style="text-align:center">Carregando orçamento...</p>
+    <p id="erro" style="display:none;text-align:center;color:#dc2626"></p>
 
-if(error){
-  alert('Não achou o orçamento: ' + error.message);
-  throw error;
-}
+    <div id="conteudo" style="display:none">
+      <div class="box">
+        <b>PROFISSIONAL EMITENTE</b>
+        <p id="profissional">-</p>
+      </div>
 
-const contrato = Array.isArray(data) ? data[0] : data;
+      <div class="box">
+        <b>DADOS DO CLIENTE</b>
+        <p>Cliente: <span id="cliente"></span></p>
+        <p>Contato: <span id="clienteContato"></span></p>
+      </div>
 
-if(!contrato){
-  document.body.innerHTML = '<p>Orçamento não encontrado para esse link.</p>';
-  throw new Error('nao encontrado');
-}
+      <div class="box">
+        <b>DETALHES DO ATENDIMENTO</b>
+        <p>Serviço: <span id="servico"></span></p>
+        <p>Valor: <span id="valor"></span></p>
+        <p>Garantia: <span id="garantia"></span></p>
+        <p>Data: <span id="dataCriacao"></span></p>
+      </div>
+
+      <div class="box">
+        <b>ASSINATURA DO ORÇAMENTO (INÍCIO DO SERVIÇO)</b>
+        <p id="statusTexto">Aguardando assinatura do cliente</p>
+      </div>
+
+      <p class="small">Documento emitido via ZapGarantia. A assinatura eletrônica registra o nome digitado, a data e a hora do aceite.</p>
+    </div>
+  </div>
+
+  <div class="card" id="boxAssinar" style="display:none">
+    <h3 style="margin:0">Assinar documento</h3>
+    <label for="nomeAssina">Seu nome completo</label>
+    <input id="nomeAssina" type="text" placeholder="Digite seu nome completo" autocomplete="name">
+    <label for="motivo">Motivo (só se for rejeitar ou contestar)</label>
+    <input id="motivo" type="text" placeholder="Informe o motivo">
+    <button class="btn-assinar" id="btnAssinar">Assinar e aceitar</button>
+    <button class="btn-rejeitar" id="btnRejeitar">Rejeitar</button>
+    <button class="btn-contestar" id="btnContestar">Contestar</button>
+    <p id="msg"></p>
+  </div>
+
+  <div class="card" id="boxAssinado" style="display:none">
+    <h3 style="margin:0">Status do documento</h3>
+    <p id="assinadoInfo"></p>
+  </div>
+
+  <div class="card">
+    <button class="btn-sec" id="btnOuvir">Ouvir orçamento</button>
+    <button class="btn-sec" id="btnImprimir">Imprimir orçamento</button>
+  </div>
+
+  <div class="card">
+    <b style="color:#2563eb;font-size:13px">OFERTA ZAPGARANTIA</b>
+    <div class="oferta" style="margin-top:10px">
+      <div>
+        <b>Kit Básico Refrigeração Ar Condicionado C/ Bomba D...</b><br>
+        <span>R$ 659,73</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SB_URL = "https://gktfwlhvdnsezqcpjrpf.supabase.co";
+  const SB_KEY = "sb_publishable_haJ8eg8OciGN6cK8GGg3ig_bGOKUAud";
+  const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'sb-gktfwlhvdnsezqcpjrpf-auth-token' }
+  });
+
+  const token = new URLSearchParams(window.location.search).get('token');
+  let contratoAtual = null;
+
+  function formatarValor(v) {
+    if (v === null || v === undefined || v === '') return '';
+    const num = Number(String(v).replace('R$', '').replace(/\./g, '').replace(',', '.'));
+    if (isNaN(num)) return String(v);
+    return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatarData(d) {
+    if (!d) return '';
+    try { return new Date(d).toLocaleString('pt-BR'); } catch(e) { return String(d); }
+  }
+
+  async function carregar() {
+    const loadingEl = document.getElementById('loading');
+    const erroEl = document.getElementById('erro');
+    const conteudoEl = document.getElementById('conteudo');
+
+    if (!token) {
+      loadingEl.style.display = 'none';
+      erroEl.style.display = 'block';
+      erroEl.textContent = 'Link inválido, sem token. Peça um novo link para o profissional.';
+      document.getElementById('codigo').textContent = '---';
+      return;
+    }
+
+    try {
+      const res = await supabaseClient.rpc('get_public_contract', { p_token: token });
+      if (res.error) throw res.error;
+
+      const contrato = Array.isArray(res.data) ? res.data[0] : res.data;
+      if (!contrato) throw new Error('Orçamento não encontrado para esse link.');
+
+      contratoAtual = contrato;
+
+      const codigoCurto = String(contrato.public_token || contrato.id || '').slice(0, 8);
+      document.getElementById('codigo').textContent = '#' + (codigoCurto || '---');
+      document.getElementById('profissional').textContent = contrato.professional_name || contrato.profissional || '-';
+      document.getElementById('cliente').textContent = contrato.client_name || contrato.cliente || '';
+      document.getElementById('clienteContato').textContent = contrato.client_contact || contrato.cliente_contato || contrato.contato || contrato.telefone || '';
+      document.getElementById('servico').textContent = contrato.service_desc || contrato.service || contrato.descricao || '';
+      document.getElementById('valor').textContent = formatarValor(contrato.service_value || contrato.total || contrato.valor || '');
+      document.getElementById('garantia').textContent = contrato.guarantee_text || contrato.garantia || '';
+      document.getElementById('dataCriacao').textContent = formatarData(contrato.created_at);
+
+      const status = contrato.status_assinatura || contrato.status || 'Pendente';
+      const statusEl = document.getElementById('statusTexto');
+      const boxAssinar = document.getElementById('boxAssinar');
+      const boxAssinado = document.getElementById('boxAssinado');
+
+      loadingEl.style.display = 'none';
+      conteudoEl.style.display = 'block';
+
+      if (status === 'Assinado' || status === 'Rejeitado' || status === 'Contestado') {
+        statusEl.textContent = status + ' por ' + (contrato.signed_name || '') + ' em ' + formatarData(contrato.updated_at || contrato.created_at);
+        boxAssinar.style.display = 'none';
+        boxAssinado.style.display = 'block';
+        document.getElementById('assinadoInfo').textContent = status + ' por ' + (contrato.signed_name || '') + ' em ' + formatarData(contrato.updated_at || contrato.created_at) + (contrato.rejection_reason ? ' - Motivo: ' + contrato.rejection_reason : '');
+      } else {
+        statusEl.textContent = 'Aguardando assinatura do cliente';
+        boxAssinar.style.display = 'block';
+        boxAssinado.style.display = 'none';
+      }
+
+    } catch (e) {
+      loadingEl.style.display = 'none';
+      erroEl.style.display = 'block';
+      erroEl.textContent = 'Não foi possível abrir o orçamento: ' + e.message;
+      document.getElementById('codigo').textContent = '---';
+    }
+  }
+
+  async function enviarAssinatura(status) {
+    const nome = document.getElementById('nomeAssina').value.trim();
+    const motivo = document.getElementById('motivo').value.trim();
+    const msg = document.getElementById('msg');
+
+    if (!nome) { msg.textContent = 'Preencha seu nome completo'; return; }
+    if ((status === 'Rejeitado' || status === 'Contestado') && !motivo) {
+      msg.textContent = 'Para rejeitar ou contestar, informe o motivo';
+      return;
+    }
+
+    msg.textContent = 'Enviando...';
+    try {
+      const res = await supabaseClient.rpc('sign_public_contract', {
+        p_token: token,
+        p_name: nome,
+        p_status: status,
+        p_motivo: motivo
+      });
+      if (res.error) throw res.error;
+      msg.textContent = 'Pronto! ' + status;
+      setTimeout(function(){ location.reload(); }, 1000);
+    } catch (e) {
+      msg.textContent = 'Não foi possível assinar: ' + e.message;
+    }
+  }
+
+  document.getElementById('btnAssinar').addEventListener('click', function(){ enviarAssinatura('Assinado'); });
+  document.getElementById('btnRejeitar').addEventListener('click', function(){ enviarAssinatura('Rejeitado'); });
+  document.getElementById('btnContestar').addEventListener('click', function(){ enviarAssinatura('Contestado'); });
+  document.getElementById('btnImprimir').addEventListener('click', function(){ window.print(); });
+  document.getElementById('btnOuvir').addEventListener('click', function(){
+    if (!contratoAtual) return;
+    const texto = 'Orçamento ZapGarantia. Profissional: ' + (contratoAtual.professional_name || '') + '. Cliente: ' + (contratoAtual.client_name || '') + '. Serviço: ' + (contratoAtual.service_desc || '') + '. Valor: ' + (contratoAtual.service_value || '') + '. Garantia: ' + (contratoAtual.guarantee_text || '');
+    const utter = new SpeechSynthesisUtterance(texto);
+    utter.lang = 'pt-BR';
+    window.speechSynthesis.speak(utter);
+  });
+
+  carregar();
+</script>
+</body>
+</html>
