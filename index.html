@@ -92,7 +92,16 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+<script>
+  (function(){
+    var p = new URLSearchParams(window.location.search);
+    var c = p.get('c');
+    if(c && !window.location.pathname.includes('/c/')){
+      window.location.replace('/c/?token=' + c);
+    }
+  })();
+</script>
+    <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
     <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40 no-print">
         <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
