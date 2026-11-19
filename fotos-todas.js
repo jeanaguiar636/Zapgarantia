@@ -1,6 +1,7 @@
-// fotos-todas.js - ZapGarantia
-// Usa o MESMO campo de fotos que já existe. Não cria campo novo.
-// Faz TODAS as fotos irem para o link do cliente e para o PDF.
+// fotos-todas.js - V2 - ZapGarantia
+// Mesmo campo de fotos, sem criar campo novo.
+// Profissional: coleta TODAS as fotos do campo que já existe.
+// Cliente: mostra TODAS as fotos que estão no documento/orçamento.
 (function () {
   window.zgColetarTodasFotos = function () {
     var fotos = [];
@@ -48,5 +49,54 @@
     container.innerHTML = fotos.map(function (src, i) {
       return '<figure style="margin:0 0 12px 0"><img src="' + src + '" style="width:100%;border-radius:12px;display:block" alt="Foto do serviço ' + (i + 1) + '"><figcaption style="font-size:12px;color:#64748b;margin-top:4px">Foto ' + (i + 1) + ' de ' + fotos.length + ' - prova do serviço</figcaption></figure>';
     }).join('');
+    // esconde a foto única duplicada que fica fora da caixa
+    document.querySelectorAll('img').forEach(function (img) {
+      if (img.closest('#zgTodasFotos')) return;
+      if (fotos.indexOf(img.src) > -1 || fotos.indexOf(img.getAttribute('src')) > -1) {
+        img.style.display = 'none';
+      }
+    });
   };
+
+  window.zgCarregarFotosCliente = async function () {
+    try {
+      var params = new URLSearchParams(location.search);
+      var token = params.get('token') || params.get('c') || '';
+      if (!token) return;
+      var sb = window.supabase || window._supabase || window.sb;
+      if (!sb) return;
+      var res = await sb.from('contracts').select('*').eq('public_token', token).maybeSingle();
+      var contrato = res && res.data ? res.data : null;
+      if (!contrato) return;
+      var fotos = window.zgNormalizarFotos(contrato);
+      try {
+        var imgs = await sb.from('contract_images').select('*').eq('contract_id', contrato.id);
+        if (imgs && imgs.data) {
+          imgs.data.forEach(function (r) {
+            var u = r.image_url || r.url || r.foto || r.photo_url || '';
+            if (u && fotos.indexOf(u) === -1) fotos.push(u);
+          });
+        }
+      } catch (e) {}
+      var box = document.getElementById('zgTodasFotos');
+      if (!box) {
+        var single = document.querySelector('main img, #app img');
+        if (single && single.parentNode) {
+          box = document.createElement('div');
+          box.id = 'zgTodasFotos';
+          single.parentNode.insertBefore(box, single.nextSibling);
+        }
+      }
+      if (box) window.zgMostrarTodasFotos(fotos, box);
+    } catch (e) {}
+  };
+
+  function initCliente() {
+    if (location.pathname.indexOf('/c') === -1 && location.search.indexOf('token=') === -1 && location.search.indexOf('c=') === -1) return;
+    setTimeout(window.zgCarregarFotosCliente, 1000);
+    setTimeout(window.zgCarregarFotosCliente, 2500);
+    setTimeout(window.zgCarregarFotosCliente, 4000);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initCliente);
+  else initCliente();
 })();
