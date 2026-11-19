@@ -2381,5 +2381,13 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             if (location.hash.includes('type=recovery')) showRecovery(); else initApp();
         };
     </script>
+        <div style="margin-top:12px">
+  <label>Fotos do serviço - pode colocar várias (orçamento + entrega)</label>
+  <div id="listaFotos"></div>
+  <button type="button" onclick="criarCampoFoto('orcamento')" style="background:#fff;color:#2563eb;border:1px solid #bfdbfe">+ Adicionar outra foto</button>
+  <button type="button" onclick="criarCampoFoto('entrega')" style="background:#fff;color:#16a34a;border:1px solid #bbf7d0">+ Adicionar foto da entrega</button>
+  <p class="small">Cada foto vira prova do trabalho. Vai aparecer tudo no link do cliente e tudo no PDF.</p>
+</div>
+<script src="imagens.js"></script>
 </body>
 </html>
